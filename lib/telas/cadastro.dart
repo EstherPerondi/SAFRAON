@@ -12,7 +12,7 @@ class _CadastroState extends State<Cadastro> {
   @override
   final TextEditingController _nome = TextEditingController();
   final TextEditingController _email = TextEditingController();
-  final TextEditingController _estado = TextEditingController();
+  String? _estado;
   final TextEditingController _usuario = TextEditingController();
   final TextEditingController _senha = TextEditingController();
   final TextEditingController _confirmar = TextEditingController();
@@ -59,8 +59,9 @@ class _CadastroState extends State<Cadastro> {
 
               const SizedBox(height: 50),
 
-              TextFormField(
-                controller: _estado,
+              DropdownButtonFormField<String>(
+                value: _estado,
+                hint: const Text('Selecione seu estado.'),
                 decoration: InputDecoration(
                   labelText: 'Estado',
                   labelStyle: escritaForm,
@@ -74,6 +75,19 @@ class _CadastroState extends State<Cadastro> {
                   filled: true,
                   fillColor: bcCadastro,
                 ),
+                dropdownColor: bcCadastro,
+                
+                items: estados.map((String estado) {
+                  return DropdownMenuItem<String>(
+                    value: estado,
+                    child: Text(estado, style: TextStyle(color: Colors.white)),
+                  );
+                }).toList(),
+                onChanged: (String? novoEstado) {
+                  setState(() {
+                    _estado = novoEstado;
+                  });
+                },
                 validator: (_estado) {
                   if (_estado == null || _estado.isEmpty) {
                     return 'Insira estado onde estão localizadas suas fazendas';
@@ -153,7 +167,7 @@ class _CadastroState extends State<Cadastro> {
                   if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(_senha)) {
                     return 'Necessário caracrtere especial Ex:!@#%^&*(),.?":{}|<>';
                   }
-                  return 'null';
+                  return null;
                 },
               ),
               const SizedBox(height: 50),
@@ -192,7 +206,7 @@ class _CadastroState extends State<Cadastro> {
                     return 'As senhas não coincidem';
                   }
 
-                  return 'null';
+                  return null;
                 },
               ),
               const SizedBox(height: 50),
@@ -209,16 +223,15 @@ class _CadastroState extends State<Cadastro> {
                         ),
                       );
                     }
-                  }, 
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: bcCadastro,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                    )
+                    ),
                   ),
-                  child: Text('Cadastrar',
-                  style: tituloDaPg,),
+                  child: Text('Cadastrar', style: tituloDaPg),
                 ),
               ),
             ],
