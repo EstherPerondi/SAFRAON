@@ -9,7 +9,6 @@ class Cadastro extends StatefulWidget {
 }
 
 class _CadastroState extends State<Cadastro> {
-  @override
   final TextEditingController _nome = TextEditingController();
   final TextEditingController _email = TextEditingController();
   String? _estado;
@@ -22,13 +21,30 @@ class _CadastroState extends State<Cadastro> {
 
   final _formKey = GlobalKey<FormState>();
 
+  @override
+  void dispose() {
+    _nome.dispose();
+    _email.dispose();
+    _usuario.dispose();
+    _senha.dispose();
+    _confirmar.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return new Scaffold(
+    return Scaffold(
       backgroundColor: corDeFundo,
       appBar: AppBar(
         title: Text('Cadastro', style: tituloDaPg),
         backgroundColor: corDeFundo,
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context); // Voltar para tela de login
+          },
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -37,6 +53,7 @@ class _CadastroState extends State<Cadastro> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Campo Nome Completo
               TextFormField(
                 controller: _nome,
                 decoration: InputDecoration(
@@ -49,9 +66,12 @@ class _CadastroState extends State<Cadastro> {
                   filled: true,
                   fillColor: bcCadastro,
                 ),
-                validator: (_nome) {
-                  if (_nome == null || _nome.isEmpty) {
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
                     return 'Insira seu nome completo';
+                  }
+                  if (value.split(' ').length < 2) {
+                    return 'Insira seu nome e sobrenome';
                   }
                   return null;
                 },
@@ -59,6 +79,33 @@ class _CadastroState extends State<Cadastro> {
 
               const SizedBox(height: 50),
 
+              // Campo Usuário (adicionado)
+              TextFormField(
+                controller: _usuario,
+                decoration: InputDecoration(
+                  labelText: 'Usuário',
+                  labelStyle: escritaForm,
+                  prefixIcon: Icon(Icons.person_outline, color: corDeFundo),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: bcCadastro,
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Crie um nome de usuário';
+                  }
+                  if (value.length < 3) {
+                    return 'Usuário deve ter pelo menos 3 caracteres';
+                  }
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 50),
+
+              // Campo Estado
               DropdownButtonFormField<String>(
                 value: _estado,
                 hint: const Text('Selecione seu estado.'),
@@ -76,11 +123,13 @@ class _CadastroState extends State<Cadastro> {
                   fillColor: bcCadastro,
                 ),
                 dropdownColor: bcCadastro,
-                
                 items: estados.map((String estado) {
                   return DropdownMenuItem<String>(
                     value: estado,
-                    child: Text(estado, style: TextStyle(color: Colors.white)),
+                    child: Text(
+                      estado,
+                      style: const TextStyle(color: Colors.white),
+                    ),
                   );
                 }).toList(),
                 onChanged: (String? novoEstado) {
@@ -88,15 +137,17 @@ class _CadastroState extends State<Cadastro> {
                     _estado = novoEstado;
                   });
                 },
-                validator: (_estado) {
-                  if (_estado == null || _estado.isEmpty) {
-                    return 'Insira estado onde estão localizadas suas fazendas';
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Selecione o estado onde estão localizadas suas fazendas';
                   }
                   return null;
                 },
               ),
+
               const SizedBox(height: 50),
 
+              // Campo Email
               TextFormField(
                 controller: _email,
                 decoration: InputDecoration(
@@ -110,118 +161,134 @@ class _CadastroState extends State<Cadastro> {
                   fillColor: bcCadastro,
                 ),
                 keyboardType: TextInputType.emailAddress,
-                validator: (_email) {
-                  if (_email == null ||
-                      _email.isEmpty ||
-                      !_email.contains('@')) {
-                    return 'Insira seu email corretamente';
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Insira seu email';
+                  }
+                  final emailRegex = RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  );
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Insira um email válido';
                   }
                   return null;
                 },
               ),
+
               const SizedBox(height: 50),
 
+              // Campo Senha
               TextFormField(
                 controller: _senha,
                 decoration: InputDecoration(
                   labelText: 'Senha',
                   labelStyle: escritaForm,
-                  prefixIcon: Icon(Icons.key),
+                  prefixIcon: Icon(Icons.key, color: corDeFundo),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _senhaVisivel ? Icons.visibility : Icons.visibility_off,
                       color: corDeFundo,
                     ),
-
                     onPressed: () {
                       setState(() {
                         _senhaVisivel = !_senhaVisivel;
                       });
                     },
                   ),
-
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                   filled: true,
                   fillColor: bcCadastro,
                 ),
-
                 obscureText: !_senhaVisivel,
-                validator: (_senha) {
-                  if (_senha == null || _senha.isEmpty) {
-                    return 'Digite sua senha ';
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Digite sua senha';
                   }
-                  if (_senha.length < 6) {
+                  if (value.length < 6) {
                     return 'Mínimo de 6 caracteres';
                   }
-                  if (!RegExp(r'[A-Z]').hasMatch(_senha)) {
-                    return 'Necessário de letras maiúscula';
+                  if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                    return 'Necessário letra maiúscula';
                   }
-                  if (!RegExp(r'[a-z]').hasMatch(_senha)) {
-                    return 'Necessário de letra minúscula';
+                  if (!RegExp(r'[a-z]').hasMatch(value)) {
+                    return 'Necessário letra minúscula';
                   }
-                  if (!RegExp(r'[0-9]').hasMatch(_senha)) {
-                    return 'Necessário números';
+                  if (!RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'Necessário número';
                   }
-                  if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(_senha)) {
-                    return 'Necessário caracrtere especial Ex:!@#%^&*(),.?":{}|<>';
+                  if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                    return 'Necessário caractere especial Ex:!@#%^&*';
                   }
                   return null;
                 },
               ),
+
               const SizedBox(height: 50),
 
+              // Campo Confirmar Senha
               TextFormField(
                 controller: _confirmar,
                 decoration: InputDecoration(
                   labelText: 'Confirmar Senha',
                   labelStyle: escritaForm,
-                  prefixIcon: Icon(Icons.key),
+                  prefixIcon: Icon(Icons.key, color: corDeFundo),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _senhaVisivel ? Icons.visibility : Icons.visibility_off,
+                      _confirmarSenhaVisivel
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                       color: corDeFundo,
                     ),
-
                     onPressed: () {
                       setState(() {
                         _confirmarSenhaVisivel = !_confirmarSenhaVisivel;
                       });
                     },
                   ),
-
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                   filled: true,
                   fillColor: bcCadastro,
                 ),
-                obscureText: !_senhaVisivel,
-                validator: (_confirmar) {
-                  if (_confirmar == null || _confirmar.isEmpty) {
-                    return 'Digite sua senha para confirmar ';
+                obscureText: !_confirmarSenhaVisivel,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Digite sua senha para confirmar';
                   }
-                  if (_confirmar != _senha.text) {
+                  if (value != _senha.text) {
                     return 'As senhas não coincidem';
                   }
-
                   return null;
                 },
               ),
+
               const SizedBox(height: 50),
 
+              // Botão Cadastrar
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
+                      // Cadastro realizado com sucesso
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Cadastro Realizado com sucesso!'),
+                          content: Text('Cadastro realizado com sucesso!'),
+                          backgroundColor: Colors.green,
+                          duration: Duration(seconds: 2),
                         ),
                       );
+
+                      // Após 2 segundos, volta para a tela de login
+                      Future.delayed(const Duration(seconds: 2), () {
+                        if (mounted) {
+                          Navigator.pop(context);
+                        }
+                      });
                     }
                   },
                   style: ElevatedButton.styleFrom(

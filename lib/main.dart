@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:safraon/telas/cadastro.dart';
+import 'package:safraon/telas/login.dart';
 import 'package:safraon/variaveis.dart';
 
 void main() {
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: Cadastro(),
+      home: LoginPage(),
     );
   }
 }
