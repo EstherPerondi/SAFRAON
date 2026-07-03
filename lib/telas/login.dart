@@ -150,12 +150,12 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Text(
+                          Text(
                             'SafraOn',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 26,
-                              color: Color(0xFF0D4E19),
+                              color: VerdeEscuro,
                             ),
                           ),
                           const SizedBox(height: 26),
