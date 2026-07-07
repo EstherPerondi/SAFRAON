@@ -74,9 +74,9 @@ class _LoginPageState extends State<LoginPage> {
         // Login bem sucedido
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('Login realizado com sucesso!'),
-              backgroundColor: Colors.green,
+              backgroundColor: VerdeClaro,
               duration: Duration(seconds: 2),
             ),
           );
@@ -91,10 +91,10 @@ class _LoginPageState extends State<LoginPage> {
         // Login falhou
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Email ou senha inválidos!'),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 3),
+            SnackBar(
+              content: const Text('Email ou senha inválidos!'),
+              backgroundColor: Vermelho,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
@@ -127,7 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                color: Colors.white.withOpacity(0.95),
+                color: Bege.withOpacity(0.95),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
                     maxWidth: 500,
@@ -170,26 +170,26 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF458A0D),
+                                borderSide: BorderSide(
+                                  color: VerdeClaro,
                                   width: 2,
                                 ),
                               ),
                               errorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Colors.red,
+                                borderSide: BorderSide(
+                                  color: Vermelho,
                                   width: 1,
                                 ),
                               ),
                               focusedErrorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Colors.red,
+                                borderSide: BorderSide(
+                                  color: Vermelho,
                                   width: 2,
                                 ),
                               ),
-                              prefixIcon: const Icon(Icons.email),
+                              prefixIcon: Icon(Icons.email, color: VerdeEscuro), // CORRIGIDO
                             ),
                             validator: _validateEmail,
                           ),
@@ -206,31 +206,32 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF458A0D),
+                                borderSide: BorderSide(
+                                  color: VerdeClaro,
                                   width: 2,
                                 ),
                               ),
                               errorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Colors.red,
+                                borderSide: BorderSide(
+                                  color: Vermelho,
                                   width: 1,
                                 ),
                               ),
                               focusedErrorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Colors.red,
+                                borderSide: BorderSide(
+                                  color: Vermelho,
                                   width: 2,
                                 ),
                               ),
-                              prefixIcon: const Icon(Icons.lock),
+                              prefixIcon: Icon(Icons.lock, color: VerdeEscuro), // CORRIGIDO
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscureText
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: VerdeEscuro, // CORRIGIDO
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -248,27 +249,23 @@ class _LoginPageState extends State<LoginPage> {
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0D4E19),
+                                backgroundColor: VerdeEscuro,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
                               child: _isLoading
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       height: 20,
                                       width: 20,
                                       child: CircularProgressIndicator(
-                                        color: Colors.white,
+                                        color: Bege,
                                         strokeWidth: 2,
                                       ),
                                     )
-                                  : const Text(
+                                  : Text(
                                       'Login',
-                                      style: TextStyle(
-                                        color: Color(0xffE6DDBF),
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: textoBotao, // CORRIGIDO
                                     ),
                             ),
                           ),
@@ -287,7 +284,7 @@ class _LoginPageState extends State<LoginPage> {
                               );
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF0D4E19),
+                              foregroundColor: VerdeEscuro,
                             ),
                             child: const Text('Esqueceu a senha?'),
                           ),
@@ -304,7 +301,7 @@ class _LoginPageState extends State<LoginPage> {
                               );
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF0D4E19),
+                              foregroundColor: VerdeEscuro,
                             ),
                             child: const Text("Cadastrar-se"),
                           ),

@@ -79,7 +79,7 @@ class MenuCard extends StatelessWidget {
             width: desktop ? 170 : 100,
             height: desktop ? 170 : 100,
             decoration: BoxDecoration(
-              color: VerdeClar,
+              color: VerdeClaro,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Padding(
@@ -95,7 +95,7 @@ class MenuCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: desktop ? 22 : 18,
-              color: VerdeClar,
+              color: VerdeClaro,
               fontWeight: FontWeight.w500,
             ),
           ),

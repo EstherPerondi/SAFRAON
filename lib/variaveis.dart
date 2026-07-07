@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 Color Bege = Color(0xffE6DDBF);
-Color VerdeClar= Color(0xFF458A0D);
+Color VerdeClaro = Color(0xFF458A0D);
 Color VerdeEscuro = Color(0xFF0D4E19);
+Color Vermelho = Colors.red;
 
-TextStyle botaoCadastr= TextStyle(color: Bege);
+TextStyle escritaForm = TextStyle(color: Colors.red);
 
-TextStyle tituloBar = TextStyle(fontWeight: FontWeight.bold);
+TextStyle tituloDaPg = TextStyle(fontSize: 70, fontWeight: FontWeight.bold, color: VerdeEscuro);
+TextStyle textoBotao = TextStyle(fontSize: 14 + 2, fontWeight: FontWeight.bold, color: Bege);
 
 const List<String> estados = [
   'ACRE',

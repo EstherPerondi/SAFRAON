@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/telas/login.dart';
 import 'package:safraon/telas/principal.dart';
+import 'package:safraon/telas/talhao.dart';
 
 void main() {
   runApp(const MyApp());
