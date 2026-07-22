@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:safraon/aplicacoes.dart';
+import 'package:safraon/clima.dart';
+import 'package:safraon/colheita.dart';
+import 'package:safraon/precipitacao.dart';
+import 'package:safraon/telas/fazendas.dart';
 import 'package:safraon/telas/login.dart';
+import 'package:safraon/telas/manejo.dart';
+import 'package:safraon/telas/plantio.dart';
 import 'package:safraon/telas/principal.dart';
 import 'package:safraon/telas/talhao.dart';
+import 'package:safraon/telas/talhoes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,7 +42,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: TalhoesPage(),
+      home: ClimaPage(),
     );
   }
 }

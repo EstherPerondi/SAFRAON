@@ -62,6 +62,15 @@ flutter:
   assets:
     - Imagens/imagem_cadastro.png
     - Imagens/logo.png
+    - Imagens/cadastro.png
+    - Imagens/ICONE_CARACTERISTICAS_CLIMATICAS.png
+    - Imagens/ICONE_CHUVA.png
+    - Imagens/ICONE_COLHEITA.png
+    - Imagens/ICONE_DEFENSIVO.png
+    - Imagens/ICONE_FAZENDAS.png
+    - Imagens/ICONE_MANEJO.png
+    - Imagens/ICONE_PLANTIO.png
+    - Imagens/ICONE_TALHAO.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
