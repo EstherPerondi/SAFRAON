@@ -24,30 +24,35 @@ class MyApp extends StatelessWidget {
 class TalhaoPage extends StatelessWidget {
   const TalhaoPage({super.key});
 
+  // Cores personalizadas
+  static const Color begeClaro = Color(0xFFE6DDBF);
+  static const Color verdeClaro = Color(0xFF458A0D);
+  static const Color verdeEscuro = Color(0xFF0D4E19);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: begeClaro),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
+        title: Text(
           'Talhão 1',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 22,
+            color: begeClaro,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
+        backgroundColor: verdeEscuro,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert, color: begeClaro),
             onPressed: () {
               _showOptionsMenu(context);
             },
@@ -56,14 +61,7 @@ class TalhaoPage extends StatelessWidget {
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.green.shade50,
-              Colors.white,
-            ],
-          ),
+            color: Colors.lightGreen[200],
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -73,13 +71,23 @@ class TalhaoPage extends StatelessWidget {
               const SizedBox(height: 8),
               _buildHeaderInfo(),
               const SizedBox(height: 24),
-              const Text(
-                'Módulos',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.green,
-                ),
+              Row(
+                children: [
+                  Icon(
+                    Icons.grid_view,
+                    size: 20,
+                    color: verdeEscuro,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Módulos',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: verdeEscuro,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               Expanded(
@@ -89,31 +97,31 @@ class TalhaoPage extends StatelessWidget {
                       icon: Icons.grass,
                       title: 'Plantio',
                       subtitle: 'Gerenciar plantio',
-                      color: Colors.green,
+                      color: verdeClaro,
                     ),
                     _buildModuleCard(
                       icon: Icons.build,
                       title: 'Manejos',
                       subtitle: 'Práticas de manejo',
-                      color: Colors.blue,
+                      color: verdeClaro,
                     ),
                     _buildModuleCard(
                       icon: Icons.spa,
                       title: 'Aplicações',
                       subtitle: 'Insumos e defensivos',
-                      color: Colors.orange,
+                      color: verdeClaro,
                     ),
                     _buildModuleCard(
                       icon: Icons.agriculture,
                       title: 'Colheita',
                       subtitle: 'Planejamento e execução',
-                      color: Colors.purple,
+                      color: verdeClaro,
                     ),
                     _buildModuleCard(
                       icon: Icons.water_drop,
                       title: 'Precipitações',
                       subtitle: 'Histórico de chuvas',
-                      color: Colors.cyan,
+                      color: verdeClaro,
                     ),
                   ],
                 ),
@@ -131,15 +139,15 @@ class TalhaoPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.orange[50],
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
+          // BoxShadow(
+          //   color: Colors.orange[50],
+          //   spreadRadius: 2,
+          //   blurRadius: 8,
+          //   offset: const Offset(0, 4),
+          // ),
         ],
       ),
       child: Row(
@@ -147,12 +155,12 @@ class TalhaoPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green.shade100,
+              color: Colors.lightGreen[200],
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               Icons.terrain,
-              color: Colors.green.shade700,
+              color: verdeEscuro,
               size: 32,
             ),
           ),
@@ -166,6 +174,7 @@ class TalhaoPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: verdeEscuro,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -174,7 +183,7 @@ class TalhaoPage extends StatelessWidget {
                     Icon(
                       Icons.location_on,
                       size: 14,
-                      color: Colors.grey.shade600,
+                      color: verdeClaro,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -192,7 +201,7 @@ class TalhaoPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.green.shade100,
+              color: Colors.orange[50],
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -201,7 +210,7 @@ class TalhaoPage extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: Colors.green,
+                    color: verdeClaro,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -211,7 +220,7 @@ class TalhaoPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.green.shade700,
+                    color: verdeEscuro,
                   ),
                 ),
               ],
@@ -238,20 +247,21 @@ class TalhaoPage extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: Colors.green[100],
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             icon,
-            color: color,
+            color: verdeEscuro,
             size: 24,
           ),
         ),
         title: Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
+            color: verdeEscuro,
           ),
         ),
         subtitle: Text(
@@ -264,7 +274,7 @@ class TalhaoPage extends StatelessWidget {
         trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16,
-          color: Colors.grey.shade400,
+          color: verdeClaro,
         ),
         onTap: () {
           // Navigate to module details
@@ -277,7 +287,7 @@ class TalhaoPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.orange[50],
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -307,7 +317,7 @@ class TalhaoPage extends StatelessWidget {
         Icon(
           icon,
           size: 20,
-          color: Colors.green.shade700,
+          color: verdeEscuro,
         ),
         const SizedBox(height: 4),
         Text(
@@ -327,9 +337,10 @@ class TalhaoPage extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
+            color: verdeClaro,
           ),
         ),
       ],
@@ -340,7 +351,7 @@ class TalhaoPage extends StatelessWidget {
     return Container(
       width: 1,
       height: 40,
-      color: Colors.grey.shade300,
+      color: begeClaro,
     );
   }
 
@@ -357,29 +368,29 @@ class TalhaoPage extends StatelessWidget {
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Editar Talhão'),
+                leading: Icon(Icons.edit, color: verdeEscuro),
+                title: Text('Editar Talhão', style: TextStyle(color: verdeEscuro)),
                 onTap: () {
                   Navigator.pop(context);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.share),
-                title: const Text('Compartilhar'),
+                leading: Icon(Icons.share, color: verdeEscuro),
+                title: Text('Compartilhar', style: TextStyle(color: verdeEscuro)),
                 onTap: () {
                   Navigator.pop(context);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.history),
-                title: const Text('Histórico'),
+                leading: Icon(Icons.history, color: verdeEscuro),
+                title: Text('Histórico', style: TextStyle(color: verdeEscuro)),
                 onTap: () {
                   Navigator.pop(context);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('Excluir'),
+                leading: Icon(Icons.delete_outline, color: Colors.red.shade700),
+                title: Text('Excluir', style: TextStyle(color: Colors.red.shade700)),
                 onTap: () {
                   Navigator.pop(context);
                 },
