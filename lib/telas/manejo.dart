@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safraon/variaveis.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +13,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Manejo',
       theme: ThemeData(
-        primarySwatch: Colors.green,
         useMaterial3: true,
       ),
       home: const ManejoPage(),
@@ -24,36 +24,28 @@ class MyApp extends StatelessWidget {
 // MODELO DE DADOS
 class ManagementItem {
   final String id;
-  final String code;
   final String type;
   final String date;
   final String reason;
-  final int priority;
 
   ManagementItem({
     required this.id,
-    required this.code,
     required this.type,
     required this.date,
     required this.reason,
-    required this.priority,
   });
 
   ManagementItem copyWith({
     String? id,
-    String? code,
     String? type,
     String? date,
     String? reason,
-    int? priority,
   }) {
     return ManagementItem(
       id: id ?? this.id,
-      code: code ?? this.code,
       type: type ?? this.type,
       date: date ?? this.date,
       reason: reason ?? this.reason,
-      priority: priority ?? this.priority,
     );
   }
 }
@@ -70,27 +62,21 @@ class _ManejoPageState extends State<ManejoPage> {
   List<ManagementItem> managements = [
     ManagementItem(
       id: '1',
-      code: 'M001',
       type: 'Correção de solo',
       date: '12/08/25',
       reason: 'Solo com baixo pH',
-      priority: 5,
     ),
     ManagementItem(
       id: '2',
-      code: 'M002',
       type: 'Subsolação',
       date: '15/01/26',
       reason: 'Compactação do solo',
-      priority: 3,
     ),
     ManagementItem(
       id: '3',
-      code: 'M003',
       type: 'Calagem',
       date: '20/02/26',
       reason: 'Neutralizar acidez',
-      priority: 4,
     ),
   ];
 
@@ -106,8 +92,8 @@ class _ManejoPageState extends State<ManejoPage> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
+        backgroundColor: VerdeEscuro,
+        foregroundColor: Bege,
         elevation: 0,
         actions: [
           IconButton(
@@ -118,14 +104,7 @@ class _ManejoPageState extends State<ManejoPage> {
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.green.shade50,
-              Colors.white,
-            ],
-          ),
+          color: Bege
         ),
         child: Column(
           children: [
@@ -144,8 +123,8 @@ class _ManejoPageState extends State<ManejoPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showManagementForm(context, null),
-        backgroundColor: Colors.green.shade700,
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
+        backgroundColor: VerdeEscuro,
+        child: Icon(Icons.add, color: Bege, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -156,7 +135,7 @@ class _ManejoPageState extends State<ManejoPage> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: BegeClaro,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -174,12 +153,7 @@ class _ManejoPageState extends State<ManejoPage> {
             Icons.build,
             'Total',
             '${managements.length}',
-          ),
-          _buildStatItem(
-            Icons.priority_high,
-            'Prioridade',
-            'Média',
-          ),
+        ),
           _buildStatItem(
             Icons.calendar_today,
             'Último',
@@ -193,7 +167,7 @@ class _ManejoPageState extends State<ManejoPage> {
   Widget _buildStatItem(IconData icon, String label, String value) {
     return Column(
       children: [
-        Icon(icon, color: Colors.green.shade700, size: 24),
+        Icon(icon, color: VerdeClaro, size: 24),
         const SizedBox(height: 4),
         Text(
           label,
@@ -224,14 +198,7 @@ class _ManejoPageState extends State<ManejoPage> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.green.shade50,
-              Colors.white,
-            ],
-          ),
+          color: VerdeClaro.withOpacity(0.5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,12 +212,12 @@ class _ManejoPageState extends State<ManejoPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _getPriorityColor(management.priority).withOpacity(0.2),
+                          color: Colors.green[50],
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           Icons.build,
-                          color: _getPriorityColor(management.priority),
+                          color: VerdeEscuro,
                           size: 20,
                         ),
                       ),
@@ -267,33 +234,6 @@ class _ManejoPageState extends State<ManejoPage> {
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
-                            Row(
-                              children: [
-                                Text(
-                                  'Código: ${management.code}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: _getPriorityColor(management.priority).withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    'Prioridade ${management.priority}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: _getPriorityColor(management.priority),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
@@ -305,7 +245,7 @@ class _ManejoPageState extends State<ManejoPage> {
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
                       onPressed: () => _showManagementForm(context, management),
-                      color: Colors.blue.shade600,
+                      color: VerdeClaro,
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
@@ -343,20 +283,11 @@ class _ManejoPageState extends State<ManejoPage> {
     );
   }
 
-  Color _getPriorityColor(int priority) {
-    if (priority >= 4) {
-      return Colors.red.shade700;
-    } else if (priority >= 3) {
-      return Colors.orange.shade700;
-    } else {
-      return Colors.green.shade700;
-    }
-  }
 
   Widget _buildInfoRow(IconData icon, String value, String label) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey.shade600),
+        Icon(icon, size: 16, color: VerdeEscuro),
         const SizedBox(width: 4),
         Expanded(
           child: Column(
@@ -374,7 +305,7 @@ class _ManejoPageState extends State<ManejoPage> {
                 label,
                 style: TextStyle(
                   fontSize: 10,
-                  color: Colors.grey.shade500,
+                  color: BegeClaro,
                 ),
               ),
             ],
@@ -455,11 +386,9 @@ class ManagementFormModal extends StatefulWidget {
 
 class _ManagementFormModalState extends State<ManagementFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _codeController;
   late TextEditingController _typeController;
   late TextEditingController _dateController;
   late TextEditingController _reasonController;
-  int _priority = 3;
 
   bool _isEditing = false;
 
@@ -467,16 +396,13 @@ class _ManagementFormModalState extends State<ManagementFormModal> {
   void initState() {
     super.initState();
     _isEditing = widget.management != null;
-    _codeController = TextEditingController(text: widget.management?.code ?? '');
     _typeController = TextEditingController(text: widget.management?.type ?? '');
     _dateController = TextEditingController(text: widget.management?.date ?? '');
     _reasonController = TextEditingController(text: widget.management?.reason ?? '');
-    _priority = widget.management?.priority ?? 3;
   }
 
   @override
   void dispose() {
-    _codeController.dispose();
     _typeController.dispose();
     _dateController.dispose();
     _reasonController.dispose();
@@ -488,7 +414,7 @@ class _ManagementFormModalState extends State<ManagementFormModal> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
-        color: Colors.green.shade50,
+        color: Colors.green[50],
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         boxShadow: [
           BoxShadow(
@@ -516,7 +442,7 @@ class _ManagementFormModalState extends State<ManagementFormModal> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.green.shade700,
+              color: VerdeEscuro,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
             ),
             child: Row(
@@ -524,14 +450,14 @@ class _ManagementFormModalState extends State<ManagementFormModal> {
               children: [
                 Text(
                   _isEditing ? 'Editar Manejo' : 'Novo Manejo',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Bege,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: Icon(Icons.close, color: Bege),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -547,13 +473,6 @@ class _ManagementFormModalState extends State<ManagementFormModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildFormField(
-                      label: 'Código',
-                      controller: _codeController,
-                      icon: Icons.code,
-                      hint: 'Ex: M001',
-                    ),
-                    const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Tipo de manejo',
                       controller: _typeController,
@@ -576,103 +495,14 @@ class _ManagementFormModalState extends State<ManagementFormModal> {
                     ),
                     const SizedBox(height: 16),
                     
-                    // Prioridade
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.priority_high, color: Colors.green.shade700),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Prioridade',
-                                style: TextStyle(
-                                  color: Colors.green.shade700,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Slider(
-                                  value: _priority.toDouble(),
-                                  min: 1,
-                                  max: 5,
-                                  divisions: 4,
-                                  label: 'Prioridade $_priority',
-                                  activeColor: _getPriorityColor(_priority),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _priority = value.round();
-                                    });
-                                  },
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _getPriorityColor(_priority).withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '$_priority',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: _getPriorityColor(_priority),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Baixa',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
-                              Text(
-                                'Alta',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    
                     // Botão Salvar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _saveManagement,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade700,
-                          foregroundColor: Colors.white,
+                          backgroundColor: VerdeEscuro,
+                          foregroundColor: Bege,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -722,11 +552,11 @@ class _ManagementFormModalState extends State<ManagementFormModal> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
-            color: Colors.green.shade700,
+            color: VerdeClaro,
             fontWeight: FontWeight.w600,
           ),
           hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.green.shade700),
+          prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -745,25 +575,13 @@ class _ManagementFormModalState extends State<ManagementFormModal> {
     );
   }
 
-  Color _getPriorityColor(int priority) {
-    if (priority >= 4) {
-      return Colors.red.shade700;
-    } else if (priority >= 3) {
-      return Colors.orange.shade700;
-    } else {
-      return Colors.green.shade700;
-    }
-  }
-
   void _saveManagement() {
     if (_formKey.currentState!.validate()) {
       final newManagement = ManagementItem(
         id: widget.management?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        code: _codeController.text,
         type: _typeController.text,
         date: _dateController.text,
         reason: _reasonController.text,
-        priority: _priority,
       );
       
       widget.onSave(newManagement);
@@ -774,7 +592,7 @@ class _ManagementFormModalState extends State<ManagementFormModal> {
           content: Text(
             _isEditing ? 'Manejo atualizado com sucesso!' : 'Manejo criado com sucesso!',
           ),
-          backgroundColor: Colors.green.shade700,
+          backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),
         ),
       );

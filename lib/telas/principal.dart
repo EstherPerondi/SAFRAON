@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class PrincipalPage extends StatelessWidget {
+  const PrincipalPage({super.key});
   @override
   Widget build(BuildContext context) {
     final itens = [
@@ -79,7 +79,7 @@ class MenuCard extends StatelessWidget {
             width: desktop ? 170 : 100,
             height: desktop ? 170 : 100,
             decoration: BoxDecoration(
-              color: VerdeClaro,
+              color: VerdeEscuro,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Padding(

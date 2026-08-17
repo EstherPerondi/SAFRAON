@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:safraon/telas/talhao.dart';
+import 'package:safraon/variaveis.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Características Climáticas',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        // primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
       home: const ClimaPage(),
@@ -42,8 +44,8 @@ class ClimaPage extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
+        backgroundColor: VerdeEscuro,
+        foregroundColor: Bege,
         elevation: 0,
         actions: [
           IconButton(
@@ -54,14 +56,7 @@ class ClimaPage extends StatelessWidget {
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade50,
-              Colors.white,
-            ],
-          ),
+          color: Bege
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -87,7 +82,7 @@ class ClimaPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: BegeClaro,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -103,12 +98,12 @@ class ClimaPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.blue.shade100,
+              color: Colors.green[50],
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               Icons.wb_sunny,
-              color: Colors.blue.shade700,
+              color: VerdeEscuro,
               size: 28,
             ),
           ),
@@ -128,7 +123,7 @@ class ClimaPage extends StatelessWidget {
                   Icon(
                     Icons.location_on,
                     size: 14,
-                    color: Colors.grey.shade600,
+                    color: VerdeEscuro,
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -148,24 +143,24 @@ class ClimaPage extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.blue.shade700,
-                  Colors.blue.shade500,
+                  VerdeEscuro,
+                  VerdeClaro,
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(
                   Icons.wifi,
-                  color: Colors.white,
+                  color: BegeClaro,
                   size: 14,
                 ),
                 SizedBox(width: 4),
                 Text(
                   'Online',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: BegeClaro,
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                   ),
@@ -182,7 +177,7 @@ class ClimaPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: BegeClaro,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -196,12 +191,12 @@ class ClimaPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Dados Atuais',
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.blue,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: VerdeClaro,
             ),
           ),
           const SizedBox(height: 16),
@@ -213,16 +208,17 @@ class ClimaPage extends StatelessWidget {
                   label: 'Temperatura',
                   value: '23',
                   unit: '°C',
-                  color: Colors.orange,
+                  color: VerdeClaro,
                 ),
               ),
+              const SizedBox(width: 16),
               Expanded(
                 child: _buildMetricItem(
                   icon: Icons.water_drop,
                   label: 'Umidade',
                   value: '76',
                   unit: '%',
-                  color: Colors.blue,
+                  color: VerdeClaro,
                 ),
               ),
             ],
@@ -236,16 +232,17 @@ class ClimaPage extends StatelessWidget {
                   label: 'Vento',
                   value: '3.2',
                   unit: 'm/s',
-                  color: Colors.green,
+                  color: VerdeClaro,
                 ),
               ),
+              const SizedBox(width: 16),
               Expanded(
                 child: _buildMetricItem(
                   icon: Icons.umbrella,
                   label: 'Precipitação',
                   value: '12',
                   unit: 'mm',
-                  color: Colors.purple,
+                  color: VerdeClaro,
                 ),
               ),
             ],
@@ -321,7 +318,7 @@ class ClimaPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: BegeClaro,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -342,16 +339,16 @@ class ClimaPage extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.graphic_eq,
-                    color: Colors.blue.shade700,
-                    size: 20,
+                    color: VerdeClaro,
+                    size: 25,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'Precipitação acumulada',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.blue,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: VerdeClaro,
                     ),
                   ),
                 ],
@@ -359,15 +356,15 @@ class ClimaPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
+                  color: VerdeClaro,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'Últimos 7 dias',
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.blue.shade700,
+                    fontWeight: FontWeight.w600,
+                    color: BegeClaro,
                   ),
                 ),
               ),
@@ -417,8 +414,8 @@ class ClimaPage extends StatelessWidget {
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      isToday ? Colors.blue.shade700 : Colors.blue.shade300,
-                      isToday ? Colors.blue.shade500 : Colors.blue.shade200,
+                      isToday ? VerdeEscuro : VerdeEscuro,
+                      isToday ? VerdeClaro : Colors.lightGreen.shade600,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(4),
@@ -429,7 +426,7 @@ class ClimaPage extends StatelessWidget {
                           mm.toStringAsFixed(0),
                           style: TextStyle(
                             fontSize: 10,
-                            color: isToday ? Colors.white : Colors.grey.shade700,
+                            color: isToday ? BegeClaro : Bege,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -443,7 +440,7 @@ class ClimaPage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           decoration: BoxDecoration(
-            color: isToday ? Colors.blue.shade700 : Colors.transparent,
+            color: isToday ? VerdeEscuro : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
@@ -451,7 +448,7 @@ class ClimaPage extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-              color: isToday ? Colors.white : Colors.grey.shade600,
+              color: isToday ? BegeClaro : Colors.grey.shade700,
             ),
           ),
         ),
@@ -460,7 +457,7 @@ class ClimaPage extends StatelessWidget {
             width: 4,
             height: 2,
             margin: const EdgeInsets.only(top: 2),
-            color: Colors.blue.shade700,
+            color: VerdeEscuro,
           ),
       ],
     );
@@ -470,7 +467,7 @@ class ClimaPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: BegeClaro,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -488,16 +485,16 @@ class ClimaPage extends StatelessWidget {
             children: [
               Icon(
                 Icons.calendar_month,
-                color: Colors.blue.shade700,
-                size: 20,
+                color: VerdeClaro,
+                size: 25,
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Previsão para os próximos dias',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blue,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: VerdeClaro,
                 ),
               ),
             ],
@@ -511,31 +508,31 @@ class ClimaPage extends StatelessWidget {
                   day: 'Quinta',
                   temp: 23,
                   icon: Icons.wb_sunny,
-                  color: Colors.orange,
+                  color: VerdeEscuro,
                 ),
                 _buildForecastItem(
                   day: 'Sexta',
                   temp: 21,
                   icon: Icons.cloud,
-                  color: Colors.grey,
+                  color: VerdeEscuro,
                 ),
                 _buildForecastItem(
                   day: 'Sábado',
                   temp: 19,
                   icon: Icons.water_drop,
-                  color: Colors.blue,
+                  color: VerdeEscuro,
                 ),
                 _buildForecastItem(
                   day: 'Domingo',
                   temp: 22,
                   icon: Icons.wb_sunny,
-                  color: Colors.orange,
+                  color: VerdeEscuro,
                 ),
                 _buildForecastItem(
                   day: 'Segunda',
                   temp: 20,
                   icon: Icons.cloud,
-                  color: Colors.grey,
+                  color: VerdeEscuro,
                 ),
               ],
             ),
