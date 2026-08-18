@@ -378,26 +378,38 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
     }
   }
 
+  // MÉTODO MODIFICADO - Agora usando showDialog com Dialog centralizado
   void _showPrecipitationForm(BuildContext context, PrecipitationItem? precipitation) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      barrierDismissible: true,
       builder: (BuildContext context) {
-        return PrecipitationFormModal(
-          precipitation: precipitation,
-          onSave: (newPrecipitation) {
-            setState(() {
-              if (precipitation == null) {
-                precipitations.add(newPrecipitation);
-              } else {
-                final index = precipitations.indexWhere((p) => p.id == precipitation.id);
-                if (index != -1) {
-                  precipitations[index] = newPrecipitation;
-                }
-              }
-            });
-          },
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 8,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: PrecipitationFormModal(
+              precipitation: precipitation,
+              onSave: (newPrecipitation) {
+                setState(() {
+                  if (precipitation == null) {
+                    precipitations.add(newPrecipitation);
+                  } else {
+                    final index = precipitations.indexWhere((p) => p.id == precipitation.id);
+                    if (index != -1) {
+                      precipitations[index] = newPrecipitation;
+                    }
+                  }
+                });
+              },
+            ),
+          ),
         );
       },
     );
@@ -432,7 +444,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - PRECIPITAÇÕES
+// MODAL DE FORMULÁRIO - PRECIPITAÇÕES (MODIFICADO PARA DIÁLOGO)
 class PrecipitationFormModal extends StatefulWidget {
   final PrecipitationItem? precipitation;
   final Function(PrecipitationItem) onSave;
@@ -480,38 +492,26 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
         color: Colors.green[50],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
             blurRadius: 20,
-            offset: const Offset(0, -4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade400,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
           // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
               color: VerdeEscuro,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -533,13 +533,14 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
           ),
           
           // Form
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFormField(
                       label: 'Milímetros',
@@ -570,7 +571,7 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
                       hint: 'Observações adicionais',
                       maxLines: 3,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     
                     // Botão Salvar
                     SizedBox(
@@ -595,7 +596,7 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),

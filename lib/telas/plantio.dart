@@ -266,26 +266,38 @@ class _PlantioPageState extends State<PlantioPage> {
     );
   }
 
+  // MÉTODO MODIFICADO - Agora usando showDialog com Dialog centralizado
   void _showPlantingForm(BuildContext context, PlantingItem? planting) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      barrierDismissible: true,
       builder: (BuildContext context) {
-        return PlantingFormModal(
-          planting: planting,
-          onSave: (newPlanting) {
-            setState(() {
-              if (planting == null) {
-                plantings.add(newPlanting);
-              } else {
-                final index = plantings.indexWhere((p) => p.id == planting.id);
-                if (index != -1) {
-                  plantings[index] = newPlanting;
-                }
-              }
-            });
-          },
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 8,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: PlantingFormModal(
+              planting: planting,
+              onSave: (newPlanting) {
+                setState(() {
+                  if (planting == null) {
+                    plantings.add(newPlanting);
+                  } else {
+                    final index = plantings.indexWhere((p) => p.id == planting.id);
+                    if (index != -1) {
+                      plantings[index] = newPlanting;
+                    }
+                  }
+                });
+              },
+            ),
+          ),
         );
       },
     );
@@ -361,7 +373,7 @@ class PlantingItem {
   }
 }
 
-// MODAL DE FORMULÁRIO (TELA VERDE)
+// MODAL DE FORMULÁRIO (MODIFICADO PARA DIÁLOGO)
 class PlantingFormModal extends StatefulWidget {
   final PlantingItem? planting;
   final Function(PlantingItem) onSave;
@@ -413,38 +425,26 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
         color: Colors.green[50],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
             blurRadius: 20,
-            offset: const Offset(0, -4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade400,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
           // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
               color: VerdeEscuro,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -466,13 +466,14 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
           ),
           
           // Form
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFormField(
                       label: 'Planta de Cultivo',
@@ -515,7 +516,7 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
                       icon: Icons.grain,
                       hint: 'Ex: 2.500 kg',
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     
                     // Botão Salvar
                     SizedBox(
@@ -540,7 +541,7 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
