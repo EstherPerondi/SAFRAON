@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:safraon/telas/talhao.dart';
+import 'package:safraon/variaveis.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +14,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Plantio',
       theme: ThemeData(
-        primarySwatch: Colors.green,
         useMaterial3: true,
       ),
       home: const PlantioPage(),
@@ -63,8 +64,8 @@ class _PlantioPageState extends State<PlantioPage> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
+        backgroundColor: VerdeEscuro,
+        foregroundColor: Bege,
         elevation: 0,
         actions: [
           IconButton(
@@ -75,14 +76,7 @@ class _PlantioPageState extends State<PlantioPage> {
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.green.shade50,
-              Colors.white,
-            ],
-          ),
+          color: Bege
         ),
         child: Column(
           children: [
@@ -104,8 +98,8 @@ class _PlantioPageState extends State<PlantioPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showPlantingForm(context, null),
-        backgroundColor: Colors.green.shade700,
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
+        backgroundColor: VerdeEscuro,
+        child: Icon(Icons.add, color: Bege, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -116,7 +110,7 @@ class _PlantioPageState extends State<PlantioPage> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: BegeClaro,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -141,7 +135,7 @@ class _PlantioPageState extends State<PlantioPage> {
   Widget _buildStatItem(IconData icon, String label, String value) {
     return Column(
       children: [
-        Icon(icon, color: Colors.green.shade700, size: 24),
+        Icon(icon, color: VerdeClaro, size: 24),
         const SizedBox(height: 4),
         Text(
           label,
@@ -172,14 +166,7 @@ class _PlantioPageState extends State<PlantioPage> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.green.shade50,
-              Colors.white,
-            ],
-          ),
+          color: VerdeClaro.withOpacity(0.5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,12 +179,12 @@ class _PlantioPageState extends State<PlantioPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.green.shade100,
+                        color: Colors.green[50],
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         planting.crop == 'Soja' ? Icons.eco : Icons.grass,
-                        color: Colors.green.shade700,
+                        color: VerdeEscuro,
                         size: 20,
                       ),
                     ),
@@ -216,7 +203,7 @@ class _PlantioPageState extends State<PlantioPage> {
                           'Data: ${planting.date}',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey.shade600,
+                            color: BegeClaro,
                           ),
                         ),
                       ],
@@ -228,7 +215,7 @@ class _PlantioPageState extends State<PlantioPage> {
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
                       onPressed: () => _showPlantingForm(context, planting),
-                      color: Colors.blue.shade600,
+                      color: VerdeClaro,
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
@@ -260,49 +247,57 @@ class _PlantioPageState extends State<PlantioPage> {
 
   Widget _buildChip(IconData icon, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300, width: 0.5),
-      ),
-      child: Row(
+      child: 
+      Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.green.shade700),
+          Icon(icon, size: 16, color: VerdeEscuro),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade800,
+              fontSize: 14,
+              color: BegeClaro,
             ),
           ),
+          const SizedBox(width: 15)
         ],
       ),
     );
   }
 
+  // MÉTODO MODIFICADO - Agora usando showDialog com Dialog centralizado
   void _showPlantingForm(BuildContext context, PlantingItem? planting) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      barrierDismissible: true,
       builder: (BuildContext context) {
-        return PlantingFormModal(
-          planting: planting,
-          onSave: (newPlanting) {
-            setState(() {
-              if (planting == null) {
-                plantings.add(newPlanting);
-              } else {
-                final index = plantings.indexWhere((p) => p.id == planting.id);
-                if (index != -1) {
-                  plantings[index] = newPlanting;
-                }
-              }
-            });
-          },
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 8,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: PlantingFormModal(
+              planting: planting,
+              onSave: (newPlanting) {
+                setState(() {
+                  if (planting == null) {
+                    plantings.add(newPlanting);
+                  } else {
+                    final index = plantings.indexWhere((p) => p.id == planting.id);
+                    if (index != -1) {
+                      plantings[index] = newPlanting;
+                    }
+                  }
+                });
+              },
+            ),
+          ),
         );
       },
     );
@@ -378,7 +373,7 @@ class PlantingItem {
   }
 }
 
-// MODAL DE FORMULÁRIO (TELA VERDE)
+// MODAL DE FORMULÁRIO (MODIFICADO PARA DIÁLOGO)
 class PlantingFormModal extends StatefulWidget {
   final PlantingItem? planting;
   final Function(PlantingItem) onSave;
@@ -430,52 +425,40 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
             blurRadius: 20,
-            offset: const Offset(0, -4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade400,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
           // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.green.shade700,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              color: VerdeEscuro,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   _isEditing ? 'Editar Plantio' : 'Novo Plantio',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Bege,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: Icon(Icons.close, color: Bege),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -483,13 +466,14 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
           ),
           
           // Form
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFormField(
                       label: 'Planta de Cultivo',
@@ -532,7 +516,7 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
                       icon: Icons.grain,
                       hint: 'Ex: 2.500 kg',
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     
                     // Botão Salvar
                     SizedBox(
@@ -540,8 +524,8 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
                       child: ElevatedButton(
                         onPressed: _savePlanting,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade700,
-                          foregroundColor: Colors.white,
+                          backgroundColor: VerdeEscuro,
+                          foregroundColor: Bege,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -557,7 +541,7 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -591,11 +575,11 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
-            color: Colors.green.shade700,
+            color: VerdeClaro,
             fontWeight: FontWeight.w600,
           ),
           hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.green.shade700),
+          prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -634,7 +618,7 @@ class _PlantingFormModalState extends State<PlantingFormModal> {
           content: Text(
             _isEditing ? 'Plantio atualizado com sucesso!' : 'Plantio criado com sucesso!',
           ),
-          backgroundColor: Colors.green.shade700,
+          backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),
         ),
       );

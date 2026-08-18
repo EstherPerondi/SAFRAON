@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safraon/variaveis.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +13,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Fazendas',
       theme: ThemeData(
-        primarySwatch: Colors.green,
         useMaterial3: true,
       ),
       home: const FazendasPage(),
@@ -21,8 +21,96 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class FazendasPage extends StatelessWidget {
+// MODELO DE DADOS
+class FarmItem {
+  final String id;
+  final String name;
+  final String location;
+  final String area;
+  final String production;
+  final IconData icon;
+  final String status;
+
+  FarmItem({
+    required this.id,
+    required this.name,
+    required this.location,
+    required this.area,
+    required this.production,
+    required this.icon,
+    required this.status,
+  });
+
+  FarmItem copyWith({
+    String? id,
+    String? name,
+    String? location,
+    String? area,
+    String? production,
+    IconData? icon,
+    String? status,
+  }) {
+    return FarmItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      location: location ?? this.location,
+      area: area ?? this.area,
+      production: production ?? this.production,
+      icon: icon ?? this.icon,
+      status: status ?? this.status,
+    );
+  }
+}
+
+class FazendasPage extends StatefulWidget {
   const FazendasPage({super.key});
+
+  @override
+  State<FazendasPage> createState() => _FazendasPageState();
+}
+
+class _FazendasPageState extends State<FazendasPage> {
+  List<FarmItem> farms = [
+    FarmItem(
+      id: '1',
+      name: 'Fazenda 1',
+      location: 'São Paulo, SP',
+      area: 'Área: 1.200 ha',
+      production: 'Produção: Soja, Milho',
+      icon: Icons.agriculture,
+      status: 'Ativa',
+    ),
+    FarmItem(
+      id: '2',
+      name: 'Fazenda 2',
+      location: 'Paraná, PR',
+      area: 'Área: 850 ha',
+      production: 'Produção: Café, Cana',
+      icon: Icons.grass,
+      status: 'Ativa',
+    ),
+    FarmItem(
+      id: '3',
+      name: 'Fazenda 3',
+      location: 'Minas Gerais, MG',
+      area: 'Área: 1.500 ha',
+      production: 'Produção: Laranja, Eucalipto',
+      icon: Icons.park,
+      status: 'Inativa',
+    ),
+  ];
+
+  // Lista de ícones disponíveis
+  final List<IconData> availableIcons = [
+    Icons.agriculture,
+    Icons.grass,
+    Icons.park,
+    Icons.eco,
+    Icons.local_florist,
+    Icons.grain,
+    Icons.forest,
+    Icons.terrain,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -36,105 +124,117 @@ class FazendasPage extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
+        backgroundColor: VerdeEscuro,
+        foregroundColor: Bege,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add, color: Bege),
+            onPressed: () => _showFarmForm(context, null),
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.green.shade50,
-              Colors.white,
-            ],
-          ),
+          color: Bege,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              _buildFarmCard(
-                context,
-                'Fazenda 1',
-                'São Paulo, SP',
-                'Área: 1.200 ha',
-                'Produção: Soja, Milho',
-                Colors.blue.shade700,
-                Icons.agriculture,
-              ),
-              const SizedBox(height: 16),
-              _buildFarmCard(
-                context,
-                'Fazenda 2',
-                'Paraná, PR',
-                'Área: 850 ha',
-                'Produção: Café, Cana',
-                Colors.green.shade700,
-                Icons.grass,
-              ),
-              const SizedBox(height: 16),
-              _buildFarmCard(
-                context,
-                'Fazenda 3',
-                'Minas Gerais, MG',
-                'Área: 1.500 ha',
-                'Produção: Laranja, Eucalipto',
-                Colors.orange.shade700,
-                Icons.park,
-              ),
-              const Spacer(),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.green.shade300,
-                    width: 1,
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.green,
-                      size: 20,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Total: 3 fazendas cadastradas',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.green,
+        child: Column(
+          children: [
+            Expanded(
+              child: farms.isEmpty
+                  ? _buildEmptyState()
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 16),
+                          ...farms.map((farm) => Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _buildFarmCard(context, farm),
+                              )),
+                          const SizedBox(height: 24),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: BegeClaro,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: VerdeClaro.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: VerdeEscuro,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Total: ${farms.length} fazenda${farms.length > 1 ? 's' : ''} cadastrada${farms.length > 1 ? 's' : ''}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: VerdeEscuro,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showFarmForm(context, null),
+        backgroundColor: VerdeEscuro,
+        child: Icon(Icons.add, color: Bege, size: 30),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.agriculture,
+            size: 80,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Nenhuma fazenda cadastrada',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Clique no botão + para adicionar',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade400,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildFarmCard(
-    BuildContext context,
-    String title,
-    String location,
-    String area,
-    String production,
-    Color color,
-    IconData icon,
-  ) {
+  Widget _buildFarmCard(BuildContext context, FarmItem farm) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -143,14 +243,7 @@ class FazendasPage extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              color.withOpacity(0.1),
-              Colors.white,
-            ],
-          ),
+          color: BegeClaro,
         ),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -162,12 +255,12 @@ class FazendasPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.2),
+                      color: Colors.green[50],
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      icon,
-                      color: color,
+                      farm.icon,
+                      color: VerdeEscuro,
                       size: 28,
                     ),
                   ),
@@ -177,26 +270,27 @@ class FazendasPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          title,
-                          style: const TextStyle(
+                          farm.name,
+                          style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
+                            color: VerdeEscuro,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.location_on,
                               size: 16,
-                              color: Colors.grey,
+                              color: VerdeClaro,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              location,
-                              style: const TextStyle(
+                              farm.location,
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey,
+                                color: Colors.grey.shade600,
                               ),
                             ),
                           ],
@@ -210,13 +304,15 @@ class FazendasPage extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: color,
+                      color: farm.status == 'Ativa'
+                          ? VerdeEscuro
+                          : Colors.grey.shade400,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      'Ativa',
+                    child: Text(
+                      farm.status,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: BegeClaro,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -224,37 +320,44 @@ class FazendasPage extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),              
+              const Divider(height: 1, color: Colors.grey),
               const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
+              
               Row(
                 children: [
                   Expanded(
-                    child: _buildInfoChip(Icons.crop_free, area),
+                    child: _buildInfoChip(Icons.crop_free, farm.area),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildInfoChip(Icons.eco, production),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
+                    child: _buildInfoChip(Icons.eco, farm.production),
+                  ),                           
                   TextButton.icon(
                     onPressed: () {
-                      // Navigate to farm details
-                      _showFarmDetails(context, title);
+                      _showFarmDetails(context, farm);
                     },
-                    icon: const Icon(
-                      Icons.arrow_forward,
+                    icon: Icon(
+                      Icons.visibility,
                       size: 18,
+                      color: VerdeEscuro,
                     ),
-                    label: const Text('Ver detalhes'),
+                    label: Text(
+                      'Ver detalhes',
+                      style: TextStyle(color: VerdeEscuro),
+                    ),
                     style: TextButton.styleFrom(
-                      foregroundColor: color,
+                      foregroundColor: VerdeEscuro,
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(Icons.edit, color: VerdeClaro, size: 20),
+                    onPressed: () => _showFarmForm(context, farm),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete_outline, color: Vermelho, size: 20),
+                    onPressed: () => _deleteFarm(farm.id),
                   ),
                 ],
               ),
@@ -269,23 +372,22 @@ class FazendasPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.transparent,
       ),
       child: Row(
         children: [
           Icon(
             icon,
-            size: 16,
-            color: Colors.grey.shade700,
+            size: 20,
+            color: VerdeEscuro,
           ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade800,
+                fontSize: 16 ,
+                color: Colors.grey.shade700,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -295,22 +397,124 @@ class FazendasPage extends StatelessWidget {
     );
   }
 
-  void _showFarmDetails(BuildContext context, String farmName) {
+  void _showFarmForm(BuildContext context, FarmItem? farm) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 8,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: FarmFormModal(
+              farm: farm,
+              availableIcons: availableIcons,
+              onSave: (newFarm) {
+                setState(() {
+                  if (farm == null) {
+                    farms.add(newFarm);
+                  } else {
+                    final index = farms.indexWhere((f) => f.id == farm.id);
+                    if (index != -1) {
+                      farms[index] = newFarm;
+                    }
+                  }
+                });
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _deleteFarm(String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(farmName),
-          content: const Column(
+          title: Text(
+            'Excluir Fazenda',
+            style: TextStyle(color: VerdeEscuro),
+          ),
+          content: const Text('Tem certeza que deseja excluir esta fazenda?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  farms.removeWhere((f) => f.id == id);
+                });
+                Navigator.pop(context);
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showFarmDetails(BuildContext context, FarmItem farm) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            farm.name,
+            style: TextStyle(color: VerdeEscuro),
+          ),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Detalhes da fazenda:'),
-              SizedBox(height: 8),
-              Text('• Localização: São Paulo, SP'),
-              Text('• Área: 1.200 hectares'),
-              Text('• Produção: Soja, Milho'),
-              Text('• Status: Ativa'),
+              const Text(
+                'Detalhes da fazenda:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '• Localização: ${farm.location}',
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '• ${farm.area}',
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '• ${farm.production}',
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: (farm.status == 'Ativa' ? VerdeEscuro : Colors.grey.shade400)
+                      .withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '• Status: ${farm.status}',
+                  style: TextStyle(
+                    color: farm.status == 'Ativa' ? VerdeEscuro : Colors.grey.shade600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
           ),
           actions: [
@@ -318,11 +522,377 @@ class FazendasPage extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              style: TextButton.styleFrom(
+                foregroundColor: VerdeEscuro,
+              ),
               child: const Text('Fechar'),
             ),
           ],
         );
       },
     );
+  }
+}
+
+// MODAL DE FORMULÁRIO - MODIFICADO PARA DIÁLOGO
+class FarmFormModal extends StatefulWidget {
+  final FarmItem? farm;
+  final List<IconData> availableIcons;
+  final Function(FarmItem) onSave;
+
+  const FarmFormModal({
+    super.key,
+    this.farm,
+    required this.availableIcons,
+    required this.onSave,
+  });
+
+  @override
+  State<FarmFormModal> createState() => _FarmFormModalState();
+}
+
+class _FarmFormModalState extends State<FarmFormModal> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nameController;
+  late TextEditingController _locationController;
+  late TextEditingController _areaController;
+  late TextEditingController _productionController;
+  late IconData _selectedIcon;
+  late String _selectedStatus;
+
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isEditing = widget.farm != null;
+    _nameController = TextEditingController(text: widget.farm?.name ?? '');
+    _locationController = TextEditingController(text: widget.farm?.location ?? '');
+    _areaController = TextEditingController(
+      text: widget.farm?.area.replaceAll('Área: ', '').replaceAll(' ha', '') ?? '',
+    );
+    _productionController = TextEditingController(
+      text: widget.farm?.production.replaceAll('Produção: ', '') ?? '',
+    );
+    _selectedIcon = widget.farm?.icon ?? widget.availableIcons.first;
+    _selectedStatus = widget.farm?.status ?? 'Ativa';
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _locationController.dispose();
+    _areaController.dispose();
+    _productionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            decoration: BoxDecoration(
+              color: VerdeEscuro,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _isEditing ? 'Editar Fazenda' : 'Nova Fazenda',
+                  style: TextStyle(
+                    color: Bege,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, color: Bege),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+
+          // Form
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildFormField(
+                      label: 'Nome da Fazenda',
+                      controller: _nameController,
+                      icon: Icons.agriculture,
+                      hint: 'Ex: Fazenda Boa Vista',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: 'Localização',
+                      controller: _locationController,
+                      icon: Icons.location_on,
+                      hint: 'Ex: São Paulo, SP',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: 'Área (hectares)',
+                      controller: _areaController,
+                      icon: Icons.crop_free,
+                      hint: 'Ex: 1200',
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: 'Produção',
+                      controller: _productionController,
+                      icon: Icons.eco,
+                      hint: 'Ex: Soja, Milho',
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Seleção de Ícone
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ícone',
+                          style: TextStyle(
+                            color: VerdeClaro,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: widget.availableIcons.map((icon) {
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedIcon = icon;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: _selectedIcon == icon
+                                      ? VerdeEscuro
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _selectedIcon == icon
+                                        ? VerdeEscuro
+                                        : Colors.grey.shade300,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Icon(
+                                  icon,
+                                  color: _selectedIcon == icon
+                                      ? Bege
+                                      : VerdeClaro,
+                                  size: 24,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Status
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Status',
+                          style: TextStyle(
+                            color: VerdeClaro,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatusButton('Ativa', VerdeEscuro),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildStatusButton('Inativa', Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Botão Salvar
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _saveFarm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: VerdeEscuro,
+                          foregroundColor: Bege,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                        child: const Text(
+                          'Salvar',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusButton(String status, Color color) {
+    bool isSelected = _selectedStatus == status;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedStatus = status;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey.shade300,
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            status,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.grey.shade700,
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormField({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+    String? hint,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(
+            color: VerdeClaro,
+            fontWeight: FontWeight.w600,
+          ),
+          hintText: hint,
+          prefixIcon: Icon(icon, color: VerdeClaro),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Campo obrigatório';
+          }
+          if (label == 'Área (hectares)' && double.tryParse(value) == null) {
+            return 'Digite um número válido';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  void _saveFarm() {
+    if (_formKey.currentState!.validate()) {
+      final newFarm = FarmItem(
+        id: widget.farm?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        name: _nameController.text,
+        location: _locationController.text,
+        area: 'Área: ${_areaController.text} ha',
+        production: 'Produção: ${_productionController.text}',
+        icon: _selectedIcon,
+        status: _selectedStatus,
+      );
+
+      widget.onSave(newFarm);
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEditing ? 'Fazenda atualizada com sucesso!' : 'Fazenda criada com sucesso!',
+          ),
+          backgroundColor: VerdeEscuro,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }

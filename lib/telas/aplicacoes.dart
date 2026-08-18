@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safraon/variaveis.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +13,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Aplicações',
       theme: ThemeData(
-        primarySwatch: Colors.green,
         useMaterial3: true,
       ),
       home: const AplicacoesPage(),
@@ -24,44 +24,32 @@ class MyApp extends StatelessWidget {
 // MODELO DE DADOS
 class ApplicationItem {
   final String id;
-  final String code;
   final String type;
   final String date;
-  final String mainReason;
-  final String additionalReasons;
+  final String reason;
   final String pesticides;
-  final int priority;
 
   ApplicationItem({
     required this.id,
-    required this.code,
     required this.type,
     required this.date,
-    required this.mainReason,
-    required this.additionalReasons,
+    required this.reason,
     required this.pesticides,
-    required this.priority,
   });
 
   ApplicationItem copyWith({
     String? id,
-    String? code,
     String? type,
     String? date,
-    String? mainReason,
-    String? additionalReasons,
+    String? reason,
     String? pesticides,
-    int? priority,
   }) {
     return ApplicationItem(
       id: id ?? this.id,
-      code: code ?? this.code,
       type: type ?? this.type,
       date: date ?? this.date,
-      mainReason: mainReason ?? this.mainReason,
-      additionalReasons: additionalReasons ?? this.additionalReasons,
+      reason: reason ?? this.reason,
       pesticides: pesticides ?? this.pesticides,
-      priority: priority ?? this.priority,
     );
   }
 }
@@ -78,33 +66,24 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
   List<ApplicationItem> applications = [
     ApplicationItem(
       id: '1',
-      code: 'A001',
       type: 'Fungicida',
       date: '25/02/26',
-      mainReason: 'Controle de ferrugem',
-      additionalReasons: 'Prevenção de doenças fúngicas',
+      reason: 'Controle de ferrugem',
       pesticides: 'Triazol, Estrobilurina',
-      priority: 4,
     ),
     ApplicationItem(
       id: '2',
-      code: 'A002',
       type: 'Dessecação',
       date: '03/01/26',
-      mainReason: 'Preparo para colheita',
-      additionalReasons: 'Uniformização da maturação',
+      reason: 'Preparo para colheita',
       pesticides: 'Glifosato, Paraquat',
-      priority: 3,
     ),
     ApplicationItem(
       id: '3',
-      code: 'A003',
       type: 'Herbicida',
       date: '10/03/26',
-      mainReason: 'Controle de plantas daninhas',
-      additionalReasons: 'Manutenção da lavoura',
+      reason: 'Controle de plantas daninhas',
       pesticides: 'Atrazina, 2,4-D',
-      priority: 5,
     ),
   ];
 
@@ -120,8 +99,8 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
+        backgroundColor: VerdeEscuro,
+        foregroundColor: Bege,
         elevation: 0,
         actions: [
           IconButton(
@@ -132,14 +111,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.green.shade50,
-              Colors.white,
-            ],
-          ),
+          color: Bege
         ),
         child: Column(
           children: [
@@ -158,8 +130,8 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showApplicationForm(context, null),
-        backgroundColor: Colors.green.shade700,
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
+        backgroundColor: VerdeEscuro,
+        child: Icon(Icons.add, color: Bege, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -170,7 +142,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: BegeClaro,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -190,11 +162,6 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             '${applications.length}',
           ),
           _buildStatItem(
-            Icons.priority_high,
-            'Urgência',
-            'Média',
-          ),
-          _buildStatItem(
             Icons.calendar_today,
             'Última',
             '10/03/26',
@@ -207,7 +174,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
   Widget _buildStatItem(IconData icon, String label, String value) {
     return Column(
       children: [
-        Icon(icon, color: Colors.green.shade700, size: 24),
+        Icon(icon, color: VerdeClaro, size: 24),
         const SizedBox(height: 4),
         Text(
           label,
@@ -238,14 +205,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.green.shade50,
-              Colors.white,
-            ],
-          ),
+          color: VerdeClaro.withOpacity(0.5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,12 +219,12 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _getPriorityColor(application.priority).withOpacity(0.2),
+                          color: Colors.green[50],
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           _getTypeIcon(application.type),
-                          color: _getPriorityColor(application.priority),
+                          color: VerdeEscuro,
                           size: 20,
                         ),
                       ),
@@ -281,33 +241,6 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
-                            Row(
-                              children: [
-                                Text(
-                                  'Código: ${application.code}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: _getPriorityColor(application.priority).withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    'Prioridade ${application.priority}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: _getPriorityColor(application.priority),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
@@ -319,7 +252,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
                       onPressed: () => _showApplicationForm(context, application),
-                      color: Colors.blue.shade600,
+                      color: VerdeClaro,
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
@@ -338,8 +271,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
               runSpacing: 8,
               children: [
                 _buildInfoChip(Icons.calendar_today, application.date),
-                _buildInfoChip(Icons.description, application.mainReason),
-                _buildInfoChip(Icons.add_circle, application.additionalReasons),
+                _buildInfoChip(Icons.description, application.reason),
                 _buildInfoChip(Icons.science, application.pesticides),
               ],
             ),
@@ -347,16 +279,6 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
         ),
       ),
     );
-  }
-
-  Color _getPriorityColor(int priority) {
-    if (priority >= 4) {
-      return Colors.red.shade700;
-    } else if (priority >= 3) {
-      return Colors.orange.shade700;
-    } else {
-      return Colors.green.shade700;
-    }
   }
 
   IconData _getTypeIcon(String type) {
@@ -375,20 +297,19 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300, width: 0.5),
-      ),
+        ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.green.shade700),
+          Icon(icon, size: 14, color: VerdeEscuro),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey.shade800,
+              color: BegeClaro,
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -397,26 +318,38 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
+  // MÉTODO MODIFICADO - Agora usando showDialog com Dialog centralizado
   void _showApplicationForm(BuildContext context, ApplicationItem? application) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      barrierDismissible: true,
       builder: (BuildContext context) {
-        return ApplicationFormModal(
-          application: application,
-          onSave: (newApplication) {
-            setState(() {
-              if (application == null) {
-                applications.add(newApplication);
-              } else {
-                final index = applications.indexWhere((a) => a.id == application.id);
-                if (index != -1) {
-                  applications[index] = newApplication;
-                }
-              }
-            });
-          },
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 8,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: ApplicationFormModal(
+              application: application,
+              onSave: (newApplication) {
+                setState(() {
+                  if (application == null) {
+                    applications.add(newApplication);
+                  } else {
+                    final index = applications.indexWhere((a) => a.id == application.id);
+                    if (index != -1) {
+                      applications[index] = newApplication;
+                    }
+                  }
+                });
+              },
+            ),
+          ),
         );
       },
     );
@@ -451,7 +384,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - APLICAÇÕES
+// MODAL DE FORMULÁRIO - APLICAÇÕES (MODIFICADO PARA DIÁLOGO)
 class ApplicationFormModal extends StatefulWidget {
   final ApplicationItem? application;
   final Function(ApplicationItem) onSave;
@@ -468,13 +401,10 @@ class ApplicationFormModal extends StatefulWidget {
 
 class _ApplicationFormModalState extends State<ApplicationFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _codeController;
   late TextEditingController _typeController;
   late TextEditingController _dateController;
-  late TextEditingController _mainReasonController;
-  late TextEditingController _additionalReasonsController;
+  late TextEditingController _reasonController;
   late TextEditingController _pesticidesController;
-  int _priority = 3;
 
   bool _isEditing = false;
 
@@ -482,22 +412,17 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
   void initState() {
     super.initState();
     _isEditing = widget.application != null;
-    _codeController = TextEditingController(text: widget.application?.code ?? '');
     _typeController = TextEditingController(text: widget.application?.type ?? '');
     _dateController = TextEditingController(text: widget.application?.date ?? '');
-    _mainReasonController = TextEditingController(text: widget.application?.mainReason ?? '');
-    _additionalReasonsController = TextEditingController(text: widget.application?.additionalReasons ?? '');
+    _reasonController = TextEditingController(text: widget.application?.reason ?? '');
     _pesticidesController = TextEditingController(text: widget.application?.pesticides ?? '');
-    _priority = widget.application?.priority ?? 3;
   }
 
   @override
   void dispose() {
-    _codeController.dispose();
     _typeController.dispose();
     _dateController.dispose();
-    _mainReasonController.dispose();
-    _additionalReasonsController.dispose();
+    _reasonController.dispose();
     _pesticidesController.dispose();
     super.dispose();
   }
@@ -505,52 +430,40 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
             blurRadius: 20,
-            offset: const Offset(0, -4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade400,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
           // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.green.shade700,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              color: VerdeEscuro,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   _isEditing ? 'Editar Aplicação' : 'Nova Aplicação',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Bege,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: Icon(Icons.close, color: Bege),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -558,21 +471,15 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
           ),
           
           // Form
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildFormField(
-                      label: 'Código',
-                      controller: _codeController,
-                      icon: Icons.code,
-                      hint: 'Ex: A001',
-                    ),
-                    const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Tipo de Aplicação',
                       controller: _typeController,
@@ -588,18 +495,11 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Motivo principal',
-                      controller: _mainReasonController,
+                      label: 'Motivo',
+                      controller: _reasonController,
                       icon: Icons.description,
                       hint: 'Motivo da aplicação',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Motivos Adicionais',
-                      controller: _additionalReasonsController,
-                      icon: Icons.add_circle,
-                      hint: 'Motivos secundários',
-                    ),
+                    ),            
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Defensivos Usados',
@@ -607,96 +507,7 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                       icon: Icons.science,
                       hint: 'Lista de defensivos utilizados',
                     ),
-                    const SizedBox(height: 16),
-                    
-                    // Prioridade
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.priority_high, color: Colors.green.shade700),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Prioridade',
-                                style: TextStyle(
-                                  color: Colors.green.shade700,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Slider(
-                                  value: _priority.toDouble(),
-                                  min: 1,
-                                  max: 5,
-                                  divisions: 4,
-                                  label: 'Prioridade $_priority',
-                                  activeColor: _getPriorityColor(_priority),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _priority = value.round();
-                                    });
-                                  },
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _getPriorityColor(_priority).withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '$_priority',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: _getPriorityColor(_priority),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Baixa',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
-                              Text(
-                                'Alta',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     
                     // Botão Salvar
                     SizedBox(
@@ -704,8 +515,8 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                       child: ElevatedButton(
                         onPressed: _saveApplication,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade700,
-                          foregroundColor: Colors.white,
+                          backgroundColor: VerdeEscuro,
+                          foregroundColor: Bege,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -721,7 +532,7 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -755,11 +566,11 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
-            color: Colors.green.shade700,
+            color: VerdeClaro,
             fontWeight: FontWeight.w600,
           ),
           hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.green.shade700),
+          prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -778,27 +589,14 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
     );
   }
 
-  Color _getPriorityColor(int priority) {
-    if (priority >= 4) {
-      return Colors.red.shade700;
-    } else if (priority >= 3) {
-      return Colors.orange.shade700;
-    } else {
-      return Colors.green.shade700;
-    }
-  }
-
   void _saveApplication() {
     if (_formKey.currentState!.validate()) {
       final newApplication = ApplicationItem(
         id: widget.application?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        code: _codeController.text,
         type: _typeController.text,
         date: _dateController.text,
-        mainReason: _mainReasonController.text,
-        additionalReasons: _additionalReasonsController.text,
-        pesticides: _pesticidesController.text,
-        priority: _priority,
+        reason: _reasonController.text,
+        pesticides: _pesticidesController.text
       );
       
       widget.onSave(newApplication);
@@ -809,7 +607,7 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
           content: Text(
             _isEditing ? 'Aplicação atualizada com sucesso!' : 'Aplicação criada com sucesso!',
           ),
-          backgroundColor: Colors.green.shade700,
+          backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),
         ),
       );

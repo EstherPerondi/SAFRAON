@@ -4,6 +4,7 @@ Color Bege = Color(0xffE6DDBF);
 Color VerdeClaro = Color(0xFF458A0D);
 Color VerdeEscuro = Color(0xFF0D4E19);
 Color Vermelho = Colors.red;
+Color BegeClaro = Color(0xFFFFF3E0);
 
 TextStyle escritaForm = TextStyle(color: Colors.red);
 

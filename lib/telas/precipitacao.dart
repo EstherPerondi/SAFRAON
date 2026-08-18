@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safraon/variaveis.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +13,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Precipitações',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
       home: const PrecipitacaoPage(),
@@ -99,8 +99,8 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
+        backgroundColor: VerdeEscuro,
+        foregroundColor: Bege,
         elevation: 0,
         actions: [
           IconButton(
@@ -111,14 +111,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade50,
-              Colors.white,
-            ],
-          ),
+          color: Bege,
         ),
         child: Column(
           children: [
@@ -137,8 +130,8 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showPrecipitationForm(context, null),
-        backgroundColor: Colors.blue.shade700,
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
+        backgroundColor: VerdeEscuro,
+        child: Icon(Icons.add, color: Bege, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -154,7 +147,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: BegeClaro,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -191,7 +184,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
   Widget _buildStatItem(IconData icon, String label, String value) {
     return Column(
       children: [
-        Icon(icon, color: Colors.blue.shade700, size: 24),
+        Icon(icon, color: VerdeClaro, size: 24),
         const SizedBox(height: 4),
         Text(
           label,
@@ -222,14 +215,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.blue.shade50,
-              Colors.white,
-            ],
-          ),
+          color: VerdeClaro.withOpacity(0.5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,12 +229,12 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _getIntensityColor(precipitation.millimeters).withOpacity(0.2),
+                          color: Colors.green[50],
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           _getIntensityIcon(precipitation.millimeters),
-                          color: _getIntensityColor(precipitation.millimeters),
+                          color: VerdeEscuro,
                           size: 20,
                         ),
                       ),
@@ -270,7 +256,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: _getIntensityColor(precipitation.millimeters).withOpacity(0.15),
+                                    color: Colors.green[50],
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
@@ -278,7 +264,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
-                                      color: _getIntensityColor(precipitation.millimeters),
+                                      color: VerdeEscuro,
                                     ),
                                   ),
                                 ),
@@ -289,28 +275,28 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
                                 Icon(
                                   Icons.calendar_today,
                                   size: 12,
-                                  color: Colors.grey.shade600,
+                                  color: VerdeEscuro,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   precipitation.date,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey.shade600,
+                                    color: BegeClaro,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Icon(
                                   Icons.location_on,
                                   size: 12,
-                                  color: Colors.grey.shade600,
+                                  color: VerdeEscuro,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   precipitation.city,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey.shade600,
+                                    color: BegeClaro,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -327,7 +313,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
                       onPressed: () => _showPrecipitationForm(context, precipitation),
-                      color: Colors.blue.shade600,
+                      color: VerdeClaro,
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
@@ -347,7 +333,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
                   Icon(
                     Icons.description,
                     size: 16,
-                    color: Colors.grey.shade600,
+                    color: VerdeEscuro,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -355,7 +341,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
                       precipitation.observations,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade700,
+                        color: BegeClaro,
                       ),
                     ),
                   ),
@@ -380,18 +366,6 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
     }
   }
 
-  Color _getIntensityColor(double mm) {
-    if (mm < 5) {
-      return Colors.green.shade400;
-    } else if (mm < 15) {
-      return Colors.blue.shade400;
-    } else if (mm < 25) {
-      return Colors.orange.shade400;
-    } else {
-      return Colors.red.shade400;
-    }
-  }
-
   String _getIntensityLabel(double mm) {
     if (mm < 5) {
       return 'Leve';
@@ -404,26 +378,38 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
     }
   }
 
+  // MÉTODO MODIFICADO - Agora usando showDialog com Dialog centralizado
   void _showPrecipitationForm(BuildContext context, PrecipitationItem? precipitation) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      barrierDismissible: true,
       builder: (BuildContext context) {
-        return PrecipitationFormModal(
-          precipitation: precipitation,
-          onSave: (newPrecipitation) {
-            setState(() {
-              if (precipitation == null) {
-                precipitations.add(newPrecipitation);
-              } else {
-                final index = precipitations.indexWhere((p) => p.id == precipitation.id);
-                if (index != -1) {
-                  precipitations[index] = newPrecipitation;
-                }
-              }
-            });
-          },
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 8,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: PrecipitationFormModal(
+              precipitation: precipitation,
+              onSave: (newPrecipitation) {
+                setState(() {
+                  if (precipitation == null) {
+                    precipitations.add(newPrecipitation);
+                  } else {
+                    final index = precipitations.indexWhere((p) => p.id == precipitation.id);
+                    if (index != -1) {
+                      precipitations[index] = newPrecipitation;
+                    }
+                  }
+                });
+              },
+            ),
+          ),
         );
       },
     );
@@ -458,7 +444,7 @@ class _PrecipitacaoPageState extends State<PrecipitacaoPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - PRECIPITAÇÕES
+// MODAL DE FORMULÁRIO - PRECIPITAÇÕES (MODIFICADO PARA DIÁLOGO)
 class PrecipitationFormModal extends StatefulWidget {
   final PrecipitationItem? precipitation;
   final Function(PrecipitationItem) onSave;
@@ -506,52 +492,40 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
             blurRadius: 20,
-            offset: const Offset(0, -4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade400,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
           // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.blue.shade700,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+              color: VerdeEscuro,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   _isEditing ? 'Editar Precipitação' : 'Nova Precipitação',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Bege,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: Icon(Icons.close, color: Bege),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -559,13 +533,14 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
           ),
           
           // Form
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFormField(
                       label: 'Milímetros',
@@ -596,7 +571,7 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
                       hint: 'Observações adicionais',
                       maxLines: 3,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     
                     // Botão Salvar
                     SizedBox(
@@ -604,8 +579,8 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
                       child: ElevatedButton(
                         onPressed: _savePrecipitation,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          foregroundColor: Colors.white,
+                          backgroundColor: VerdeEscuro,
+                          foregroundColor: Bege,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -621,7 +596,7 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -659,11 +634,11 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
-            color: Colors.blue.shade700,
+            color: VerdeClaro,
             fontWeight: FontWeight.w600,
           ),
           hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.blue.shade700),
+          prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -706,7 +681,7 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
           content: Text(
             _isEditing ? 'Precipitação atualizada com sucesso!' : 'Precipitação criada com sucesso!',
           ),
-          backgroundColor: Colors.blue.shade700,
+          backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),
         ),
       );
