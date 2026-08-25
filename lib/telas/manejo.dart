@@ -259,21 +259,38 @@ class _ManejoPageState extends State<ManejoPage> {
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 12),
+
             Row(
               children: [
-                Expanded(
-                  child: _buildInfoRow(
-                    Icons.calendar_today,
-                    management.date,
-                    'Data',
-                  ),
+                // Data
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 14, color: VerdeEscuro),
+                    const SizedBox(width: 4),
+                    Text(
+                      management.date,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: BegeClaro,                      
+                      ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: _buildInfoRow(
-                    Icons.description,
-                    management.reason,
-                    'Motivo',
-                  ),
+                
+                const SizedBox(width: 16),
+                
+                Row(
+                  children: [
+                    Icon(Icons.water_drop, size: 14, color: VerdeEscuro),
+                    const SizedBox(width: 4),
+                    Text(
+                      management.reason,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: BegeClaro,                        
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

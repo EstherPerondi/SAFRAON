@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:safraon/variaveis.dart';
+import 'package:safraon/variaveis.dart'; // Mantendo a mesma importação
 
 void main() {
   runApp(const MyApp());
@@ -11,109 +11,103 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplicações',
+      title: 'Plantio',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
         useMaterial3: true,
       ),
-      home: const AplicacoesPage(),
+      home: const PlantiosPage(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
 // MODELO DE DADOS
-class ApplicationItem {
+class PlantioItem {
   final String id;
-  final String type;
-  final String date;
-  final String reason;
-  final String pesticides;
+  final String cultura;
+  final String data;
+  final String variedade;
+  final String adubo;
+  final String inoculante;
+  final String sementes;
   final String fazenda;
   final String talhao;
 
-  ApplicationItem({
+  PlantioItem({
     required this.id,
-    required this.type,
-    required this.date,
-    required this.reason,
-    required this.pesticides,
+    required this.cultura,
+    required this.data,
+    required this.variedade,
+    required this.adubo,
+    required this.inoculante,
+    required this.sementes,
     required this.fazenda,
     required this.talhao,
   });
 
-  ApplicationItem copyWith({
+  PlantioItem copyWith({
     String? id,
-    String? type,
-    String? date,
-    String? reason,
-    String? pesticides,
+    String? cultura,
+    String? data,
+    String? variedade,
+    String? adubo,
+    String? inoculante,
+    String? sementes,
     String? fazenda,
     String? talhao,
   }) {
-    return ApplicationItem(
+    return PlantioItem(
       id: id ?? this.id,
-      type: type ?? this.type,
-      date: date ?? this.date,
-      reason: reason ?? this.reason,
-      pesticides: pesticides ?? this.pesticides,
+      cultura: cultura ?? this.cultura,
+      data: data ?? this.data,
+      variedade: variedade ?? this.variedade,
+      adubo: adubo ?? this.adubo,
+      inoculante: inoculante ?? this.inoculante,
+      sementes: sementes ?? this.sementes,
       fazenda: fazenda ?? this.fazenda,
       talhao: talhao ?? this.talhao,
     );
   }
 }
 
-class AplicacoesPage extends StatefulWidget {
-  const AplicacoesPage({super.key});
+class PlantiosPage extends StatefulWidget {
+  const PlantiosPage({super.key});
 
   @override
-  State<AplicacoesPage> createState() => _AplicacoesPageState();
+  State<PlantiosPage> createState() => _PlantiosPageState();
 }
 
-class _AplicacoesPageState extends State<AplicacoesPage> {
-  List<ApplicationItem> applications = [
-    ApplicationItem(
+class _PlantiosPageState extends State<PlantiosPage> {
+  List<PlantioItem> plantios = [
+    PlantioItem(
       id: '1',
-      type: 'Fungicida',
-      date: '25/02/26',
-      reason: 'Controle de ferrugem',
-      pesticides: 'Triazol, Estrobilurina',
+      cultura: 'Soja',
+      data: '20/09/25',
+      variedade: 'BR 123',
+      adubo: 'NPK 10-10-10',
+      inoculante: 'Sim',
+      sementes: '2.500 kg',
       fazenda: 'Fazenda 1',
       talhao: 'Talhão 1',
     ),
-    ApplicationItem(
+    PlantioItem(
       id: '2',
-      type: 'Dessecação',
-      date: '03/01/26',
-      reason: 'Preparo para colheita',
-      pesticides: 'Glifosato, Paraquat',
+      cultura: 'Milho',
+      data: '15/01/26',
+      variedade: 'Hibrido X',
+      adubo: 'Ureia',
+      inoculante: 'Não',
+      sementes: '3.200 kg',
       fazenda: 'Fazenda 1',
       talhao: 'Talhão 2',
-    ),
-    ApplicationItem(
-      id: '3',
-      type: 'Herbicida',
-      date: '10/03/26',
-      reason: 'Controle de plantas daninhas',
-      pesticides: 'Atrazina, 2,4-D',
-      fazenda: 'Fazenda 2',
-      talhao: 'Talhão 3',
-    ),
-    ApplicationItem(
-      id: '4',
-      type: 'Inseticida',
-      date: '15/03/26',
-      reason: 'Controle de pragas',
-      pesticides: 'Imidacloprido, Deltametrina',
-      fazenda: 'Fazenda 2',
-      talhao: 'Talhão 4',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Bege,
+      backgroundColor: Bege, // Mesma cor do original
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -125,54 +119,38 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cabeçalho
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.biotech, size: 45, color: VerdeClaro),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Aplicações',
-                        style: TextStyle(
-                          fontSize: 35,
-                          fontWeight: FontWeight.w600,
-                          color: VerdeClaro,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // Cabeçalho com estatísticas
+                _buildHeader(),
                 const SizedBox(height: 16),
 
-                // Cards das aplicações
+                // Cards dos plantios
                 Expanded(
                   child: ListView.builder(
-                    itemCount: applications.length,
+                    itemCount: plantios.length,
                     itemBuilder: (context, index) {
-                      final application = applications[index];
-                      return _buildApplicationCard(application, index);
+                      final plantio = plantios[index];
+                      return _buildPlantioCard(plantio, index);
                     },
                   ),
                 ),
 
-                // Rodapé com estatísticas
+                // Rodapé com total de plantios
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: VerdeEscuro,
+                    color: VerdeEscuro, // Mesma cor do original
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total de Aplicações',
+                        'Total de Plantios',
                         style: TextStyle(
-                          color: Bege,
+                          color: Bege, // Mesma cor do original
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -183,13 +161,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: Bege,
+                          color: Bege, // Mesma cor do original
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          '${applications.length}',
+                          '${plantios.length}',
                           style: TextStyle(
-                            color: VerdeEscuro,
+                            color: VerdeEscuro, // Mesma cor do original
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -204,18 +182,80 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showApplicationForm(context, null),
-        backgroundColor: VerdeEscuro,
-        foregroundColor: Bege,
+        onPressed: () => _showPlantioForm(context, null),
+        backgroundColor: VerdeEscuro, // Mesma cor do original
+        foregroundColor: Bege, // Mesma cor do original
         child: const Icon(Icons.add, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
-  Widget _buildApplicationCard(ApplicationItem application, int index) {
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Título - IGUAL AO ORIGINAL
+        Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.grass, size: 45, color: VerdeClaro), // Mesma cor
+              const SizedBox(width: 10),
+              Text(
+                'Plantio - Talhão 1',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.w600,
+                  color: VerdeClaro, // Mesma cor do original
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: VerdeClaro.withOpacity(0.1), // Mesmo estilo do original
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: VerdeClaro.withOpacity(0.3), width: 1),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 20, color: VerdeEscuro), // Mesma cor
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: VerdeEscuro, // Mesma cor
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlantioCard(PlantioItem plantio, int index) {
     return Card(
-      color: Colors.orange[50],
+      color: Colors.orange[50], // MESMA COR DO CARD ORIGINAL
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -224,19 +264,19 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Linha superior com ícone, título e número
+            // Linha superior com ícone, título e número - IGUAL AO ORIGINAL
             Row(
               children: [
                 Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.green[100],
+                    color: Colors.green[100], // Mesma cor
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getTypeIcon(application.type),
-                    color: VerdeEscuro,
+                    _getCulturaIcon(plantio.cultura),
+                    color: VerdeEscuro, // Mesma cor
                     size: 22,
                   ),
                 ),
@@ -246,7 +286,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        application.type,
+                        plantio.cultura,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -258,7 +298,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           Icon(Icons.location_on, size: 14, color: VerdeClaro),
                           const SizedBox(width: 4),
                           Text(
-                            '${application.fazenda} - ${application.talhao}',
+                            '${plantio.fazenda} - ${plantio.talhao}',
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],
@@ -276,13 +316,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: VerdeClaro,
+                    color: VerdeClaro, // Mesma cor
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '${index + 1}',
                     style: TextStyle(
-                      color: Bege,
+                      color: Bege, // Mesma cor
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -294,37 +334,38 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 8),
 
-            // Informações em chips com ícones de ação na mesma linha
+            // Informações em chips com ícones de ação - IGUAL AO ORIGINAL
             Row(
               children: [
-                // Chips de informações - ocupam o espaço disponível
+                // Chips de informações
                 Expanded(
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.calendar_today, application.date),
-                      _buildInfoChip(Icons.description, application.reason),
-                      _buildInfoChip(Icons.science, application.pesticides),
+                      _buildInfoChip(Icons.calendar_today, 'Data: ${plantio.data}'),
+                      _buildInfoChip(Icons.science, 'Variedade: ${plantio.variedade}'),
+                      _buildInfoChip(Icons.agriculture, plantio.adubo),
+                      _buildInfoChip(Icons.biotech, 'Inoculante: ${plantio.inoculante}'),
+                      _buildInfoChip(Icons.grain, 'Sementes: ${plantio.sementes}'),
                     ],
                   ),
                 ),
-                // Ícones de ação no canto direito
+                // Ícones de ação - IGUAL AO ORIGINAL
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () =>
-                          _showApplicationForm(context, application),
-                      color: VerdeClaro,
+                      onPressed: () => _showPlantioForm(context, plantio),
+                      color: VerdeClaro, // Mesma cor
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
                     const SizedBox(width: 15),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () => _deleteApplication(application.id),
+                      onPressed: () => _deletePlantio(plantio.id),
                       color: Colors.red.shade400,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -343,13 +384,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: VerdeClaro.withOpacity(0.1),
+        color: VerdeClaro.withOpacity(0.1), // Mesmo estilo do original
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: VerdeEscuro),
+          Icon(icon, size: 14, color: VerdeEscuro), // Mesma cor
           const SizedBox(width: 4),
           Flexible(
             child: Text(
@@ -367,23 +408,19 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  IconData _getTypeIcon(String type) {
-    if (type.toLowerCase().contains('fungicida')) {
-      return Icons.biotech;
-    } else if (type.toLowerCase().contains('dessecação')) {
-      return Icons.water_drop;
-    } else if (type.toLowerCase().contains('herbicida')) {
+  IconData _getCulturaIcon(String cultura) {
+    if (cultura.toLowerCase().contains('soja')) {
+      return Icons.eco;
+    } else if (cultura.toLowerCase().contains('milho')) {
       return Icons.grass;
-    } else if (type.toLowerCase().contains('inseticida')) {
-      return Icons.bug_report;
     } else {
       return Icons.spa;
     }
   }
 
-  void _showApplicationForm(
+  void _showPlantioForm(
     BuildContext context,
-    ApplicationItem? application,
+    PlantioItem? plantio,
   ) {
     showDialog(
       context: context,
@@ -399,18 +436,18 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: ApplicationFormModal(
-              application: application,
-              onSave: (newApplication) {
+            child: PlantioFormModal(
+              plantio: plantio,
+              onSave: (newPlantio) {
                 setState(() {
-                  if (application == null) {
-                    applications.add(newApplication);
+                  if (plantio == null) {
+                    plantios.add(newPlantio);
                   } else {
-                    final index = applications.indexWhere(
-                      (a) => a.id == application.id,
+                    final index = plantios.indexWhere(
+                      (a) => a.id == plantio.id,
                     );
                     if (index != -1) {
-                      applications[index] = newApplication;
+                      plantios[index] = newPlantio;
                     }
                   }
                 });
@@ -422,13 +459,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  void _deleteApplication(String id) {
+  void _deletePlantio(String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Excluir Aplicação'),
-          content: const Text('Tem certeza que deseja excluir esta aplicação?'),
+          title: const Text('Excluir Plantio'),
+          content: const Text('Tem certeza que deseja excluir este plantio?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -437,7 +474,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  applications.removeWhere((a) => a.id == id);
+                  plantios.removeWhere((a) => a.id == id);
                 });
                 Navigator.pop(context);
               },
@@ -451,27 +488,29 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - APLICAÇÕES
-class ApplicationFormModal extends StatefulWidget {
-  final ApplicationItem? application;
-  final Function(ApplicationItem) onSave;
+// MODAL DE FORMULÁRIO - PLANTIO
+class PlantioFormModal extends StatefulWidget {
+  final PlantioItem? plantio;
+  final Function(PlantioItem) onSave;
 
-  const ApplicationFormModal({
+  const PlantioFormModal({
     super.key,
-    this.application,
+    this.plantio,
     required this.onSave,
   });
 
   @override
-  State<ApplicationFormModal> createState() => _ApplicationFormModalState();
+  State<PlantioFormModal> createState() => _PlantioFormModalState();
 }
 
-class _ApplicationFormModalState extends State<ApplicationFormModal> {
+class _PlantioFormModalState extends State<PlantioFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _typeController;
-  late TextEditingController _dateController;
-  late TextEditingController _reasonController;
-  late TextEditingController _pesticidesController;
+  late TextEditingController _culturaController;
+  late TextEditingController _dataController;
+  late TextEditingController _variedadeController;
+  late TextEditingController _aduboController;
+  late TextEditingController _inoculanteController;
+  late TextEditingController _sementesController;
   late TextEditingController _fazendaController;
   late TextEditingController _talhaoController;
 
@@ -480,33 +519,41 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.application != null;
-    _typeController = TextEditingController(
-      text: widget.application?.type ?? '',
+    _isEditing = widget.plantio != null;
+    _culturaController = TextEditingController(
+      text: widget.plantio?.cultura ?? '',
     );
-    _dateController = TextEditingController(
-      text: widget.application?.date ?? '',
+    _dataController = TextEditingController(
+      text: widget.plantio?.data ?? '',
     );
-    _reasonController = TextEditingController(
-      text: widget.application?.reason ?? '',
+    _variedadeController = TextEditingController(
+      text: widget.plantio?.variedade ?? '',
     );
-    _pesticidesController = TextEditingController(
-      text: widget.application?.pesticides ?? '',
+    _aduboController = TextEditingController(
+      text: widget.plantio?.adubo ?? '',
+    );
+    _inoculanteController = TextEditingController(
+      text: widget.plantio?.inoculante ?? '',
+    );
+    _sementesController = TextEditingController(
+      text: widget.plantio?.sementes ?? '',
     );
     _fazendaController = TextEditingController(
-      text: widget.application?.fazenda ?? '',
+      text: widget.plantio?.fazenda ?? '',
     );
     _talhaoController = TextEditingController(
-      text: widget.application?.talhao ?? '',
+      text: widget.plantio?.talhao ?? '',
     );
   }
 
   @override
   void dispose() {
-    _typeController.dispose();
-    _dateController.dispose();
-    _reasonController.dispose();
-    _pesticidesController.dispose();
+    _culturaController.dispose();
+    _dataController.dispose();
+    _variedadeController.dispose();
+    _aduboController.dispose();
+    _inoculanteController.dispose();
+    _sementesController.dispose();
     _fazendaController.dispose();
     _talhaoController.dispose();
     super.dispose();
@@ -529,11 +576,11 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
+          // Header - IGUAL AO ORIGINAL
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: VerdeEscuro,
+              color: VerdeEscuro, // Mesma cor
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -542,15 +589,15 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _isEditing ? 'Editar Aplicação' : 'Nova Aplicação',
+                  _isEditing ? 'Editar Plantio' : 'Novo Plantio',
                   style: TextStyle(
-                    color: Bege,
+                    color: Bege, // Mesma cor
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: Bege),
+                  icon: Icon(Icons.close, color: Bege), // Mesma cor
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -582,42 +629,56 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Tipo de Aplicação',
-                      controller: _typeController,
-                      icon: Icons.spa,
-                      hint: 'Ex: Fungicida, Dessecação',
+                      label: 'Planta de Cultivo',
+                      controller: _culturaController,
+                      icon: Icons.eco,
+                      hint: 'Ex: Soja, Milho',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Data',
-                      controller: _dateController,
+                      controller: _dataController,
                       icon: Icons.calendar_today,
-                      hint: 'DD/MM/AAAA',
-                    ),                    
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Motivo',
-                      controller: _reasonController,
-                      icon: Icons.description,
-                      hint: 'Motivo da aplicação',
+                      hint: 'DD/MM/AA',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Defensivos Usados',
-                      controller: _pesticidesController,
+                      label: 'Variedade',
+                      controller: _variedadeController,
                       icon: Icons.science,
-                      hint: 'Lista de defensivos utilizados',
+                      hint: 'Ex: BR 123',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: 'Adubo',
+                      controller: _aduboController,
+                      icon: Icons.agriculture,
+                      hint: 'Ex: NPK 10-10-10',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: 'Inoculante',
+                      controller: _inoculanteController,
+                      icon: Icons.biotech,
+                      hint: 'Sim / Não',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: 'Sementes',
+                      controller: _sementesController,
+                      icon: Icons.grain,
+                      hint: 'Ex: 2.500 kg',
                     ),
                     const SizedBox(height: 24),
 
-                    // Botão Salvar
+                    // Botão Salvar - IGUAL AO ORIGINAL
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveApplication,
+                        onPressed: _savePlantio,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: VerdeEscuro,
-                          foregroundColor: Bege,
+                          backgroundColor: VerdeEscuro, // Mesma cor
+                          foregroundColor: Bege, // Mesma cor
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -666,9 +727,9 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600), // Mesma cor
           hintText: hint,
-          prefixIcon: Icon(icon, color: VerdeClaro),
+          prefixIcon: Icon(icon, color: VerdeClaro), // Mesma cor
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -687,31 +748,33 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
     );
   }
 
-  void _saveApplication() {
+  void _savePlantio() {
     if (_formKey.currentState!.validate()) {
-      final newApplication = ApplicationItem(
+      final newPlantio = PlantioItem(
         id:
-            widget.application?.id ??
+            widget.plantio?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
-        type: _typeController.text,
-        date: _dateController.text,
-        reason: _reasonController.text,
-        pesticides: _pesticidesController.text,
+        cultura: _culturaController.text,
+        data: _dataController.text,
+        variedade: _variedadeController.text,
+        adubo: _aduboController.text,
+        inoculante: _inoculanteController.text,
+        sementes: _sementesController.text,
         fazenda: _fazendaController.text,
         talhao: _talhaoController.text,
       );
 
-      widget.onSave(newApplication);
+      widget.onSave(newPlantio);
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
-                ? 'Aplicação atualizada com sucesso!'
-                : 'Aplicação criada com sucesso!',
+                ? 'Plantio atualizado com sucesso!'
+                : 'Plantio criado com sucesso!',
           ),
-          backgroundColor: VerdeEscuro,
+          backgroundColor: VerdeEscuro, // Mesma cor
           duration: const Duration(seconds: 2),
         ),
       );

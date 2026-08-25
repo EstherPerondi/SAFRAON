@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:safraon/telas/talhao.dart';
 import 'package:safraon/variaveis.dart';
 
 void main() {

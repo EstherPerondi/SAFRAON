@@ -11,79 +11,79 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Colheita',
+      title: 'Aplicações',
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: const ColheitaPage(),
+      home: const AplicacaoPage(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
 // MODELO DE DADOS
-class HarvestItem {
+class ApplicationItem {
   final String id;
-  final String crop;
+  final String type;
   final String date;
-  final double production;
-  final double humidity;
+  final String reason;
+  final String pesticides;
 
-  HarvestItem({
+  ApplicationItem({
     required this.id,
-    required this.crop,
+    required this.type,
     required this.date,
-    required this.production,
-    required this.humidity,
+    required this.reason,
+    required this.pesticides,
   });
 
-  HarvestItem copyWith({
+  ApplicationItem copyWith({
     String? id,
-    String? crop,
+    String? type,
     String? date,
-    double? production,
-    double? humidity,
+    String? reason,
+    String? pesticides,
   }) {
-    return HarvestItem(
+    return ApplicationItem(
       id: id ?? this.id,
-      crop: crop ?? this.crop,
+      type: type ?? this.type,
       date: date ?? this.date,
-      production: production ?? this.production,
-      humidity: humidity ?? this.humidity,
+      reason: reason ?? this.reason,
+      pesticides: pesticides ?? this.pesticides,
     );
   }
 }
 
-// TELA PRINCIPAL - COLHEITA
-class ColheitaPage extends StatefulWidget {
-  const ColheitaPage({super.key});
+// TELA PRINCIPAL - APLICAÇÕES
+class AplicacaoPage extends StatefulWidget {
+  const AplicacaoPage({super.key});
 
   @override
-  State<ColheitaPage> createState() => _HarvestScreenState();
+  State<AplicacaoPage> createState() => _AplicacaoPageState();
 }
 
-class _HarvestScreenState extends State<ColheitaPage> {
-  List<HarvestItem> harvests = [
-    HarvestItem(
+class _AplicacaoPageState extends State<AplicacaoPage> {
+  List<ApplicationItem> applications = [
+    ApplicationItem(
       id: '1',
-      crop: 'Soja',
+      type: 'Fungicida',
       date: '25/02/26',
-      production: 4200,
-      humidity: 14.5,
+      reason: 'Controle de ferrugem',
+      pesticides: 'Triazol, Estrobilurina',
     ),
-    HarvestItem(
+    ApplicationItem(
       id: '2',
-      crop: 'Milho',
-      date: '15/06/26',
-      production: 3800,
-      humidity: 12.0,
+      type: 'Dessecação',
+      date: '03/01/26',
+      reason: 'Preparo para colheita',
+      pesticides: 'Glifosato, Paraquat',
     ),
-    HarvestItem(
+    ApplicationItem(
       id: '3',
-      crop: 'Café',
-      date: '10/07/26',
-      production: 2500,
-      humidity: 11.2,
+      type: 'Herbicida',
+      date: '10/03/26',
+      reason: 'Controle de plantas daninhas',
+      pesticides: 'Atrazina, 2,4-D',
     ),
   ];
 
@@ -92,7 +92,7 @@ class _HarvestScreenState extends State<ColheitaPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Colheita - Talhão 1',
+          'Aplicações - Talhão 1',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -104,14 +104,14 @@ class _HarvestScreenState extends State<ColheitaPage> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.bar_chart),
+            icon: const Icon(Icons.filter_list),
             onPressed: () {},
           ),
         ],
       ),
       body: Container(
         decoration: BoxDecoration(
-          color: Bege,
+          color: Bege
         ),
         child: Column(
           children: [
@@ -119,9 +119,9 @@ class _HarvestScreenState extends State<ColheitaPage> {
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: harvests.length,
+                itemCount: applications.length,
                 itemBuilder: (context, index) {
-                  return _buildHarvestCard(harvests[index]);
+                  return _buildApplicationCard(applications[index]);
                 },
               ),
             ),
@@ -129,17 +129,15 @@ class _HarvestScreenState extends State<ColheitaPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showHarvestForm(context, null),
+        onPressed: () => _showApplicationForm(context, null),
         backgroundColor: VerdeEscuro,
-        child: Icon(Icons.add, color: BegeClaro, size: 30),
+        child: Icon(Icons.add, color: Bege, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
   Widget _buildHeader() {
-    double totalProduction = harvests.fold(0, (sum, item) => sum + item.production);
-    
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -159,19 +157,14 @@ class _HarvestScreenState extends State<ColheitaPage> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildStatItem(
-            Icons.agriculture,
-            'Colheitas',
-            '${harvests.length}',
-          ),
-          _buildStatItem(
-            Icons.bar_chart,
-            'Total',
-            '${totalProduction.toStringAsFixed(0)} sacas',
+            Icons.spa,
+            'Aplicações',
+            '${applications.length}',
           ),
           _buildStatItem(
             Icons.calendar_today,
             'Última',
-            '10/07/26',
+            '10/03/26',
           ),
         ],
       ),
@@ -201,7 +194,7 @@ class _HarvestScreenState extends State<ColheitaPage> {
     );
   }
 
-  Widget _buildHarvestCard(HarvestItem harvest) {
+  Widget _buildApplicationCard(ApplicationItem application) {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.only(bottom: 12),
@@ -217,7 +210,6 @@ class _HarvestScreenState extends State<ColheitaPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Linha superior: Ícone + Nome da cultura
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -231,20 +223,25 @@ class _HarvestScreenState extends State<ColheitaPage> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
-                          _getCropIcon(harvest.crop),
+                          _getTypeIcon(application.type),
                           color: VerdeEscuro,
                           size: 20,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          harvest.crop,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              application.type,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -254,74 +251,28 @@ class _HarvestScreenState extends State<ColheitaPage> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => _showHarvestForm(context, harvest),
+                      onPressed: () => _showApplicationForm(context, application),
                       color: VerdeClaro,
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () => _deleteHarvest(harvest.id),
+                      onPressed: () => _deleteApplication(application.id),
                       color: Colors.red.shade400,
                     ),
                   ],
                 ),
               ],
             ),
-            
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 12),
-            
-            // LINHA ÚNICA: Data, Produção e Umidade juntos (estilo da imagem)
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                // Data
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today, size: 14, color: VerdeEscuro),
-                    const SizedBox(width: 4),
-                    Text(
-                      harvest.date,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: BegeClaro,                      
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(width: 16),
-                
-                // Produção
-                Row(
-                  children: [
-                    Icon(Icons.bar_chart, size: 14, color: VerdeEscuro),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${harvest.production.toStringAsFixed(0)} sacas',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: BegeClaro,
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(width: 16),
-                
-                // Umidade
-                Row(
-                  children: [
-                    Icon(Icons.water_drop, size: 14, color: VerdeEscuro),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${harvest.humidity.toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: BegeClaro,                        
-                      ),
-                    ),
-                  ],
-                ),
+                _buildInfoChip(Icons.calendar_today, application.date),
+                _buildInfoChip(Icons.description, application.reason),
+                _buildInfoChip(Icons.science, application.pesticides),
               ],
             ),
           ],
@@ -330,22 +281,45 @@ class _HarvestScreenState extends State<ColheitaPage> {
     );
   }
 
-  IconData _getCropIcon(String crop) {
-    switch (crop.toLowerCase()) {
-      case 'soja':
-        return Icons.eco;
-      case 'milho':
-        return Icons.grass;
-      case 'café':
-        return Icons.local_cafe;
-      case 'laranja':
-        return Icons.circle;
-      default:
-        return Icons.agriculture;
+  IconData _getTypeIcon(String type) {
+    if (type.toLowerCase().contains('fungicida')) {
+      return Icons.biotech;
+    } else if (type.toLowerCase().contains('dessecação')) {
+      return Icons.water_drop;
+    } else if (type.toLowerCase().contains('herbicida')) {
+      return Icons.grass;
+    } else {
+      return Icons.spa;
     }
   }
 
-  void _showHarvestForm(BuildContext context, HarvestItem? harvest) {
+  Widget _buildInfoChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: VerdeEscuro),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: BegeClaro,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // MÉTODO MODIFICADO - Agora usando showDialog com Dialog centralizado
+  void _showApplicationForm(BuildContext context, ApplicationItem? application) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -360,16 +334,16 @@ class _HarvestScreenState extends State<ColheitaPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: HarvestFormModal(
-              harvest: harvest,
-              onSave: (newHarvest) {
+            child: ApplicationFormModal(
+              application: application,
+              onSave: (newApplication) {
                 setState(() {
-                  if (harvest == null) {
-                    harvests.add(newHarvest);
+                  if (application == null) {
+                    applications.add(newApplication);
                   } else {
-                    final index = harvests.indexWhere((h) => h.id == harvest.id);
+                    final index = applications.indexWhere((a) => a.id == application.id);
                     if (index != -1) {
-                      harvests[index] = newHarvest;
+                      applications[index] = newApplication;
                     }
                   }
                 });
@@ -381,13 +355,13 @@ class _HarvestScreenState extends State<ColheitaPage> {
     );
   }
 
-  void _deleteHarvest(String id) {
+  void _deleteApplication(String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Excluir Colheita'),
-          content: const Text('Tem certeza que deseja excluir esta colheita?'),
+          title: const Text('Excluir Aplicação'),
+          content: const Text('Tem certeza que deseja excluir esta aplicação?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -396,7 +370,7 @@ class _HarvestScreenState extends State<ColheitaPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  harvests.removeWhere((h) => h.id == id);
+                  applications.removeWhere((a) => a.id == id);
                 });
                 Navigator.pop(context);
               },
@@ -410,50 +384,46 @@ class _HarvestScreenState extends State<ColheitaPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - COLHEITA
-class HarvestFormModal extends StatefulWidget {
-  final HarvestItem? harvest;
-  final Function(HarvestItem) onSave;
+// MODAL DE FORMULÁRIO - APLICAÇÕES (MODIFICADO PARA DIÁLOGO)
+class ApplicationFormModal extends StatefulWidget {
+  final ApplicationItem? application;
+  final Function(ApplicationItem) onSave;
 
-  const HarvestFormModal({
+  const ApplicationFormModal({
     super.key,
-    this.harvest,
+    this.application,
     required this.onSave,
   });
 
   @override
-  State<HarvestFormModal> createState() => _HarvestFormModalState();
+  State<ApplicationFormModal> createState() => _ApplicationFormModalState();
 }
 
-class _HarvestFormModalState extends State<HarvestFormModal> {
+class _ApplicationFormModalState extends State<ApplicationFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _cropController;
+  late TextEditingController _typeController;
   late TextEditingController _dateController;
-  late TextEditingController _productionController;
-  late TextEditingController _humidityController;
+  late TextEditingController _reasonController;
+  late TextEditingController _pesticidesController;
 
   bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.harvest != null;
-    _cropController = TextEditingController(text: widget.harvest?.crop ?? '');
-    _dateController = TextEditingController(text: widget.harvest?.date ?? '');
-    _productionController = TextEditingController(
-      text: widget.harvest?.production.toString() ?? '',
-    );
-    _humidityController = TextEditingController(
-      text: widget.harvest?.humidity.toString() ?? '',
-    );
+    _isEditing = widget.application != null;
+    _typeController = TextEditingController(text: widget.application?.type ?? '');
+    _dateController = TextEditingController(text: widget.application?.date ?? '');
+    _reasonController = TextEditingController(text: widget.application?.reason ?? '');
+    _pesticidesController = TextEditingController(text: widget.application?.pesticides ?? '');
   }
 
   @override
   void dispose() {
-    _cropController.dispose();
+    _typeController.dispose();
     _dateController.dispose();
-    _productionController.dispose();
-    _humidityController.dispose();
+    _reasonController.dispose();
+    _pesticidesController.dispose();
     super.dispose();
   }
 
@@ -473,7 +443,7 @@ class _HarvestFormModalState extends State<HarvestFormModal> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [     
+        children: [
           // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -485,7 +455,7 @@ class _HarvestFormModalState extends State<HarvestFormModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _isEditing ? 'Editar Colheita' : 'Nova Colheita',
+                  _isEditing ? 'Editar Aplicação' : 'Nova Aplicação',
                   style: TextStyle(
                     color: Bege,
                     fontSize: 20,
@@ -511,10 +481,10 @@ class _HarvestFormModalState extends State<HarvestFormModal> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFormField(
-                      label: 'Planta',
-                      controller: _cropController,
-                      icon: Icons.eco,
-                      hint: 'Ex: Soja, Milho, Café',
+                      label: 'Tipo de Aplicação',
+                      controller: _typeController,
+                      icon: Icons.spa,
+                      hint: 'Ex: Fungicida, Dessecação',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
@@ -525,19 +495,17 @@ class _HarvestFormModalState extends State<HarvestFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Produção (sacas)',
-                      controller: _productionController,
-                      icon: Icons.bar_chart,
-                      hint: 'Ex: 4200',
-                      keyboardType: TextInputType.number,
-                    ),
+                      label: 'Motivo',
+                      controller: _reasonController,
+                      icon: Icons.description,
+                      hint: 'Motivo da aplicação',
+                    ),            
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Umidade (%)',
-                      controller: _humidityController,
-                      icon: Icons.water_drop_outlined,
-                      hint: 'Ex: 14.5',
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      label: 'Defensivos Usados',
+                      controller: _pesticidesController,
+                      icon: Icons.science,
+                      hint: 'Lista de defensivos utilizados',
                     ),
                     const SizedBox(height: 24),
                     
@@ -545,7 +513,7 @@ class _HarvestFormModalState extends State<HarvestFormModal> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveHarvest,
+                        onPressed: _saveApplication,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -580,8 +548,6 @@ class _HarvestFormModalState extends State<HarvestFormModal> {
     required TextEditingController controller,
     required IconData icon,
     String? hint,
-    TextInputType? keyboardType,
-    int maxLines = 1,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -597,8 +563,6 @@ class _HarvestFormModalState extends State<HarvestFormModal> {
       ),
       child: TextFormField(
         controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
@@ -619,35 +583,29 @@ class _HarvestFormModalState extends State<HarvestFormModal> {
           if (value == null || value.isEmpty) {
             return 'Campo obrigatório';
           }
-          if (label == 'Produção (sacas)' && double.tryParse(value) == null) {
-            return 'Digite um número válido';
-          }
-          if (label == 'Umidade (%)' && double.tryParse(value) == null) {
-            return 'Digite um número válido (ex: 14.5)';
-          }
           return null;
         },
       ),
     );
   }
 
-  void _saveHarvest() {
+  void _saveApplication() {
     if (_formKey.currentState!.validate()) {
-      final newHarvest = HarvestItem(
-        id: widget.harvest?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        crop: _cropController.text,
+      final newApplication = ApplicationItem(
+        id: widget.application?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        type: _typeController.text,
         date: _dateController.text,
-        production: double.parse(_productionController.text),
-        humidity: double.parse(_humidityController.text),
+        reason: _reasonController.text,
+        pesticides: _pesticidesController.text
       );
       
-      widget.onSave(newHarvest);
+      widget.onSave(newApplication);
       Navigator.pop(context);
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _isEditing ? 'Colheita atualizada com sucesso!' : 'Colheita criada com sucesso!',
+            _isEditing ? 'Aplicação atualizada com sucesso!' : 'Aplicação criada com sucesso!',
           ),
           backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),
