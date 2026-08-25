@@ -543,7 +543,7 @@ class _PrecipitationFormModalState extends State<PrecipitationFormModal> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFormField(
-                      label: 'Milímetros',
+                      label: 'Milímetros (mm)',
                       controller: _millimetersController,
                       icon: Icons.water_drop,
                       hint: 'Ex: 15.5',

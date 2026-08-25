@@ -11,104 +11,113 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplicações',
+      title: 'Manejo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
         useMaterial3: true,
       ),
-      home: const AplicacoesPage(),
+      home: const ManejosPage(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
 // MODELO DE DADOS
-class ApplicationItem {
+class ManejoItem {
   final String id;
-  final String type;
+  final String pratica;
   final String date;
-  final String reason;
-  final String pesticides;
+  final String motivo;
   final String fazenda;
   final String talhao;
 
-  ApplicationItem({
+  ManejoItem({
     required this.id,
-    required this.type,
+    required this.pratica,
     required this.date,
-    required this.reason,
-    required this.pesticides,
+    required this.motivo,
     required this.fazenda,
     required this.talhao,
   });
 
-  ApplicationItem copyWith({
+  ManejoItem copyWith({
     String? id,
-    String? type,
+    String? pratica,
     String? date,
-    String? reason,
-    String? pesticides,
+    String? motivo,
     String? fazenda,
     String? talhao,
   }) {
-    return ApplicationItem(
+    return ManejoItem(
       id: id ?? this.id,
-      type: type ?? this.type,
+      pratica: pratica ?? this.pratica,
       date: date ?? this.date,
-      reason: reason ?? this.reason,
-      pesticides: pesticides ?? this.pesticides,
+      motivo: motivo ?? this.motivo,
       fazenda: fazenda ?? this.fazenda,
       talhao: talhao ?? this.talhao,
     );
   }
 }
 
-class AplicacoesPage extends StatefulWidget {
-  const AplicacoesPage({super.key});
+class ManejosPage extends StatefulWidget {
+  const ManejosPage({super.key});
 
   @override
-  State<AplicacoesPage> createState() => _AplicacoesPageState();
+  State<ManejosPage> createState() => _ManejosPageState();
 }
 
-class _AplicacoesPageState extends State<AplicacoesPage> {
-  List<ApplicationItem> applications = [
-    ApplicationItem(
+class _ManejosPageState extends State<ManejosPage> {
+  List<ManejoItem> manejos = [
+    ManejoItem(
       id: '1',
-      type: 'Fungicida',
-      date: '25/02/26',
-      reason: 'Controle de ferrugem',
-      pesticides: 'Triazol, Estrobilurina',
+      pratica: 'Correção de solo',
+      date: '12/08/25',
+      motivo: 'Solo com baixo pH',
       fazenda: 'Fazenda 1',
       talhao: 'Talhão 1',
     ),
-    ApplicationItem(
+    ManejoItem(
       id: '2',
-      type: 'Dessecação',
-      date: '03/01/26',
-      reason: 'Preparo para colheita',
-      pesticides: 'Glifosato, Paraquat',
+      pratica: 'Subsolação',
+      date: '15/01/26',
+      motivo: 'Compactação do solo',
       fazenda: 'Fazenda 1',
-      talhao: 'Talhão 2',
+      talhao: 'Talhão 1',
     ),
-    ApplicationItem(
+    ManejoItem(
       id: '3',
-      type: 'Herbicida',
-      date: '10/03/26',
-      reason: 'Controle de plantas daninhas',
-      pesticides: 'Atrazina, 2,4-D',
-      fazenda: 'Fazenda 2',
-      talhao: 'Talhão 3',
-    ),
-    ApplicationItem(
-      id: '4',
-      type: 'Inseticida',
-      date: '15/03/26',
-      reason: 'Controle de pragas',
-      pesticides: 'Imidacloprido, Deltametrina',
-      fazenda: 'Fazenda 2',
-      talhao: 'Talhão 4',
+      pratica: 'Calagem',
+      date: '20/02/26',
+      motivo: 'Neutralizar acidez',
+      fazenda: 'Fazenda 1',
+      talhao: 'Talhão 1',
     ),
   ];
+
+  // Cálculo de estatísticas
+  int get totalPraticas => manejos.length;
+  String get ultimaData {
+    if (manejos.isEmpty) return '--';
+    final sorted = List<ManejoItem>.from(manejos)
+      ..sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date)));
+    return sorted.first.date;
+  }
+
+  DateTime _parseDate(String date) {
+    try {
+      final parts = date.split('/');
+      if (parts.length == 3) {
+        return DateTime(
+          int.parse('20${parts[2]}'),
+          int.parse(parts[1]),
+          int.parse(parts[0]),
+        );
+      }
+      return DateTime(2000, 1, 1);
+    } catch (e) {
+      return DateTime(2000, 1, 1);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,10 +139,10 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.biotech, size: 45, color: VerdeClaro),
+                      Icon(Icons.agriculture, size: 45, color: VerdeClaro),
                       const SizedBox(width: 10),
                       Text(
-                        'Aplicações',
+                        'Manejos',
                         style: TextStyle(
                           fontSize: 35,
                           fontWeight: FontWeight.w600,
@@ -145,13 +154,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Cards das aplicações
+                // Cards das práticas de manejo
                 Expanded(
                   child: ListView.builder(
-                    itemCount: applications.length,
+                    itemCount: manejos.length,
                     itemBuilder: (context, index) {
-                      final application = applications[index];
-                      return _buildApplicationCard(application, index);
+                      final manejo = manejos[index];
+                      return _buildManejoCard(manejo, index);
                     },
                   ),
                 ),
@@ -170,7 +179,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total de Aplicações',
+                        'Total de Manejos',
                         style: TextStyle(
                           color: Bege,
                           fontSize: 14,
@@ -187,7 +196,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          '${applications.length}',
+                          '${manejos.length}',
                           style: TextStyle(
                             color: VerdeEscuro,
                             fontSize: 16,
@@ -204,7 +213,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showApplicationForm(context, null),
+        onPressed: () => _showManejoForm(context, null),
         backgroundColor: VerdeEscuro,
         foregroundColor: Bege,
         child: const Icon(Icons.add, size: 30),
@@ -213,7 +222,48 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  Widget _buildApplicationCard(ApplicationItem application, int index) {
+  Widget _buildStatCard(String label, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: VerdeEscuro, size: 22),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: VerdeEscuro,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildManejoCard(ManejoItem manejo, int index) {
     return Card(
       color: Colors.orange[50],
       margin: const EdgeInsets.only(bottom: 8),
@@ -224,7 +274,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Linha superior com ícone, título e número
+            // Linha superior com ícone, título e status
             Row(
               children: [
                 Container(
@@ -235,7 +285,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getTypeIcon(application.type),
+                    _getPraticaIcon(manejo.pratica),
                     color: VerdeEscuro,
                     size: 22,
                   ),
@@ -246,7 +296,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        application.type,
+                        manejo.pratica,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -258,7 +308,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           Icon(Icons.location_on, size: 14, color: VerdeClaro),
                           const SizedBox(width: 4),
                           Text(
-                            '${application.fazenda} - ${application.talhao}',
+                            '${manejo.fazenda} - ${manejo.talhao}',
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],
@@ -284,7 +334,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     style: TextStyle(
                       color: Bege,
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -303,9 +353,8 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.calendar_today, application.date),
-                      _buildInfoChip(Icons.description, application.reason),
-                      _buildInfoChip(Icons.science, application.pesticides),
+                      _buildInfoChip(Icons.calendar_today, manejo.date),
+                      _buildInfoChip(Icons.description, manejo.motivo),
                     ],
                   ),
                 ),
@@ -315,8 +364,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () =>
-                          _showApplicationForm(context, application),
+                      onPressed: () => _showManejoForm(context, manejo),
                       color: VerdeClaro,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -324,7 +372,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     const SizedBox(width: 15),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () => _deleteApplication(application.id),
+                      onPressed: () => _deleteManejo(manejo.id),
                       color: Colors.red.shade400,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -367,23 +415,21 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  IconData _getTypeIcon(String type) {
-    if (type.toLowerCase().contains('fungicida')) {
-      return Icons.biotech;
-    } else if (type.toLowerCase().contains('dessecação')) {
+  IconData _getPraticaIcon(String pratica) {
+    if (pratica.toLowerCase().contains('correção')) {
+      return Icons.science;
+    } else if (pratica.toLowerCase().contains('subsolação')) {
       return Icons.water_drop;
-    } else if (type.toLowerCase().contains('herbicida')) {
+    } else if (pratica.toLowerCase().contains('calagem')) {
       return Icons.grass;
-    } else if (type.toLowerCase().contains('inseticida')) {
-      return Icons.bug_report;
     } else {
-      return Icons.spa;
+      return Icons.agriculture;
     }
   }
 
-  void _showApplicationForm(
+  void _showManejoForm(
     BuildContext context,
-    ApplicationItem? application,
+    ManejoItem? manejo,
   ) {
     showDialog(
       context: context,
@@ -399,18 +445,18 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: ApplicationFormModal(
-              application: application,
-              onSave: (newApplication) {
+            child: ManejoFormModal(
+              manejo: manejo,
+              onSave: (newManejo) {
                 setState(() {
-                  if (application == null) {
-                    applications.add(newApplication);
+                  if (manejo == null) {
+                    manejos.add(newManejo);
                   } else {
-                    final index = applications.indexWhere(
-                      (a) => a.id == application.id,
+                    final index = manejos.indexWhere(
+                      (a) => a.id == manejo.id,
                     );
                     if (index != -1) {
-                      applications[index] = newApplication;
+                      manejos[index] = newManejo;
                     }
                   }
                 });
@@ -422,13 +468,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  void _deleteApplication(String id) {
+  void _deleteManejo(String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Excluir Aplicação'),
-          content: const Text('Tem certeza que deseja excluir esta aplicação?'),
+          title: const Text('Excluir Prática'),
+          content: const Text('Tem certeza que deseja excluir esta prática de manejo?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -437,7 +483,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  applications.removeWhere((a) => a.id == id);
+                  manejos.removeWhere((a) => a.id == id);
                 });
                 Navigator.pop(context);
               },
@@ -451,27 +497,26 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - APLICAÇÕES
-class ApplicationFormModal extends StatefulWidget {
-  final ApplicationItem? application;
-  final Function(ApplicationItem) onSave;
+// MODAL DE FORMULÁRIO - MANEJO
+class ManejoFormModal extends StatefulWidget {
+  final ManejoItem? manejo;
+  final Function(ManejoItem) onSave;
 
-  const ApplicationFormModal({
+  const ManejoFormModal({
     super.key,
-    this.application,
+    this.manejo,
     required this.onSave,
   });
 
   @override
-  State<ApplicationFormModal> createState() => _ApplicationFormModalState();
+  State<ManejoFormModal> createState() => _ManejoFormModalState();
 }
 
-class _ApplicationFormModalState extends State<ApplicationFormModal> {
+class _ManejoFormModalState extends State<ManejoFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _typeController;
+  late TextEditingController _praticaController;
   late TextEditingController _dateController;
-  late TextEditingController _reasonController;
-  late TextEditingController _pesticidesController;
+  late TextEditingController _motivoController;
   late TextEditingController _fazendaController;
   late TextEditingController _talhaoController;
 
@@ -480,33 +525,29 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.application != null;
-    _typeController = TextEditingController(
-      text: widget.application?.type ?? '',
+    _isEditing = widget.manejo != null;
+    _praticaController = TextEditingController(
+      text: widget.manejo?.pratica ?? '',
     );
     _dateController = TextEditingController(
-      text: widget.application?.date ?? '',
+      text: widget.manejo?.date ?? '',
     );
-    _reasonController = TextEditingController(
-      text: widget.application?.reason ?? '',
-    );
-    _pesticidesController = TextEditingController(
-      text: widget.application?.pesticides ?? '',
+    _motivoController = TextEditingController(
+      text: widget.manejo?.motivo ?? '',
     );
     _fazendaController = TextEditingController(
-      text: widget.application?.fazenda ?? '',
+      text: widget.manejo?.fazenda ?? '',
     );
     _talhaoController = TextEditingController(
-      text: widget.application?.talhao ?? '',
+      text: widget.manejo?.talhao ?? '',
     );
   }
 
   @override
   void dispose() {
-    _typeController.dispose();
+    _praticaController.dispose();
     _dateController.dispose();
-    _reasonController.dispose();
-    _pesticidesController.dispose();
+    _motivoController.dispose();
     _fazendaController.dispose();
     _talhaoController.dispose();
     super.dispose();
@@ -542,7 +583,7 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _isEditing ? 'Editar Aplicação' : 'Nova Aplicação',
+                  _isEditing ? 'Editar Manejo' : 'Novo Manejo',
                   style: TextStyle(
                     color: Bege,
                     fontSize: 20,
@@ -582,10 +623,10 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Tipo de Aplicação',
-                      controller: _typeController,
-                      icon: Icons.spa,
-                      hint: 'Ex: Fungicida, Dessecação',
+                      label: 'Tipo de Manejo',
+                      controller: _praticaController,
+                      icon: Icons.agriculture,
+                      hint: 'Ex: Correção de solo, Calagem',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
@@ -593,20 +634,13 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                       controller: _dateController,
                       icon: Icons.calendar_today,
                       hint: 'DD/MM/AAAA',
-                    ),                    
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Motivo',
-                      controller: _reasonController,
-                      icon: Icons.description,
-                      hint: 'Motivo da aplicação',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Defensivos Usados',
-                      controller: _pesticidesController,
-                      icon: Icons.science,
-                      hint: 'Lista de defensivos utilizados',
+                      label: 'Motivo',
+                      controller: _motivoController,
+                      icon: Icons.description,
+                      hint: 'Motivo da prática',
                     ),
                     const SizedBox(height: 24),
 
@@ -614,7 +648,7 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveApplication,
+                        onPressed: _saveManejo,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -687,29 +721,26 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
     );
   }
 
-  void _saveApplication() {
+  void _saveManejo() {
     if (_formKey.currentState!.validate()) {
-      final newApplication = ApplicationItem(
-        id:
-            widget.application?.id ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
-        type: _typeController.text,
+      final newManejo = ManejoItem(
+        id: widget.manejo?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        pratica: _praticaController.text,
         date: _dateController.text,
-        reason: _reasonController.text,
-        pesticides: _pesticidesController.text,
+        motivo: _motivoController.text,
         fazenda: _fazendaController.text,
         talhao: _talhaoController.text,
       );
 
-      widget.onSave(newApplication);
+      widget.onSave(newManejo);
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
-                ? 'Aplicação atualizada com sucesso!'
-                : 'Aplicação criada com sucesso!',
+                ? 'Prática de manejo atualizada com sucesso!'
+                : 'Prática de manejo criada com sucesso!',
           ),
           backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),

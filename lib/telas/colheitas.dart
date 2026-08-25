@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
 
+
 void main() {
   runApp(const MyApp());
 }
@@ -11,102 +12,93 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplicações',
+      title: 'Colheitas',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
         useMaterial3: true,
       ),
-      home: const AplicacoesPage(),
+      home: const ColheitasPage(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-// MODELO DE DADOS
-class ApplicationItem {
+// MODELO DE DADOS - COLHEITA
+class ColheitaItem {
   final String id;
-  final String type;
-  final String date;
-  final String reason;
-  final String pesticides;
+  final String crop;
+  final String data;
+  final double humidity;
+  final double production;
   final String fazenda;
   final String talhao;
 
-  ApplicationItem({
+  ColheitaItem({
     required this.id,
-    required this.type,
-    required this.date,
-    required this.reason,
-    required this.pesticides,
+    required this.crop,
+    required this.data,
+    required this.humidity,
+    required this.production,
     required this.fazenda,
     required this.talhao,
   });
 
-  ApplicationItem copyWith({
+  ColheitaItem copyWith({
     String? id,
-    String? type,
-    String? date,
-    String? reason,
-    String? pesticides,
+    String? crop,
+    String? data,
+    double? humidity,
+    double? production,
     String? fazenda,
     String? talhao,
   }) {
-    return ApplicationItem(
+    return ColheitaItem(
       id: id ?? this.id,
-      type: type ?? this.type,
-      date: date ?? this.date,
-      reason: reason ?? this.reason,
-      pesticides: pesticides ?? this.pesticides,
+      crop: crop ?? this.crop,
+      data: data ?? this.data,
+      humidity: humidity ?? this.humidity,
+      production: production ?? this.production,
       fazenda: fazenda ?? this.fazenda,
       talhao: talhao ?? this.talhao,
     );
   }
 }
 
-class AplicacoesPage extends StatefulWidget {
-  const AplicacoesPage({super.key});
+class ColheitasPage extends StatefulWidget {
+  const ColheitasPage({super.key});
 
   @override
-  State<AplicacoesPage> createState() => _AplicacoesPageState();
+  State<ColheitasPage> createState() => _ColheitasPageState();
 }
 
-class _AplicacoesPageState extends State<AplicacoesPage> {
-  List<ApplicationItem> applications = [
-    ApplicationItem(
+class _ColheitasPageState extends State<ColheitasPage> {
+  List<ColheitaItem> colheitas = [
+    ColheitaItem(
       id: '1',
-      type: 'Fungicida',
-      date: '25/02/26',
-      reason: 'Controle de ferrugem',
-      pesticides: 'Triazol, Estrobilurina',
+      crop: 'Soja',
+      data: '15/01/26',
+      humidity: 14.5,
+      production: 4200,
       fazenda: 'Fazenda 1',
       talhao: 'Talhão 1',
     ),
-    ApplicationItem(
+    ColheitaItem(
       id: '2',
-      type: 'Dessecação',
-      date: '03/01/26',
-      reason: 'Preparo para colheita',
-      pesticides: 'Glifosato, Paraquat',
+      crop: 'Milho',
+      data: '15/06/26',
+      humidity: 12.0,
+      production: 3800,
       fazenda: 'Fazenda 1',
       talhao: 'Talhão 2',
     ),
-    ApplicationItem(
+    ColheitaItem(
       id: '3',
-      type: 'Herbicida',
-      date: '10/03/26',
-      reason: 'Controle de plantas daninhas',
-      pesticides: 'Atrazina, 2,4-D',
+      crop: 'Café',
+      data: '10/07/26',
+      humidity: 11.2,
+      production: 2500,
       fazenda: 'Fazenda 2',
       talhao: 'Talhão 3',
-    ),
-    ApplicationItem(
-      id: '4',
-      type: 'Inseticida',
-      date: '15/03/26',
-      reason: 'Controle de pragas',
-      pesticides: 'Imidacloprido, Deltametrina',
-      fazenda: 'Fazenda 2',
-      talhao: 'Talhão 4',
     ),
   ];
 
@@ -130,10 +122,10 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.biotech, size: 45, color: VerdeClaro),
+                      Icon(Icons.grass, size: 45, color: VerdeClaro),
                       const SizedBox(width: 10),
                       Text(
-                        'Aplicações',
+                        'Colheitas',
                         style: TextStyle(
                           fontSize: 35,
                           fontWeight: FontWeight.w600,
@@ -145,13 +137,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Cards das aplicações
+                // Cards das colheitas
                 Expanded(
                   child: ListView.builder(
-                    itemCount: applications.length,
+                    itemCount: colheitas.length,
                     itemBuilder: (context, index) {
-                      final application = applications[index];
-                      return _buildApplicationCard(application, index);
+                      final colheita = colheitas[index];
+                      return _buildColheitaCard(colheita, index);
                     },
                   ),
                 ),
@@ -170,7 +162,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total de Aplicações',
+                        'Total de Colheitas',
                         style: TextStyle(
                           color: Bege,
                           fontSize: 14,
@@ -187,7 +179,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          '${applications.length}',
+                          '${colheitas.length}',
                           style: TextStyle(
                             color: VerdeEscuro,
                             fontSize: 16,
@@ -204,7 +196,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showApplicationForm(context, null),
+        onPressed: () => _showColheitaForm(context, null),
         backgroundColor: VerdeEscuro,
         foregroundColor: Bege,
         child: const Icon(Icons.add, size: 30),
@@ -213,7 +205,19 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  Widget _buildApplicationCard(ApplicationItem application, int index) {
+  Widget _buildColheitaCard(ColheitaItem colheita, int index) {
+    IconData _getcropIcon(String crop) {
+      if (crop.toLowerCase().contains('soja')) {
+        return Icons.eco;
+      } else if (crop.toLowerCase().contains('milho')) {
+        return Icons.grass;
+      } else if (crop.toLowerCase().contains('café')) {
+        return Icons.coffee;
+      } else {
+        return Icons.agriculture;
+      }
+    }
+
     return Card(
       color: Colors.orange[50],
       margin: const EdgeInsets.only(bottom: 8),
@@ -235,7 +239,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getTypeIcon(application.type),
+                    _getcropIcon(colheita.crop),
                     color: VerdeEscuro,
                     size: 22,
                   ),
@@ -246,7 +250,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        application.type,
+                        colheita.crop,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -258,7 +262,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           Icon(Icons.location_on, size: 14, color: VerdeClaro),
                           const SizedBox(width: 4),
                           Text(
-                            '${application.fazenda} - ${application.talhao}',
+                            '${colheita.fazenda} - ${colheita.talhao}',
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],
@@ -284,7 +288,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     style: TextStyle(
                       color: Bege,
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -303,9 +307,9 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.calendar_today, application.date),
-                      _buildInfoChip(Icons.description, application.reason),
-                      _buildInfoChip(Icons.science, application.pesticides),
+                      _buildInfoChip(Icons.calendar_today, colheita.data),
+                      _buildInfoChip(Icons.water_drop_outlined, '${colheita.humidity} %'),
+                      _buildInfoChip(Icons.inbox, '${colheita.production} sacas'),
                     ],
                   ),
                 ),
@@ -315,8 +319,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () =>
-                          _showApplicationForm(context, application),
+                      onPressed: () => _showColheitaForm(context, colheita),
                       color: VerdeClaro,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -324,7 +327,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     const SizedBox(width: 15),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () => _deleteApplication(application.id),
+                      onPressed: () => _deleteColheita(colheita.id),
                       color: Colors.red.shade400,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -367,23 +370,9 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  IconData _getTypeIcon(String type) {
-    if (type.toLowerCase().contains('fungicida')) {
-      return Icons.biotech;
-    } else if (type.toLowerCase().contains('dessecação')) {
-      return Icons.water_drop;
-    } else if (type.toLowerCase().contains('herbicida')) {
-      return Icons.grass;
-    } else if (type.toLowerCase().contains('inseticida')) {
-      return Icons.bug_report;
-    } else {
-      return Icons.spa;
-    }
-  }
-
-  void _showApplicationForm(
+  void _showColheitaForm(
     BuildContext context,
-    ApplicationItem? application,
+    ColheitaItem? colheita,
   ) {
     showDialog(
       context: context,
@@ -399,18 +388,18 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: ApplicationFormModal(
-              application: application,
-              onSave: (newApplication) {
+            child: ColheitaFormModal(
+              colheita: colheita,
+              onSave: (novaColheita) {
                 setState(() {
-                  if (application == null) {
-                    applications.add(newApplication);
+                  if (colheita == null) {
+                    colheitas.add(novaColheita);
                   } else {
-                    final index = applications.indexWhere(
-                      (a) => a.id == application.id,
+                    final index = colheitas.indexWhere(
+                      (a) => a.id == colheita.id,
                     );
                     if (index != -1) {
-                      applications[index] = newApplication;
+                      colheitas[index] = novaColheita;
                     }
                   }
                 });
@@ -422,13 +411,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  void _deleteApplication(String id) {
+  void _deleteColheita(String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Excluir Aplicação'),
-          content: const Text('Tem certeza que deseja excluir esta aplicação?'),
+          title: const Text('Excluir Colheita'),
+          content: const Text('Tem certeza que deseja excluir esta colheita?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -437,7 +426,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  applications.removeWhere((a) => a.id == id);
+                  colheitas.removeWhere((a) => a.id == id);
                 });
                 Navigator.pop(context);
               },
@@ -451,27 +440,27 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - APLICAÇÕES
-class ApplicationFormModal extends StatefulWidget {
-  final ApplicationItem? application;
-  final Function(ApplicationItem) onSave;
+// MODAL DE FORMULÁRIO - COLHEITAS
+class ColheitaFormModal extends StatefulWidget {
+  final ColheitaItem? colheita;
+  final Function(ColheitaItem) onSave;
 
-  const ApplicationFormModal({
+  const ColheitaFormModal({
     super.key,
-    this.application,
+    this.colheita,
     required this.onSave,
   });
 
   @override
-  State<ApplicationFormModal> createState() => _ApplicationFormModalState();
+  State<ColheitaFormModal> createState() => _ColheitaFormModalState();
 }
 
-class _ApplicationFormModalState extends State<ApplicationFormModal> {
+class _ColheitaFormModalState extends State<ColheitaFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _typeController;
-  late TextEditingController _dateController;
-  late TextEditingController _reasonController;
-  late TextEditingController _pesticidesController;
+  late TextEditingController _cropController;
+  late TextEditingController _dataController;
+  late TextEditingController _humidityController;
+  late TextEditingController _productionController;
   late TextEditingController _fazendaController;
   late TextEditingController _talhaoController;
 
@@ -480,33 +469,33 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.application != null;
-    _typeController = TextEditingController(
-      text: widget.application?.type ?? '',
+    _isEditing = widget.colheita != null;
+    _cropController = TextEditingController(
+      text: widget.colheita?.crop ?? '',
     );
-    _dateController = TextEditingController(
-      text: widget.application?.date ?? '',
+    _dataController = TextEditingController(
+      text: widget.colheita?.data ?? '',
     );
-    _reasonController = TextEditingController(
-      text: widget.application?.reason ?? '',
+    _humidityController = TextEditingController(
+      text: widget.colheita?.humidity.toString() ?? '',
     );
-    _pesticidesController = TextEditingController(
-      text: widget.application?.pesticides ?? '',
+    _productionController = TextEditingController(
+      text: widget.colheita?.production.toString() ?? '',
     );
     _fazendaController = TextEditingController(
-      text: widget.application?.fazenda ?? '',
+      text: widget.colheita?.fazenda ?? '',
     );
     _talhaoController = TextEditingController(
-      text: widget.application?.talhao ?? '',
+      text: widget.colheita?.talhao ?? '',
     );
   }
 
   @override
   void dispose() {
-    _typeController.dispose();
-    _dateController.dispose();
-    _reasonController.dispose();
-    _pesticidesController.dispose();
+    _cropController.dispose();
+    _dataController.dispose();
+    _humidityController.dispose();
+    _productionController.dispose();
     _fazendaController.dispose();
     _talhaoController.dispose();
     super.dispose();
@@ -542,7 +531,7 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _isEditing ? 'Editar Aplicação' : 'Nova Aplicação',
+                  _isEditing ? 'Editar Colheita' : 'Nova Colheita',
                   style: TextStyle(
                     color: Bege,
                     fontSize: 20,
@@ -582,39 +571,39 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Tipo de Aplicação',
-                      controller: _typeController,
-                      icon: Icons.spa,
-                      hint: 'Ex: Fungicida, Dessecação',
+                      label: 'Planta',
+                      controller: _cropController,
+                      icon: Icons.eco,
+                      hint: 'Ex: Soja, Milho, Café',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Data',
-                      controller: _dateController,
+                      controller: _dataController,
                       icon: Icons.calendar_today,
                       hint: 'DD/MM/AAAA',
-                    ),                    
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Motivo',
-                      controller: _reasonController,
-                      icon: Icons.description,
-                      hint: 'Motivo da aplicação',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Defensivos Usados',
-                      controller: _pesticidesController,
-                      icon: Icons.science,
-                      hint: 'Lista de defensivos utilizados',
+                      label: 'Produção (production)',
+                      controller: _productionController,
+                      icon: Icons.bar_chart,
+                      hint: 'Ex: 4200',
                     ),
+                    const SizedBox(height: 16),                                        
+                    _buildFormField(
+                      label: 'Umidade (%)',
+                      controller: _humidityController,
+                      icon: Icons.water_drop_outlined,
+                      hint: 'Ex: 14.5',
+                    ),                   
                     const SizedBox(height: 24),
 
                     // Botão Salvar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveApplication,
+                        onPressed: _saveColheita,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -687,29 +676,28 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
     );
   }
 
-  void _saveApplication() {
+  void _saveColheita() {
     if (_formKey.currentState!.validate()) {
-      final newApplication = ApplicationItem(
-        id:
-            widget.application?.id ??
+      final novaColheita = ColheitaItem(
+        id: widget.colheita?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
-        type: _typeController.text,
-        date: _dateController.text,
-        reason: _reasonController.text,
-        pesticides: _pesticidesController.text,
+        crop: _cropController.text,
+        data: _dataController.text,
+        humidity: double.parse(_humidityController.text),
+        production: double.parse(_productionController.text),
         fazenda: _fazendaController.text,
         talhao: _talhaoController.text,
       );
 
-      widget.onSave(newApplication);
+      widget.onSave(novaColheita);
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
-                ? 'Aplicação atualizada com sucesso!'
-                : 'Aplicação criada com sucesso!',
+                ? 'Colheita atualizada com sucesso!'
+                : 'Colheita criada com sucesso!',
           ),
           backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),

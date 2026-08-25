@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:safraon/variaveis.dart';
+import 'package:safraon/variaveis.dart'; // Mantendo a mesma importação
 
 void main() {
   runApp(const MyApp());
@@ -11,109 +11,108 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplicações',
+      title: 'Precipitações',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
         useMaterial3: true,
       ),
-      home: const AplicacoesPage(),
+      home: const PrecipitacoesPage(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
 // MODELO DE DADOS
-class ApplicationItem {
+class PrecipitacaoItem {
   final String id;
-  final String type;
-  final String date;
-  final String reason;
-  final String pesticides;
+  final String quantidade;
+  final String data;
+  final String descricao;
   final String fazenda;
   final String talhao;
 
-  ApplicationItem({
+  PrecipitacaoItem({
     required this.id,
-    required this.type,
-    required this.date,
-    required this.reason,
-    required this.pesticides,
+    required this.quantidade,
+    required this.data,
+    required this.descricao,
     required this.fazenda,
     required this.talhao,
   });
 
-  ApplicationItem copyWith({
+  PrecipitacaoItem copyWith({
     String? id,
-    String? type,
-    String? date,
-    String? reason,
-    String? pesticides,
+    String? quantidade,
+    String? data,
+    String? descricao,
     String? fazenda,
     String? talhao,
   }) {
-    return ApplicationItem(
+    return PrecipitacaoItem(
       id: id ?? this.id,
-      type: type ?? this.type,
-      date: date ?? this.date,
-      reason: reason ?? this.reason,
-      pesticides: pesticides ?? this.pesticides,
+      quantidade: quantidade ?? this.quantidade,
+      data: data ?? this.data,
+      descricao: descricao ?? this.descricao,
       fazenda: fazenda ?? this.fazenda,
       talhao: talhao ?? this.talhao,
     );
   }
 }
 
-class AplicacoesPage extends StatefulWidget {
-  const AplicacoesPage({super.key});
+class PrecipitacoesPage extends StatefulWidget {
+  const PrecipitacoesPage({super.key});
 
   @override
-  State<AplicacoesPage> createState() => _AplicacoesPageState();
+  State<PrecipitacoesPage> createState() => _PrecipitacoesPageState();
 }
 
-class _AplicacoesPageState extends State<AplicacoesPage> {
-  List<ApplicationItem> applications = [
-    ApplicationItem(
+class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
+  List<PrecipitacaoItem> precipitacoes = [
+    PrecipitacaoItem(
       id: '1',
-      type: 'Fungicida',
-      date: '25/02/26',
-      reason: 'Controle de ferrugem',
-      pesticides: 'Triazol, Estrobilurina',
+      quantidade: '15 mm',
+      data: '15/01/26',
+      descricao: 'Chuva moderada',
       fazenda: 'Fazenda 1',
       talhao: 'Talhão 1',
     ),
-    ApplicationItem(
+    PrecipitacaoItem(
       id: '2',
-      type: 'Dessecação',
-      date: '03/01/26',
-      reason: 'Preparo para colheita',
-      pesticides: 'Glifosato, Paraquat',
+      quantidade: '10 mm',
+      data: '15/06/26',
+      descricao: 'Chuva leve',
       fazenda: 'Fazenda 1',
       talhao: 'Talhão 2',
     ),
-    ApplicationItem(
+    PrecipitacaoItem(
       id: '3',
-      type: 'Herbicida',
-      date: '10/03/26',
-      reason: 'Controle de plantas daninhas',
-      pesticides: 'Atrazina, 2,4-D',
+      quantidade: '25 mm',
+      data: '20/02/26',
+      descricao: 'Chuva intensa',
       fazenda: 'Fazenda 2',
       talhao: 'Talhão 3',
     ),
-    ApplicationItem(
-      id: '4',
-      type: 'Inseticida',
-      date: '15/03/26',
-      reason: 'Controle de pragas',
-      pesticides: 'Imidacloprido, Deltametrina',
-      fazenda: 'Fazenda 2',
-      talhao: 'Talhão 4',
-    ),
   ];
+
+  // Cálculo dos totais
+  int get totalPrecipitacao {
+    int total = 0;
+    for (var item in precipitacoes) {
+      String numero = item.quantidade.replaceAll(' mm', '');
+      total += int.parse(numero);
+    }
+    return total;
+  }
+
+  double get mediaPrecipitacao {
+    if (precipitacoes.isEmpty) return 0;
+    return totalPrecipitacao / precipitacoes.length;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Bege,
+      backgroundColor: Bege, // Mesma cor do original
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -130,14 +129,18 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.biotech, size: 45, color: VerdeClaro),
+                      Icon(
+                        Icons.water_drop,
+                        size: 45,
+                        color: VerdeClaro,
+                      ), // Mesma cor
                       const SizedBox(width: 10),
                       Text(
-                        'Aplicações',
+                        'Precipitações',
                         style: TextStyle(
                           fontSize: 35,
                           fontWeight: FontWeight.w600,
-                          color: VerdeClaro,
+                          color: VerdeClaro, // Mesma cor do original
                         ),
                       ),
                     ],
@@ -145,34 +148,34 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Cards das aplicações
+                // Cards das precipitações
                 Expanded(
                   child: ListView.builder(
-                    itemCount: applications.length,
+                    itemCount: precipitacoes.length,
                     itemBuilder: (context, index) {
-                      final application = applications[index];
-                      return _buildApplicationCard(application, index);
+                      final precipitacao = precipitacoes[index];
+                      return _buildPrecipitacaoCard(precipitacao, index);
                     },
                   ),
                 ),
 
-                // Rodapé com estatísticas
+                // Rodapé com total de registros
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: VerdeEscuro,
+                    color: VerdeEscuro, // Mesma cor do original
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total de Aplicações',
+                        'Total de Precipitações',
                         style: TextStyle(
-                          color: Bege,
+                          color: Bege, 
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -183,13 +186,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: Bege,
+                          color: Bege, // Mesma cor do original
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          '${applications.length}',
+                          '${precipitacoes.length}',
                           style: TextStyle(
-                            color: VerdeEscuro,
+                            color: VerdeEscuro, // Mesma cor do original
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -204,18 +207,54 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showApplicationForm(context, null),
-        backgroundColor: VerdeEscuro,
-        foregroundColor: Bege,
+        onPressed: () => _showPrecipitacaoForm(context, null),
+        backgroundColor: VerdeEscuro, // Mesma cor do original
+        foregroundColor: Bege, // Mesma cor do original
         child: const Icon(Icons.add, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
-  Widget _buildApplicationCard(ApplicationItem application, int index) {
+  Widget _buildStatCard(String label, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: VerdeClaro.withOpacity(0.1), 
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: VerdeClaro.withOpacity(0.3), width: 1),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 20, color: VerdeEscuro), // Mesma cor
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: VerdeEscuro, // Mesma cor
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrecipitacaoCard(PrecipitacaoItem precipitacao, int index) {
     return Card(
-      color: Colors.orange[50],
+      color: Colors.orange[50], 
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -224,19 +263,19 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Linha superior com ícone, título e número
+            // Linha superior com ícone, título e número - IGUAL AO ORIGINAL
             Row(
               children: [
                 Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.green[100],
+                    color: Colors.green[100], // Mesma cor do original
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getTypeIcon(application.type),
-                    color: VerdeEscuro,
+                    Icons.water_drop,
+                    color: VerdeEscuro, // Mesma cor
                     size: 22,
                   ),
                 ),
@@ -246,7 +285,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        application.type,
+                        precipitacao.quantidade,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -258,7 +297,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           Icon(Icons.location_on, size: 14, color: VerdeClaro),
                           const SizedBox(width: 4),
                           Text(
-                            '${application.fazenda} - ${application.talhao}',
+                            '${precipitacao.fazenda} - ${precipitacao.talhao}',
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],
@@ -276,13 +315,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: VerdeClaro,
+                    color: VerdeClaro, // Mesma cor
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '${index + 1}',
                     style: TextStyle(
-                      color: Bege,
+                      color: Bege, // Mesma cor
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -294,37 +333,36 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 8),
 
-            // Informações em chips com ícones de ação na mesma linha
+            // Informações em chips com ícones de ação - IGUAL AO ORIGINAL
             Row(
               children: [
-                // Chips de informações - ocupam o espaço disponível
+                // Chips de informações
                 Expanded(
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.calendar_today, application.date),
-                      _buildInfoChip(Icons.description, application.reason),
-                      _buildInfoChip(Icons.science, application.pesticides),
+                      _buildInfoChip(Icons.calendar_today, precipitacao.data),
+                      _buildInfoChip(Icons.water_drop, precipitacao.descricao),
                     ],
                   ),
                 ),
-                // Ícones de ação no canto direito
+                // Ícones de ação - IGUAL AO ORIGINAL
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
                       onPressed: () =>
-                          _showApplicationForm(context, application),
-                      color: VerdeClaro,
+                          _showPrecipitacaoForm(context, precipitacao),
+                      color: VerdeClaro, // Mesma cor
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
                     const SizedBox(width: 15),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () => _deleteApplication(application.id),
+                      onPressed: () => _deletePrecipitacao(precipitacao.id),
                       color: Colors.red.shade400,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -343,13 +381,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: VerdeClaro.withOpacity(0.1),
+        color: VerdeClaro.withOpacity(0.1), // Mesmo estilo do original
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: VerdeEscuro),
+          Icon(icon, size: 14, color: VerdeEscuro), // Mesma cor
           const SizedBox(width: 4),
           Flexible(
             child: Text(
@@ -367,23 +405,9 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  IconData _getTypeIcon(String type) {
-    if (type.toLowerCase().contains('fungicida')) {
-      return Icons.biotech;
-    } else if (type.toLowerCase().contains('dessecação')) {
-      return Icons.water_drop;
-    } else if (type.toLowerCase().contains('herbicida')) {
-      return Icons.grass;
-    } else if (type.toLowerCase().contains('inseticida')) {
-      return Icons.bug_report;
-    } else {
-      return Icons.spa;
-    }
-  }
-
-  void _showApplicationForm(
+  void _showPrecipitacaoForm(
     BuildContext context,
-    ApplicationItem? application,
+    PrecipitacaoItem? precipitacao,
   ) {
     showDialog(
       context: context,
@@ -399,18 +423,18 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: ApplicationFormModal(
-              application: application,
-              onSave: (newApplication) {
+            child: PrecipitacaoFormModal(
+              precipitacao: precipitacao,
+              onSave: (newPrecipitacao) {
                 setState(() {
-                  if (application == null) {
-                    applications.add(newApplication);
+                  if (precipitacao == null) {
+                    precipitacoes.add(newPrecipitacao);
                   } else {
-                    final index = applications.indexWhere(
-                      (a) => a.id == application.id,
+                    final index = precipitacoes.indexWhere(
+                      (a) => a.id == precipitacao.id,
                     );
                     if (index != -1) {
-                      applications[index] = newApplication;
+                      precipitacoes[index] = newPrecipitacao;
                     }
                   }
                 });
@@ -422,13 +446,15 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
     );
   }
 
-  void _deleteApplication(String id) {
+  void _deletePrecipitacao(String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Excluir Aplicação'),
-          content: const Text('Tem certeza que deseja excluir esta aplicação?'),
+          title: const Text('Excluir Registro'),
+          content: const Text(
+            'Tem certeza que deseja excluir este registro de precipitação?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -437,7 +463,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  applications.removeWhere((a) => a.id == id);
+                  precipitacoes.removeWhere((a) => a.id == id);
                 });
                 Navigator.pop(context);
               },
@@ -451,27 +477,26 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - APLICAÇÕES
-class ApplicationFormModal extends StatefulWidget {
-  final ApplicationItem? application;
-  final Function(ApplicationItem) onSave;
+// MODAL DE FORMULÁRIO - PRECIPITAÇÃO
+class PrecipitacaoFormModal extends StatefulWidget {
+  final PrecipitacaoItem? precipitacao;
+  final Function(PrecipitacaoItem) onSave;
 
-  const ApplicationFormModal({
+  const PrecipitacaoFormModal({
     super.key,
-    this.application,
+    this.precipitacao,
     required this.onSave,
   });
 
   @override
-  State<ApplicationFormModal> createState() => _ApplicationFormModalState();
+  State<PrecipitacaoFormModal> createState() => _PrecipitacaoFormModalState();
 }
 
-class _ApplicationFormModalState extends State<ApplicationFormModal> {
+class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _typeController;
-  late TextEditingController _dateController;
-  late TextEditingController _reasonController;
-  late TextEditingController _pesticidesController;
+  late TextEditingController _quantidadeController;
+  late TextEditingController _dataController;
+  late TextEditingController _descricaoController;
   late TextEditingController _fazendaController;
   late TextEditingController _talhaoController;
 
@@ -480,33 +505,29 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.application != null;
-    _typeController = TextEditingController(
-      text: widget.application?.type ?? '',
+    _isEditing = widget.precipitacao != null;
+    _quantidadeController = TextEditingController(
+      text: widget.precipitacao?.quantidade ?? '',
     );
-    _dateController = TextEditingController(
-      text: widget.application?.date ?? '',
+    _dataController = TextEditingController(
+      text: widget.precipitacao?.data ?? '',
     );
-    _reasonController = TextEditingController(
-      text: widget.application?.reason ?? '',
-    );
-    _pesticidesController = TextEditingController(
-      text: widget.application?.pesticides ?? '',
+    _descricaoController = TextEditingController(
+      text: widget.precipitacao?.descricao ?? '',
     );
     _fazendaController = TextEditingController(
-      text: widget.application?.fazenda ?? '',
+      text: widget.precipitacao?.fazenda ?? '',
     );
     _talhaoController = TextEditingController(
-      text: widget.application?.talhao ?? '',
+      text: widget.precipitacao?.talhao ?? '',
     );
   }
 
   @override
   void dispose() {
-    _typeController.dispose();
-    _dateController.dispose();
-    _reasonController.dispose();
-    _pesticidesController.dispose();
+    _quantidadeController.dispose();
+    _dataController.dispose();
+    _descricaoController.dispose();
     _fazendaController.dispose();
     _talhaoController.dispose();
     super.dispose();
@@ -529,11 +550,11 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
+          // Header - IGUAL AO ORIGINAL
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: VerdeEscuro,
+              color: VerdeEscuro, // Mesma cor
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -542,15 +563,15 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _isEditing ? 'Editar Aplicação' : 'Nova Aplicação',
+                  _isEditing ? 'Editar Precipitação' : 'Nova Precipitação',
                   style: TextStyle(
-                    color: Bege,
+                    color: Bege, // Mesma cor
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: Bege),
+                  icon: Icon(Icons.close, color: Bege), // Mesma cor
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -566,7 +587,7 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: [                    
                     _buildFormField(
                       label: 'Fazenda',
                       controller: _fazendaController,
@@ -582,31 +603,24 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Tipo de Aplicação',
-                      controller: _typeController,
-                      icon: Icons.spa,
-                      hint: 'Ex: Fungicida, Dessecação',
+                      label: 'Milímetros (mm)',
+                      controller: _quantidadeController,
+                      icon: Icons.water_drop,
+                      hint: 'Ex: 15.5',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Data',
-                      controller: _dateController,
+                      controller: _dataController,
                       icon: Icons.calendar_today,
-                      hint: 'DD/MM/AAAA',
-                    ),                    
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Motivo',
-                      controller: _reasonController,
-                      icon: Icons.description,
-                      hint: 'Motivo da aplicação',
+                      hint: 'DD/MM/AA',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Defensivos Usados',
-                      controller: _pesticidesController,
-                      icon: Icons.science,
-                      hint: 'Lista de defensivos utilizados',
+                      label: 'Observações',
+                      controller: _descricaoController,
+                      icon: Icons.description,
+                      hint: 'Observações adicionais',
                     ),
                     const SizedBox(height: 24),
 
@@ -614,10 +628,10 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveApplication,
+                        onPressed: _savePrecipitacao,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: VerdeEscuro,
-                          foregroundColor: Bege,
+                          backgroundColor: VerdeEscuro, // Mesma cor
+                          foregroundColor: Bege, // Mesma cor
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -666,9 +680,12 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          labelStyle: TextStyle(
+            color: VerdeClaro,
+            fontWeight: FontWeight.w600,
+          ), // Mesma cor
           hintText: hint,
-          prefixIcon: Icon(icon, color: VerdeClaro),
+          prefixIcon: Icon(icon, color: VerdeClaro), // Mesma cor
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -687,31 +704,30 @@ class _ApplicationFormModalState extends State<ApplicationFormModal> {
     );
   }
 
-  void _saveApplication() {
+  void _savePrecipitacao() {
     if (_formKey.currentState!.validate()) {
-      final newApplication = ApplicationItem(
+      final newPrecipitacao = PrecipitacaoItem(
         id:
-            widget.application?.id ??
+            widget.precipitacao?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
-        type: _typeController.text,
-        date: _dateController.text,
-        reason: _reasonController.text,
-        pesticides: _pesticidesController.text,
+        quantidade: _quantidadeController.text,
+        data: _dataController.text,
+        descricao: _descricaoController.text,
         fazenda: _fazendaController.text,
         talhao: _talhaoController.text,
       );
 
-      widget.onSave(newApplication);
+      widget.onSave(newPrecipitacao);
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
-                ? 'Aplicação atualizada com sucesso!'
-                : 'Aplicação criada com sucesso!',
+                ? 'Registro atualizado com sucesso!'
+                : 'Registro criado com sucesso!',
           ),
-          backgroundColor: VerdeEscuro,
+          backgroundColor: VerdeEscuro, // Mesma cor
           duration: const Duration(seconds: 2),
         ),
       );
