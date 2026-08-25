@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:safraon/telas/aplicacao.dart';
 import 'package:safraon/telas/aplicacoes.dart';
 import 'package:safraon/telas/clima.dart';
-import 'package:safraon/telas/climas.dart';
 import 'package:safraon/telas/colheita.dart';
 import 'package:safraon/telas/colheitas.dart';
 import 'package:safraon/telas/manejos.dart';
