@@ -106,6 +106,36 @@ class _ColheitasPageState extends State<ColheitasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Bege,
+      appBar: AppBar(
+        backgroundColor: VerdeEscuro, // Mesma cor do fundo da imagem
+        iconTheme: IconThemeData(color: BegeClaro), // Cor da seta (Bege)
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context), // Ação de voltar
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image(
+              image: AssetImage('Imagens/ICONE_COLHEITA.png'),
+              width: 35,
+              height: 35,
+              fit: BoxFit.cover,
+              color: BegeClaro,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Colheitas',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w600,
+                color: BegeClaro,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+      ),      
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -117,27 +147,6 @@ class _ColheitasPageState extends State<ColheitasPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cabeçalho
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.grass, size: 45, color: VerdeClaro),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Colheitas',
-                        style: TextStyle(
-                          fontSize: 35,
-                          fontWeight: FontWeight.w600,
-                          color: VerdeClaro,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Cards das colheitas
                 Expanded(
                   child: ListView.builder(
                     itemCount: colheitas.length,

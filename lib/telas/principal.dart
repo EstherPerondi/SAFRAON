@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
-
 class PrincipalPage extends StatelessWidget {
   const PrincipalPage({super.key});
+  
   @override
   Widget build(BuildContext context) {
     final itens = [
@@ -11,39 +11,68 @@ class PrincipalPage extends StatelessWidget {
       {"titulo": "Últimas\nAplicações", "icone": "Imagens/ICONE_DEFENSIVO.png"},
       {"titulo": "Plantio", "icone": "Imagens/ICONE_PLANTIO.png"},
       {"titulo": "Manejos", "icone": "Imagens/ICONE_MANEJO.png"},
-      {"titulo": "Colheita", "icone": "Imagens/ICONE_COLHEITA.png"},
-      {
-        "titulo": "Características\nclimáticas",
-        "icone": "Imagens/ICONE_CARACTERISTICAS_CLIMATICAS.png",
-      },
+      {"titulo": "Colheitas", "icone": "Imagens/ICONE_COLHEITA.png"},
       {"titulo": "Precipitações", "icone": "Imagens/ICONE_CHUVA.png"},
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool desktop = constraints.maxWidth >= 900;
-
+        final bool desktop = constraints.maxWidth >= 800;
+        final double cardWidth = desktop ? 250 : 110;
+        final double spacing = desktop ? 50 : 60;
+        final double padding = desktop ? 70 : 20;
+        
+        int cardsPerRow = (constraints.maxWidth - padding * 2 + spacing) ~/ (cardWidth + spacing);
+        if (cardsPerRow < 1) cardsPerRow = 1;
+        
         return Scaffold(
           backgroundColor: Bege,
           body: SafeArea(
             child: Padding(
-              padding: EdgeInsets.all(desktop ? 70 : 20),
-              child: GridView.builder(
-                itemCount: itens.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: desktop ? 4 : 2,
-                  crossAxisSpacing: desktop ? 35 : 20,
-                  mainAxisSpacing: desktop ? 35 : 25,
-                  childAspectRatio: desktop ? 1.0 : 0.78,
+              padding: EdgeInsets.all(padding),
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: spacing,
+                    runSpacing: desktop ? 110 : 80,
+                    alignment: WrapAlignment.center,
+                    children: itens.map((item) {
+                      return SizedBox(
+                        width: cardWidth,
+                        child: MenuCard(
+                          titulo: item["titulo"]!,
+                          imagem: item["icone"]!,
+                          onTap: () {
+                            switch(item["titulo"]) {
+                              case "Fazendas":
+                                Navigator.pushNamed(context, '/fazendas');
+                                break;
+                              case "Talhões":
+                                Navigator.pushNamed(context, '/talhoes');
+                                break;
+                              case "Últimas\nAplicações":
+                                Navigator.pushNamed(context, '/aplicacoes');
+                                break;
+                              case "Plantio":
+                                Navigator.pushNamed(context, '/plantios');
+                                break;
+                              case "Manejos":
+                                Navigator.pushNamed(context, '/manejos');
+                                break;
+                              case "Colheitas":
+                                Navigator.pushNamed(context, '/colheitas');
+                                break;
+                              case "Precipitações":
+                                Navigator.pushNamed(context, '/precipitacoes');
+                                break;
+                            }
+                          },
+                          desktop: desktop,
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
-                itemBuilder: (context, index) {
-                  return MenuCard(
-                    titulo: itens[index]["titulo"]!,
-                    imagem: itens[index]["icone"]!,
-                    onTap: () {},
-                    desktop: desktop,
-                  );
-                },
               ),
             ),
           ),
@@ -83,13 +112,11 @@ class MenuCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
             ),
             child: Padding(
-              padding: EdgeInsets.all(desktop ? 18 : 8),
+              padding: EdgeInsets.all(desktop ? 8 : 8),
               child: Image.asset(imagem, fit: BoxFit.contain),
             ),
           ),
-
           SizedBox(height: desktop ? 12 : 6),
-
           Text(
             titulo,
             textAlign: TextAlign.center,
