@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
+import 'fazenda.dart'; // Importe a página de talhões
 
 void main() {
   runApp(const MyApp());
@@ -27,26 +28,14 @@ class FazendaItem {
   final String id;
   final String nome;
   final String area;
-  final String producao;
 
-  FazendaItem({
-    required this.id,
-    required this.nome,
-    required this.area,
-    required this.producao,
-  });
+  FazendaItem({required this.id, required this.nome, required this.area});
 
-  FazendaItem copyWith({
-    String? id,
-    String? nome,
-    String? area,
-    String? producao,
-  }) {
+  FazendaItem copyWith({String? id, String? nome, String? area}) {
     return FazendaItem(
       id: id ?? this.id,
       nome: nome ?? this.nome,
       area: area ?? this.area,
-      producao: producao ?? this.producao,
     );
   }
 }
@@ -60,24 +49,9 @@ class FazendasPage extends StatefulWidget {
 
 class _FazendasPageState extends State<FazendasPage> {
   List<FazendaItem> fazendas = [
-    FazendaItem(
-      id: '1',
-      nome: 'Fazenda 1',
-      area: '1.200 ha',
-      producao: 'Soja, Milho',
-    ),
-    FazendaItem(
-      id: '2',
-      nome: 'Fazenda 2',
-      area: '850 ha',
-      producao: 'Café, Cana',
-    ),
-    FazendaItem(
-      id: '3',
-      nome: 'Fazenda 3',
-      area: '1.500 ha',
-      producao: 'Laranja, Eucalipto',
-    ),
+    FazendaItem(id: '1', nome: 'Fazenda 1', area: '1.200 ha'),
+    FazendaItem(id: '2', nome: 'Fazenda 2', area: '850 ha'),
+    FazendaItem(id: '3', nome: 'Fazenda 3', area: '1.500 ha'),
   ];
 
   // Cálculo de estatísticas
@@ -97,10 +71,12 @@ class _FazendasPageState extends State<FazendasPage> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.store,
+            Image(
+              image: const AssetImage('Imagens/ICONE_FAZENDAS.png'),
+              width: 35,
+              height: 35,
+              fit: BoxFit.cover,
               color: BegeClaro,
-              size: 30,
             ),
             const SizedBox(width: 8),
             Text(
@@ -194,145 +170,104 @@ class _FazendasPageState extends State<FazendasPage> {
   }
 
   Widget _buildFazendaCard(FazendaItem fazenda, int index) {
-    return Card(
-      color: Colors.orange[50],
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Linha superior com ícone, título e status
-            Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.green[100],
-                    borderRadius: BorderRadius.circular(8),
+    return GestureDetector(
+      onTap: () => _navigateToTalhoes(fazenda.id, fazenda.nome),
+      child: Card(
+        color: Colors.orange[50],
+        margin: const EdgeInsets.only(bottom: 12),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.green[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.house, color: VerdeEscuro, size: 28),
                   ),
-                  child: Icon(
-                    Icons.store,
-                    color: VerdeEscuro,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        fazenda.nome,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          fazenda.nome,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
                         ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 14,
+                              color: VerdeClaro,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              fazenda.area,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        onPressed: () => _showFazendaForm(context, fazenda),
+                        color: VerdeClaro,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      const SizedBox(width: 15),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        onPressed: () => _deleteFazenda(fazenda.id),
+                        color: Colors.red.shade400,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
                     ],
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: VerdeClaro,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(
-                      color: Bege,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Divider(height: 1, color: Colors.grey),
-            const SizedBox(height: 12),
-
-            // Informações em chips
-            Row(
-              children: [
-                Expanded(
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: [
-                      _buildInfoChip(Icons.crop, fazenda.area),
-                      _buildInfoChip(Icons.agriculture, fazenda.producao),
-                    ],
-                  ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => _showFazendaForm(context, fazenda),
-                      color: VerdeClaro,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    const SizedBox(width: 15),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () => _deleteFazenda(fazenda.id),
-                      color: Colors.red.shade400,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: VerdeClaro.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: VerdeEscuro),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+  void _navigateToTalhoes(String fazendaId, String fazendaNome) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            FazendaPage(fazendaId: fazendaId, fazendaNome: fazendaNome),
       ),
     );
   }
 
-  void _showFazendaForm(
-    BuildContext context,
-    FazendaItem? fazenda,
-  ) {
+  void _showFazendaForm(BuildContext context, FazendaItem? fazenda) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -404,11 +339,7 @@ class FazendaFormModal extends StatefulWidget {
   final FazendaItem? fazenda;
   final Function(FazendaItem) onSave;
 
-  const FazendaFormModal({
-    super.key,
-    this.fazenda,
-    required this.onSave,
-  });
+  const FazendaFormModal({super.key, this.fazenda, required this.onSave});
 
   @override
   State<FazendaFormModal> createState() => _FazendaFormModalState();
@@ -418,7 +349,6 @@ class _FazendaFormModalState extends State<FazendaFormModal> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nomeController;
   late TextEditingController _areaController;
-  late TextEditingController _producaoController;
 
   bool _isEditing = false;
 
@@ -426,22 +356,14 @@ class _FazendaFormModalState extends State<FazendaFormModal> {
   void initState() {
     super.initState();
     _isEditing = widget.fazenda != null;
-    _nomeController = TextEditingController(
-      text: widget.fazenda?.nome ?? '',
-    );
-    _areaController = TextEditingController(
-      text: widget.fazenda?.area ?? '',
-    );
-    _producaoController = TextEditingController(
-      text: widget.fazenda?.producao ?? '',
-    );
+    _nomeController = TextEditingController(text: widget.fazenda?.nome ?? '');
+    _areaController = TextEditingController(text: widget.fazenda?.area ?? '');
   }
 
   @override
   void dispose() {
     _nomeController.dispose();
     _areaController.dispose();
-    _producaoController.dispose();
     super.dispose();
   }
 
@@ -503,7 +425,7 @@ class _FazendaFormModalState extends State<FazendaFormModal> {
                     _buildFormField(
                       label: 'Nome da Fazenda',
                       controller: _nomeController,
-                      icon: Icons.store,
+                      icon: Icons.house,
                       hint: 'Ex: Fazenda 1',
                     ),
                     const SizedBox(height: 16),
@@ -512,13 +434,6 @@ class _FazendaFormModalState extends State<FazendaFormModal> {
                       controller: _areaController,
                       icon: Icons.crop,
                       hint: 'Ex: 1.200 ha',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Produção',
-                      controller: _producaoController,
-                      icon: Icons.agriculture,
-                      hint: 'Ex: Soja, Milho',
                     ),
                     const SizedBox(height: 24),
 
@@ -602,10 +517,11 @@ class _FazendaFormModalState extends State<FazendaFormModal> {
   void _saveFazenda() {
     if (_formKey.currentState!.validate()) {
       final newFazenda = FazendaItem(
-        id: widget.fazenda?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        id:
+            widget.fazenda?.id ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         nome: _nomeController.text,
         area: _areaController.text,
-        producao: _producaoController.text,
       );
 
       widget.onSave(newFazenda);

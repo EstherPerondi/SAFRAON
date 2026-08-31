@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:safraon/telas/aplicacao.dart';
+import 'package:safraon/telas/clima.dart';
+import 'package:safraon/telas/colheita.dart';
+import 'package:safraon/telas/manejo.dart';
+import 'package:safraon/telas/plantio.dart';
+import 'package:safraon/telas/precipitacao.dart';
 import 'package:safraon/variaveis.dart';
 
 void main() {
@@ -23,10 +29,16 @@ class MyApp extends StatelessWidget {
 }
 
 class TalhaoPage extends StatelessWidget {
-  const TalhaoPage({super.key});
+  final Map<String, String>? talhaoData;
+  
+  const TalhaoPage({super.key, this.talhaoData});
 
   @override
   Widget build(BuildContext context) {
+    final nome = talhaoData?['nome'] ?? 'Talhão';
+    final fazenda = talhaoData?['fazenda'] ?? 'Fazenda';
+    final cidade = talhaoData?['cidade'] ?? 'Localização';
+    
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -36,7 +48,7 @@ class TalhaoPage extends StatelessWidget {
           },
         ),
         title: Text(
-          'Talhão 1',
+          nome,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 22,
@@ -57,7 +69,7 @@ class TalhaoPage extends StatelessWidget {
       ),
       body: Container(
         decoration: BoxDecoration(
-            color: Bege,
+          color: Bege,
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -65,28 +77,9 @@ class TalhaoPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
-              _buildHeaderInfo(),
+              _buildHeaderInfo(nome, fazenda, cidade),
               const SizedBox(height: 24),
-              Row(
-                children: [
-                  Icon(
-                    Icons.grid_view,
-                    size: 20,
-                    color: VerdeEscuro,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Módulos',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: VerdeEscuro,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Expanded( 
+              Expanded(
                 child: ListView(
                   children: [
                     _buildModuleCard(
@@ -94,30 +87,72 @@ class TalhaoPage extends StatelessWidget {
                       title: 'Plantio',
                       subtitle: 'Gerenciar plantio',
                       color: VerdeClaro,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PlantioPage()),
+                        );
+                      },
                     ),
                     _buildModuleCard(
                       icon: Icons.build,
                       title: 'Manejos',
                       subtitle: 'Práticas de manejo',
                       color: VerdeClaro,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ManejoPage()),
+                        );
+                      },
                     ),
                     _buildModuleCard(
                       icon: Icons.spa,
                       title: 'Aplicações',
                       subtitle: 'Insumos e defensivos',
                       color: VerdeClaro,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AplicacaoPage()),
+                        );
+                      },
                     ),
                     _buildModuleCard(
                       icon: Icons.agriculture,
                       title: 'Colheita',
                       subtitle: 'Planejamento e execução',
                       color: VerdeClaro,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ColheitaPage()),
+                        );
+                      },
                     ),
                     _buildModuleCard(
                       icon: Icons.water_drop,
                       title: 'Precipitações',
                       subtitle: 'Histórico de chuvas',
                       color: VerdeClaro,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PrecipitacaoPage()),
+                        );
+                      },
+                    ),
+                    _buildModuleCard(
+                      icon: Icons.wb_sunny,
+                      title: 'Clima',
+                      subtitle: 'Previsão e condições atuais',
+                      color: VerdeClaro,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ClimaPage()),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -131,7 +166,7 @@ class TalhaoPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderInfo() {
+  Widget _buildHeaderInfo(String nome, String fazenda, String cidade) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -165,8 +200,8 @@ class TalhaoPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 Text(
-                  'Talhão 1',
+                Text(
+                  nome,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -183,7 +218,7 @@ class TalhaoPage extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Fazenda Principal',
+                      '$fazenda, $cidade',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -199,11 +234,12 @@ class TalhaoPage extends StatelessWidget {
     );
   }
 
-  static Widget _buildModuleCard({
+  Widget _buildModuleCard({
     required IconData icon,
     required String title,
     required String subtitle,
     required Color color,
+    required VoidCallback onTap,
   }) {
     return Card(
       elevation: 2,
@@ -244,8 +280,7 @@ class TalhaoPage extends StatelessWidget {
           size: 16,
           color: VerdeClaro,
         ),
-        onTap: () {
-        },
+        onTap: onTap,
       ),
     );
   }
@@ -339,6 +374,7 @@ class TalhaoPage extends StatelessWidget {
                 title: Text('Editar Talhão', style: TextStyle(color: VerdeEscuro)),
                 onTap: () {
                   Navigator.pop(context);
+                  // Aqui você pode adicionar a lógica de edição
                 },
               ),
               ListTile(
@@ -346,6 +382,7 @@ class TalhaoPage extends StatelessWidget {
                 title: Text('Compartilhar', style: TextStyle(color: VerdeEscuro)),
                 onTap: () {
                   Navigator.pop(context);
+                  // Aqui você pode adicionar a lógica de compartilhamento
                 },
               ),
               ListTile(
@@ -353,6 +390,7 @@ class TalhaoPage extends StatelessWidget {
                 title: Text('Histórico', style: TextStyle(color: VerdeEscuro)),
                 onTap: () {
                   Navigator.pop(context);
+                  // Aqui você pode adicionar a lógica de histórico
                 },
               ),
               ListTile(
@@ -360,6 +398,7 @@ class TalhaoPage extends StatelessWidget {
                 title: Text('Excluir', style: TextStyle(color: Colors.red.shade700)),
                 onTap: () {
                   Navigator.pop(context);
+                  // Aqui você pode adicionar a lógica de exclusão
                 },
               ),
             ],

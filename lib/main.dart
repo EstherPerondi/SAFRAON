@@ -4,6 +4,7 @@ import 'package:safraon/telas/aplicacoes.dart';
 import 'package:safraon/telas/clima.dart';
 import 'package:safraon/telas/colheita.dart';
 import 'package:safraon/telas/colheitas.dart';
+import 'package:safraon/telas/fazenda.dart';
 import 'package:safraon/telas/manejos.dart';
 import 'package:safraon/telas/plantios.dart';
 import 'package:safraon/telas/precipitacao.dart';
@@ -34,14 +35,14 @@ class MyApp extends StatelessWidget {
       routes: {
         '/principal': (context) => const PrincipalPage(),
         '/fazendas': (context) => const FazendasPage(),
-        '/talhoes': (context) => const TalhoesPage(),
+        '/talhoes': (context) => TalhoesPage(),
         '/aplicacoes': (context) => const AplicacoesPage(),
         '/plantios': (context) => const PlantiosPage(),
         '/manejos': (context) => const ManejosPage(),
         '/colheitas': (context) => const ColheitasPage(),
         '/precipitacoes': (context) => const PrecipitacoesPage(),
       },
-      home: LoginPage(),
+      home: PrincipalPage(),
     );
   }
 }
