@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
 import 'package:safraon/telas/cadastro.dart';
+import 'package:safraon/telas/principal.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -73,19 +74,10 @@ class _LoginPageState extends State<LoginPage> {
       if (email == "usuario@exemplo.com" && password == "123456") {
         // Login bem sucedido
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Login realizado com sucesso!'),
-              backgroundColor: VerdeClaro,
-              duration: Duration(seconds: 2),
-            ),
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const PrincipalPage()),
           );
-
-          // Aqui você navega para a próxima tela
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => HomePage()),
-          // );
         }
       } else {
         // Login falhou
@@ -114,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('Imagens/imagem_cadastro.png'),
+            image: AssetImage('Imagens/login.png'),
             fit: BoxFit.cover,
           ),
         ),
@@ -189,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
                                   width: 2,
                                 ),
                               ),
-                              prefixIcon: Icon(Icons.email, color: VerdeEscuro), // CORRIGIDO
+                              prefixIcon: Icon(Icons.email, color: VerdeEscuro),
                             ),
                             validator: _validateEmail,
                           ),
@@ -225,13 +217,13 @@ class _LoginPageState extends State<LoginPage> {
                                   width: 2,
                                 ),
                               ),
-                              prefixIcon: Icon(Icons.lock, color: VerdeEscuro), // CORRIGIDO
+                              prefixIcon: Icon(Icons.lock, color: VerdeEscuro),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscureText
                                       ? Icons.visibility_off
                                       : Icons.visibility,
-                                  color: VerdeEscuro, // CORRIGIDO
+                                  color: VerdeEscuro,
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -265,7 +257,7 @@ class _LoginPageState extends State<LoginPage> {
                                     )
                                   : Text(
                                       'Login',
-                                      style: textoBotao, // CORRIGIDO
+                                      style: textoBotao,
                                     ),
                             ),
                           ),
@@ -290,13 +282,12 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           TextButton(
                             onPressed: () {
-                              // Navegar para tela de cadastro - CORRIGIDO!
+                              // Navegar para tela de cadastro
                               print('Navegando para cadastro...');
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      const Cadastro(), // Mudado de CadastroPage para Cadastro
+                                  builder: (context) => const Cadastro(),
                                 ),
                               );
                             },

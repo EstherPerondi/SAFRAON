@@ -107,7 +107,37 @@ class _PlantiosPageState extends State<PlantiosPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Bege, // Mesma cor do original
+      backgroundColor: Bege,
+      appBar: AppBar(
+        backgroundColor: VerdeEscuro, // Mesma cor do fundo da imagem
+        iconTheme: IconThemeData(color: BegeClaro), // Cor da seta (Bege)
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context), // Ação de voltar
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image(
+              image: AssetImage('Imagens/ICONE_PLANTIO.png'),
+              width: 35,
+              height: 35,
+              fit: BoxFit.cover,
+              color: BegeClaro,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Plantios',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w600,
+                color: BegeClaro,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -119,11 +149,6 @@ class _PlantiosPageState extends State<PlantiosPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cabeçalho com estatísticas
-                _buildHeader(),
-                const SizedBox(height: 16),
-
-                // Cards dos plantios
                 Expanded(
                   child: ListView.builder(
                     itemCount: plantios.length,
@@ -188,33 +213,6 @@ class _PlantiosPageState extends State<PlantiosPage> {
         child: const Icon(Icons.add, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
-
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Título - IGUAL AO ORIGINAL
-        Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.grass, size: 45, color: VerdeClaro), // Mesma cor
-              const SizedBox(width: 10),
-              Text(
-                'Plantio - Talhão 1',
-                style: TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.w600,
-                  color: VerdeClaro, // Mesma cor do original
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
     );
   }
 

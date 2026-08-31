@@ -194,34 +194,6 @@ class TalhaoPage extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [VerdeEscuro, VerdeClaro]),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: BegeClaro,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Ativo',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: BegeClaro,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -273,7 +245,6 @@ class TalhaoPage extends StatelessWidget {
           color: VerdeClaro,
         ),
         onTap: () {
-          // Navigate to module details
         },
       ),
     );

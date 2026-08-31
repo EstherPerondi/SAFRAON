@@ -112,7 +112,37 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Bege, // Mesma cor do original
+      backgroundColor: Bege,
+      appBar: AppBar(
+        backgroundColor: VerdeEscuro, // Mesma cor do fundo da imagem
+        iconTheme: IconThemeData(color: BegeClaro), // Cor da seta (Bege)
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context), // Ação de voltar
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image(
+              image: AssetImage('Imagens/ICONE_CHUVA.png'),
+              width: 35,
+              height: 35,
+              fit: BoxFit.cover,
+              color: BegeClaro,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Precipitações',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w600,
+                color: BegeClaro,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
@@ -124,31 +154,6 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cabeçalho
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.water_drop,
-                        size: 45,
-                        color: VerdeClaro,
-                      ), // Mesma cor
-                      const SizedBox(width: 10),
-                      Text(
-                        'Precipitações',
-                        style: TextStyle(
-                          fontSize: 35,
-                          fontWeight: FontWeight.w600,
-                          color: VerdeClaro, // Mesma cor do original
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Cards das precipitações
                 Expanded(
                   child: ListView.builder(
                     itemCount: precipitacoes.length,
@@ -175,7 +180,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                       Text(
                         'Total de Precipitações',
                         style: TextStyle(
-                          color: Bege, 
+                          color: Bege,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -222,7 +227,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: VerdeClaro.withOpacity(0.1), 
+          color: VerdeClaro.withOpacity(0.1),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: VerdeClaro.withOpacity(0.3), width: 1),
         ),
@@ -254,7 +259,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
 
   Widget _buildPrecipitacaoCard(PrecipitacaoItem precipitacao, int index) {
     return Card(
-      color: Colors.orange[50], 
+      color: Colors.orange[50],
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -587,7 +592,7 @@ class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  children: [                    
+                  children: [
                     _buildFormField(
                       label: 'Fazenda',
                       controller: _fazendaController,

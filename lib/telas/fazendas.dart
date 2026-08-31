@@ -1,27 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Fazendas',
-      theme: ThemeData(
-        useMaterial3: true,
-      ),
-      home: const FazendasPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-// MODELO DE DADOS
 class FarmItem {
   final String id;
   final String name;
@@ -29,7 +8,6 @@ class FarmItem {
   final String area;
   final String production;
   final IconData icon;
-  final String status;
 
   FarmItem({
     required this.id,
@@ -38,7 +16,6 @@ class FarmItem {
     required this.area,
     required this.production,
     required this.icon,
-    required this.status,
   });
 
   FarmItem copyWith({
@@ -48,7 +25,6 @@ class FarmItem {
     String? area,
     String? production,
     IconData? icon,
-    String? status,
   }) {
     return FarmItem(
       id: id ?? this.id,
@@ -57,7 +33,6 @@ class FarmItem {
       area: area ?? this.area,
       production: production ?? this.production,
       icon: icon ?? this.icon,
-      status: status ?? this.status,
     );
   }
 }
@@ -78,7 +53,6 @@ class _FazendasPageState extends State<FazendasPage> {
       area: 'Área: 1.200 ha',
       production: 'Produção: Soja, Milho',
       icon: Icons.agriculture,
-      status: 'Ativa',
     ),
     FarmItem(
       id: '2',
@@ -87,7 +61,6 @@ class _FazendasPageState extends State<FazendasPage> {
       area: 'Área: 850 ha',
       production: 'Produção: Café, Cana',
       icon: Icons.grass,
-      status: 'Ativa',
     ),
     FarmItem(
       id: '3',
@@ -96,11 +69,9 @@ class _FazendasPageState extends State<FazendasPage> {
       area: 'Área: 1.500 ha',
       production: 'Produção: Laranja, Eucalipto',
       icon: Icons.park,
-      status: 'Inativa',
     ),
   ];
 
-  // Lista de ícones disponíveis
   final List<IconData> availableIcons = [
     Icons.agriculture,
     Icons.grass,
@@ -113,105 +84,117 @@ class _FazendasPageState extends State<FazendasPage> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Fazendas',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: VerdeEscuro,
+      iconTheme: IconThemeData(color: BegeClaro),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image(
+            image: AssetImage('Imagens/ICONE_FAZENDAS.png'),
+            width: 35,
+            height: 35,
+            fit: BoxFit.cover,
+            color: BegeClaro,
           ),
-        ),
-        centerTitle: true,
-        backgroundColor: VerdeEscuro,
-        foregroundColor: Bege,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add, color: Bege),
-            onPressed: () => _showFarmForm(context, null),
+          const SizedBox(width: 8),
+          Text(
+            'Fazendas',
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w600,
+              color: BegeClaro,
+            ),
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          color: Bege,
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: farms.isEmpty
-                  ? _buildEmptyState()
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
-                          ...farms.map((farm) => Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: _buildFarmCard(context, farm),
-                              )),
-                          const SizedBox(height: 24),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: BegeClaro,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: VerdeClaro.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: VerdeEscuro,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Total: ${farms.length} fazenda${farms.length > 1 ? 's' : ''} cadastrada${farms.length > 1 ? 's' : ''}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: VerdeEscuro,
-                                  ),
-                                ),
-                              ],
-                            ),
+      centerTitle: true,
+    ),
+    body: Container(
+      decoration: BoxDecoration(color: Bege),
+      child: Column(
+        children: [
+          Expanded(
+            child: farms.isEmpty
+                ? _buildEmptyState()
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+                        ...farms.map(
+                          (farm) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildFarmCard(context, farm),
                           ),
-                          const SizedBox(height: 8),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ),
+                  ),
+          ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: VerdeEscuro,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
-          ],
-        ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: BegeClaro,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Total: ${farms.length} fazenda${farms.length > 1 ? 's' : ''} cadastrada${farms.length > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: BegeClaro,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showFarmForm(context, null),
-        backgroundColor: VerdeEscuro,
-        child: Icon(Icons.add, color: Bege, size: 30),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () => _showFarmForm(context, null),
+      backgroundColor: VerdeEscuro,
+      child: Icon(Icons.add, color: Bege, size: 30),
+    ),
+    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+  );
+}
 
   Widget _buildEmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.agriculture,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
+          Icon(Icons.agriculture, size: 80, color: Colors.grey.shade300),
           const SizedBox(height: 16),
           Text(
             'Nenhuma fazenda cadastrada',
@@ -224,10 +207,7 @@ class _FazendasPageState extends State<FazendasPage> {
           const SizedBox(height: 8),
           Text(
             'Clique no botão + para adicionar',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade400,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
           ),
         ],
       ),
@@ -237,9 +217,7 @@ class _FazendasPageState extends State<FazendasPage> {
   Widget _buildFarmCard(BuildContext context, FarmItem farm) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -258,11 +236,7 @@ class _FazendasPageState extends State<FazendasPage> {
                       color: Colors.green[50],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      farm.icon,
-                      color: VerdeEscuro,
-                      size: 28,
-                    ),
+                    child: Icon(farm.icon, color: VerdeEscuro, size: 28),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -298,57 +272,27 @@ class _FazendasPageState extends State<FazendasPage> {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: farm.status == 'Ativa'
-                          ? VerdeEscuro
-                          : Colors.grey.shade400,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      farm.status,
-                      style: TextStyle(
-                        color: BegeClaro,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
                 ],
               ),
-              const SizedBox(height: 16),              
+              const SizedBox(height: 16),
               const Divider(height: 1, color: Colors.grey),
               const SizedBox(height: 16),
-              
+
               Row(
                 children: [
-                  Expanded(
-                    child: _buildInfoChip(Icons.crop_free, farm.area),
-                  ),
+                  Expanded(child: _buildInfoChip(Icons.crop_free, farm.area)),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildInfoChip(Icons.eco, farm.production),
-                  ),                           
+                  Expanded(child: _buildInfoChip(Icons.eco, farm.production)),
                   TextButton.icon(
                     onPressed: () {
                       _showFarmDetails(context, farm);
                     },
-                    icon: Icon(
-                      Icons.visibility,
-                      size: 18,
-                      color: VerdeEscuro,
-                    ),
+                    icon: Icon(Icons.visibility, size: 18, color: VerdeEscuro),
                     label: Text(
                       'Ver detalhes',
                       style: TextStyle(color: VerdeEscuro),
                     ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: VerdeEscuro,
-                    ),
+                    style: TextButton.styleFrom(foregroundColor: VerdeEscuro),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
@@ -371,24 +315,15 @@ class _FazendasPageState extends State<FazendasPage> {
   Widget _buildInfoChip(IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-      ),
+      decoration: BoxDecoration(color: Colors.transparent),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: VerdeEscuro,
-          ),
+          Icon(icon, size: 20, color: VerdeEscuro),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 16 ,
-                color: Colors.grey.shade700,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -439,10 +374,7 @@ class _FazendasPageState extends State<FazendasPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            'Excluir Fazenda',
-            style: TextStyle(color: VerdeEscuro),
-          ),
+          title: Text('Excluir Fazenda', style: TextStyle(color: VerdeEscuro)),
           content: const Text('Tem certeza que deseja excluir esta fazenda?'),
           actions: [
             TextButton(
@@ -470,19 +402,14 @@ class _FazendasPageState extends State<FazendasPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            farm.name,
-            style: TextStyle(color: VerdeEscuro),
-          ),
+          title: Text(farm.name, style: TextStyle(color: VerdeEscuro)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Detalhes da fazenda:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -499,22 +426,6 @@ class _FazendasPageState extends State<FazendasPage> {
                 '• ${farm.production}',
                 style: TextStyle(color: Colors.grey.shade700),
               ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: (farm.status == 'Ativa' ? VerdeEscuro : Colors.grey.shade400)
-                      .withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '• Status: ${farm.status}',
-                  style: TextStyle(
-                    color: farm.status == 'Ativa' ? VerdeEscuro : Colors.grey.shade600,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             ],
           ),
           actions: [
@@ -522,9 +433,7 @@ class _FazendasPageState extends State<FazendasPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              style: TextButton.styleFrom(
-                foregroundColor: VerdeEscuro,
-              ),
+              style: TextButton.styleFrom(foregroundColor: VerdeEscuro),
               child: const Text('Fechar'),
             ),
           ],
@@ -534,7 +443,6 @@ class _FazendasPageState extends State<FazendasPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - MODIFICADO PARA DIÁLOGO
 class FarmFormModal extends StatefulWidget {
   final FarmItem? farm;
   final List<IconData> availableIcons;
@@ -558,7 +466,6 @@ class _FarmFormModalState extends State<FarmFormModal> {
   late TextEditingController _areaController;
   late TextEditingController _productionController;
   late IconData _selectedIcon;
-  late String _selectedStatus;
 
   bool _isEditing = false;
 
@@ -567,15 +474,18 @@ class _FarmFormModalState extends State<FarmFormModal> {
     super.initState();
     _isEditing = widget.farm != null;
     _nameController = TextEditingController(text: widget.farm?.name ?? '');
-    _locationController = TextEditingController(text: widget.farm?.location ?? '');
+    _locationController = TextEditingController(
+      text: widget.farm?.location ?? '',
+    );
     _areaController = TextEditingController(
-      text: widget.farm?.area.replaceAll('Área: ', '').replaceAll(' ha', '') ?? '',
+      text:
+          widget.farm?.area.replaceAll('Área: ', '').replaceAll(' ha', '') ??
+          '',
     );
     _productionController = TextEditingController(
       text: widget.farm?.production.replaceAll('Produção: ', '') ?? '',
     );
     _selectedIcon = widget.farm?.icon ?? widget.availableIcons.first;
-    _selectedStatus = widget.farm?.status ?? 'Ativa';
   }
 
   @override
@@ -604,12 +514,13 @@ class _FarmFormModalState extends State<FarmFormModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
               color: VerdeEscuro,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -630,7 +541,6 @@ class _FarmFormModalState extends State<FarmFormModal> {
             ),
           ),
 
-          // Form
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -670,7 +580,6 @@ class _FarmFormModalState extends State<FarmFormModal> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Seleção de Ícone
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -720,37 +629,8 @@ class _FarmFormModalState extends State<FarmFormModal> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-
-                    // Status
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Status',
-                          style: TextStyle(
-                            color: VerdeClaro,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatusButton('Ativa', VerdeEscuro),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildStatusButton('Inativa', Colors.grey.shade600),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 24),
-
-                    // Botão Salvar
+                    
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -784,38 +664,6 @@ class _FarmFormModalState extends State<FarmFormModal> {
     );
   }
 
-  Widget _buildStatusButton(String status, Color color) {
-    bool isSelected = _selectedStatus == status;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedStatus = status;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? color : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? color : Colors.grey.shade300,
-            width: 2,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            status,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey.shade700,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildFormField({
     required String label,
     required TextEditingController controller,
@@ -842,10 +690,7 @@ class _FarmFormModalState extends State<FarmFormModal> {
         maxLines: maxLines,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(
-            color: VerdeClaro,
-            fontWeight: FontWeight.w600,
-          ),
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
           hintText: hint,
           prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
@@ -878,7 +723,6 @@ class _FarmFormModalState extends State<FarmFormModal> {
         area: 'Área: ${_areaController.text} ha',
         production: 'Produção: ${_productionController.text}',
         icon: _selectedIcon,
-        status: _selectedStatus,
       );
 
       widget.onSave(newFarm);
@@ -887,7 +731,9 @@ class _FarmFormModalState extends State<FarmFormModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _isEditing ? 'Fazenda atualizada com sucesso!' : 'Fazenda criada com sucesso!',
+            _isEditing
+                ? 'Fazenda atualizada com sucesso!'
+                : 'Fazenda criada com sucesso!',
           ),
           backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),

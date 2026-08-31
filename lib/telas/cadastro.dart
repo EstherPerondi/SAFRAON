@@ -31,6 +31,18 @@ class _CadastroState extends State<Cadastro> {
     super.dispose();
   }
 
+  // Função para limpar todos os campos
+  void _limparCampos() {
+    _nome.clear();
+    _email.clear();
+    _usuario.clear();
+    _senha.clear();
+    _confirmar.clear();
+    setState(() {
+      _estado = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -317,7 +329,7 @@ class _CadastroState extends State<Cadastro> {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(
-                  color: VerdeClaro,
+                  color: VerdeEscuro,
                   width: 2,
                 ),
               ),
@@ -334,13 +346,13 @@ class _CadastroState extends State<Cadastro> {
                 vertical: screenWidth < 600 ? 12 : 14,
               ),
             ),
-            dropdownColor: VerdeClaro,
+            dropdownColor: Colors.lightGreen,
             items: estados.map((String estado) {
               return DropdownMenuItem<String>(
                 value: estado,
                 child: Text(
                   estado,
-                  style: TextStyle(color: Bege, fontSize: fieldFontSize),
+                  style: TextStyle(color: Colors.black, fontSize: fieldFontSize),
                 ),
               );
             }).toList(),
@@ -576,13 +588,17 @@ class _CadastroState extends State<Cadastro> {
           ),
           const SizedBox(height: 30),
 
-          // Botão Cadastrar
+          // Botão Cadastrar - MODIFICADO PARA VOLTAR AO LOGIN
           SizedBox(
             width: buttonWidth,
             height: buttonHeight,
             child: ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
+                  // Limpa os campos
+                  _limparCampos();
+                  
+                  // Mostra mensagem de sucesso
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
@@ -592,8 +608,11 @@ class _CadastroState extends State<Cadastro> {
                       duration: Duration(seconds: 2),
                     ),
                   );
+                  
+                  // Aguarda 2 segundos e volta para a tela de login
                   Future.delayed(const Duration(seconds: 2), () {
                     if (mounted) {
+                      // Volta para a tela anterior (LoginPage)
                       Navigator.pop(context);
                     }
                   });
@@ -608,7 +627,7 @@ class _CadastroState extends State<Cadastro> {
               ),
               child: Text(
                 'Cadastrar',
-                style: textoBotao
+                style: textoBotao,
               ),
             ),
           ),
