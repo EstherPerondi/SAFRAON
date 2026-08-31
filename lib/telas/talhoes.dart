@@ -31,15 +31,16 @@ class TalhoesPage extends StatefulWidget {
 
 class _TalhoesPageState extends State<TalhoesPage> {
   List<Map<String, String>> talhoes = [
-    {'nome': 'Talhão 1', 'fazenda': 'Fazenda 1'},
-    {'nome': 'Talhão 2', 'fazenda': 'Fazenda 1'},
-    {'nome': 'Talhão 3', 'fazenda': 'Fazenda 2'},
+    {'nome': 'Talhão 1', 'fazenda': 'Fazenda 1', 'cidade': 'São Paulo, SP'},
+    {'nome': 'Talhão 2', 'fazenda': 'Fazenda 1', 'cidade': 'São Paulo, SP'},
+    {'nome': 'Talhão 3', 'fazenda': 'Fazenda 2', 'cidade': 'Minas Gerais, MG'},
   ];
 
   // Função para mostrar diálogo de adição igual ao das fazendas
   void _mostrarDialogAdicionar() {
     final TextEditingController nomeController = TextEditingController();
     final TextEditingController fazendaController = TextEditingController();
+    final TextEditingController cidadeController = TextEditingController();
 
     showDialog(
       context: context,
@@ -56,11 +57,12 @@ class _TalhoesPageState extends State<TalhoesPage> {
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: TalhaoFormModal(
-              onSave: (nome, fazenda) {
+              onSave: (nome, fazenda, cidade) {
                 setState(() {
                   talhoes.add({
                     'nome': nome,
                     'fazenda': fazenda,
+                    'cidade': cidade,
                   });
                 });
               },
@@ -154,21 +156,43 @@ class _TalhoesPageState extends State<TalhoesPage> {
                               color: Colors.black87,
                             ),
                           ),
-                          subtitle: Row(
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 14,
-                                color: VerdeClaro,
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 14,
+                                    color: VerdeClaro,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    talhao['cidade']!,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey[700],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                talhao['fazenda']!,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[700],
-                                  fontWeight: FontWeight.w500,
-                                ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.business,
+                                    size: 14,
+                                    color: VerdeClaro,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    talhao['fazenda']!,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -268,7 +292,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
 
 // Modal de formulário para adicionar talhão (igual ao das fazendas)
 class TalhaoFormModal extends StatefulWidget {
-  final Function(String, String) onSave;
+  final Function(String, String, String) onSave;
 
   const TalhaoFormModal({
     super.key,
@@ -283,18 +307,21 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nomeController;
   late TextEditingController _fazendaController;
+  late TextEditingController _cidadeController;
 
   @override
   void initState() {
     super.initState();
     _nomeController = TextEditingController();
     _fazendaController = TextEditingController();
+    _cidadeController = TextEditingController();
   }
 
   @override
   void dispose() {
     _nomeController.dispose();
     _fazendaController.dispose();
+    _cidadeController.dispose();
     super.dispose();
   }
 
@@ -363,8 +390,15 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
                     _buildFormField(
                       label: 'Fazenda',
                       controller: _fazendaController,
-                      icon: Icons.location_on,
+                      icon: Icons.business,
                       hint: 'Ex: Fazenda Boa Vista',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: 'Localização',
+                      controller: _cidadeController,
+                      icon: Icons.location_on,
+                      hint: 'Ex: São Paulo, SP',
                     ),
                     const SizedBox(height: 24),
                     
@@ -454,6 +488,7 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
       widget.onSave(
         _nomeController.text,
         _fazendaController.text,
+        _cidadeController.text,
       );
       Navigator.pop(context);
 

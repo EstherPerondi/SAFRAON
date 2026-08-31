@@ -1,38 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
 
-class FarmItem {
-  final String id;
-  final String name;
-  final String location;
-  final String area;
-  final String production;
-  final IconData icon;
+void main() {
+  runApp(const MyApp());
+}
 
-  FarmItem({
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Fazendas',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
+        useMaterial3: true,
+      ),
+      home: const FazendasPage(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+// MODELO DE DADOS
+class FazendaItem {
+  final String id;
+  final String nome;
+  final String area;
+  final String producao;
+
+  FazendaItem({
     required this.id,
-    required this.name,
-    required this.location,
+    required this.nome,
     required this.area,
-    required this.production,
-    required this.icon,
+    required this.producao,
   });
 
-  FarmItem copyWith({
+  FazendaItem copyWith({
     String? id,
-    String? name,
-    String? location,
+    String? nome,
     String? area,
-    String? production,
-    IconData? icon,
+    String? producao,
   }) {
-    return FarmItem(
+    return FazendaItem(
       id: id ?? this.id,
-      name: name ?? this.name,
-      location: location ?? this.location,
+      nome: nome ?? this.nome,
       area: area ?? this.area,
-      production: production ?? this.production,
-      icon: icon ?? this.icon,
+      producao: producao ?? this.producao,
     );
   }
 }
@@ -45,268 +59,243 @@ class FazendasPage extends StatefulWidget {
 }
 
 class _FazendasPageState extends State<FazendasPage> {
-  List<FarmItem> farms = [
-    FarmItem(
+  List<FazendaItem> fazendas = [
+    FazendaItem(
       id: '1',
-      name: 'Fazenda 1',
-      location: 'São Paulo, SP',
-      area: 'Área: 1.200 ha',
-      production: 'Produção: Soja, Milho',
-      icon: Icons.agriculture,
+      nome: 'Fazenda 1',
+      area: '1.200 ha',
+      producao: 'Soja, Milho',
     ),
-    FarmItem(
+    FazendaItem(
       id: '2',
-      name: 'Fazenda 2',
-      location: 'Paraná, PR',
-      area: 'Área: 850 ha',
-      production: 'Produção: Café, Cana',
-      icon: Icons.grass,
+      nome: 'Fazenda 2',
+      area: '850 ha',
+      producao: 'Café, Cana',
     ),
-    FarmItem(
+    FazendaItem(
       id: '3',
-      name: 'Fazenda 3',
-      location: 'Minas Gerais, MG',
-      area: 'Área: 1.500 ha',
-      production: 'Produção: Laranja, Eucalipto',
-      icon: Icons.park,
+      nome: 'Fazenda 3',
+      area: '1.500 ha',
+      producao: 'Laranja, Eucalipto',
     ),
   ];
 
-  final List<IconData> availableIcons = [
-    Icons.agriculture,
-    Icons.grass,
-    Icons.park,
-    Icons.eco,
-    Icons.local_florist,
-    Icons.grain,
-    Icons.forest,
-    Icons.terrain,
-  ];
+  // Cálculo de estatísticas
+  int get totalFazendas => fazendas.length;
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      backgroundColor: VerdeEscuro,
-      iconTheme: IconThemeData(color: BegeClaro),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image(
-            image: AssetImage('Imagens/ICONE_FAZENDAS.png'),
-            width: 35,
-            height: 35,
-            fit: BoxFit.cover,
-            color: BegeClaro,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Fazendas',
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.w600,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Bege,
+      appBar: AppBar(
+        backgroundColor: VerdeEscuro,
+        iconTheme: IconThemeData(color: BegeClaro),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.store,
               color: BegeClaro,
+              size: 30,
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Text(
+              'Fazendas',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w600,
+                color: BegeClaro,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
       ),
-      centerTitle: true,
-    ),
-    body: Container(
-      decoration: BoxDecoration(color: Bege),
-      child: Column(
-        children: [
-          Expanded(
-            child: farms.isEmpty
-                ? _buildEmptyState()
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16),
-                        ...farms.map(
-                          (farm) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: _buildFarmCard(context, farm),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: fazendas.length,
+                    itemBuilder: (context, index) {
+                      final fazenda = fazendas[index];
+                      return _buildFazendaCard(fazenda, index);
+                    },
+                  ),
+                ),
+
+                // Rodapé com estatísticas
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: VerdeEscuro,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total de Fazendas',
+                        style: TextStyle(
+                          color: Bege,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Bege,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          '${fazendas.length}',
+                          style: TextStyle(
+                            color: VerdeEscuro,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
-          ),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: VerdeEscuro,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: BegeClaro,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Total: ${farms.length} fazenda${farms.length > 1 ? 's' : ''} cadastrada${farms.length > 1 ? 's' : ''}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: BegeClaro,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () => _showFarmForm(context, null),
-      backgroundColor: VerdeEscuro,
-      child: Icon(Icons.add, color: Bege, size: 30),
-    ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-  );
-}
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.agriculture, size: 80, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            'Nenhuma fazenda cadastrada',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Clique no botão + para adicionar',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showFazendaForm(context, null),
+        backgroundColor: VerdeEscuro,
+        foregroundColor: Bege,
+        child: const Icon(Icons.add, size: 30),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
-  Widget _buildFarmCard(BuildContext context, FarmItem farm) {
+  Widget _buildFazendaCard(FazendaItem fazenda, int index) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.orange[50],
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: BegeClaro,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(farm.icon, color: VerdeEscuro, size: 28),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Linha superior com ícone, título e status
+            Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.green[100],
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          farm.name,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: VerdeEscuro,
-                          ),
+                  child: Icon(
+                    Icons.store,
+                    color: VerdeEscuro,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        fazenda.nome,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              size: 16,
-                              color: VerdeClaro,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              farm.location,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: VerdeClaro,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    '${index + 1}',
+                    style: TextStyle(
+                      color: Bege,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Divider(height: 1, color: Colors.grey),
-              const SizedBox(height: 16),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: Colors.grey),
+            const SizedBox(height: 12),
 
-              Row(
-                children: [
-                  Expanded(child: _buildInfoChip(Icons.crop_free, farm.area)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildInfoChip(Icons.eco, farm.production)),
-                  TextButton.icon(
-                    onPressed: () {
-                      _showFarmDetails(context, farm);
-                    },
-                    icon: Icon(Icons.visibility, size: 18, color: VerdeEscuro),
-                    label: Text(
-                      'Ver detalhes',
-                      style: TextStyle(color: VerdeEscuro),
+            // Informações em chips
+            Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      _buildInfoChip(Icons.crop, fazenda.area),
+                      _buildInfoChip(Icons.agriculture, fazenda.producao),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      onPressed: () => _showFazendaForm(context, fazenda),
+                      color: VerdeClaro,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    style: TextButton.styleFrom(foregroundColor: VerdeEscuro),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(Icons.edit, color: VerdeClaro, size: 20),
-                    onPressed: () => _showFarmForm(context, farm),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.delete_outline, color: Vermelho, size: 20),
-                    onPressed: () => _deleteFarm(farm.id),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                    const SizedBox(width: 15),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      onPressed: () => _deleteFazenda(fazenda.id),
+                      color: Colors.red.shade400,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -314,16 +303,24 @@ Widget build(BuildContext context) {
 
   Widget _buildInfoChip(IconData icon, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(color: Colors.transparent),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: VerdeClaro.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 20, color: VerdeEscuro),
+          Icon(icon, size: 16, color: VerdeEscuro),
           const SizedBox(width: 6),
-          Expanded(
+          Flexible(
             child: Text(
               label,
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -332,7 +329,10 @@ Widget build(BuildContext context) {
     );
   }
 
-  void _showFarmForm(BuildContext context, FarmItem? farm) {
+  void _showFazendaForm(
+    BuildContext context,
+    FazendaItem? fazenda,
+  ) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -347,17 +347,18 @@ Widget build(BuildContext context) {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: FarmFormModal(
-              farm: farm,
-              availableIcons: availableIcons,
-              onSave: (newFarm) {
+            child: FazendaFormModal(
+              fazenda: fazenda,
+              onSave: (newFazenda) {
                 setState(() {
-                  if (farm == null) {
-                    farms.add(newFarm);
+                  if (fazenda == null) {
+                    fazendas.add(newFazenda);
                   } else {
-                    final index = farms.indexWhere((f) => f.id == farm.id);
+                    final index = fazendas.indexWhere(
+                      (a) => a.id == fazenda.id,
+                    );
                     if (index != -1) {
-                      farms[index] = newFarm;
+                      fazendas[index] = newFazenda;
                     }
                   }
                 });
@@ -369,12 +370,12 @@ Widget build(BuildContext context) {
     );
   }
 
-  void _deleteFarm(String id) {
+  void _deleteFazenda(String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Excluir Fazenda', style: TextStyle(color: VerdeEscuro)),
+          title: const Text('Excluir Fazenda'),
           content: const Text('Tem certeza que deseja excluir esta fazenda?'),
           actions: [
             TextButton(
@@ -384,7 +385,7 @@ Widget build(BuildContext context) {
             TextButton(
               onPressed: () {
                 setState(() {
-                  farms.removeWhere((f) => f.id == id);
+                  fazendas.removeWhere((a) => a.id == id);
                 });
                 Navigator.pop(context);
               },
@@ -396,104 +397,51 @@ Widget build(BuildContext context) {
       },
     );
   }
-
-  void _showFarmDetails(BuildContext context, FarmItem farm) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(farm.name, style: TextStyle(color: VerdeEscuro)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Detalhes da fazenda:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '• Localização: ${farm.location}',
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '• ${farm.area}',
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '• ${farm.production}',
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              style: TextButton.styleFrom(foregroundColor: VerdeEscuro),
-              child: const Text('Fechar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 }
 
-class FarmFormModal extends StatefulWidget {
-  final FarmItem? farm;
-  final List<IconData> availableIcons;
-  final Function(FarmItem) onSave;
+// MODAL DE FORMULÁRIO - FAZENDA
+class FazendaFormModal extends StatefulWidget {
+  final FazendaItem? fazenda;
+  final Function(FazendaItem) onSave;
 
-  const FarmFormModal({
+  const FazendaFormModal({
     super.key,
-    this.farm,
-    required this.availableIcons,
+    this.fazenda,
     required this.onSave,
   });
 
   @override
-  State<FarmFormModal> createState() => _FarmFormModalState();
+  State<FazendaFormModal> createState() => _FazendaFormModalState();
 }
 
-class _FarmFormModalState extends State<FarmFormModal> {
+class _FazendaFormModalState extends State<FazendaFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _locationController;
+  late TextEditingController _nomeController;
   late TextEditingController _areaController;
-  late TextEditingController _productionController;
-  late IconData _selectedIcon;
+  late TextEditingController _producaoController;
 
   bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.farm != null;
-    _nameController = TextEditingController(text: widget.farm?.name ?? '');
-    _locationController = TextEditingController(
-      text: widget.farm?.location ?? '',
+    _isEditing = widget.fazenda != null;
+    _nomeController = TextEditingController(
+      text: widget.fazenda?.nome ?? '',
     );
     _areaController = TextEditingController(
-      text:
-          widget.farm?.area.replaceAll('Área: ', '').replaceAll(' ha', '') ??
-          '',
+      text: widget.fazenda?.area ?? '',
     );
-    _productionController = TextEditingController(
-      text: widget.farm?.production.replaceAll('Produção: ', '') ?? '',
+    _producaoController = TextEditingController(
+      text: widget.fazenda?.producao ?? '',
     );
-    _selectedIcon = widget.farm?.icon ?? widget.availableIcons.first;
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _locationController.dispose();
+    _nomeController.dispose();
     _areaController.dispose();
-    _productionController.dispose();
+    _producaoController.dispose();
     super.dispose();
   }
 
@@ -514,6 +462,7 @@ class _FarmFormModalState extends State<FarmFormModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
@@ -541,6 +490,7 @@ class _FarmFormModalState extends State<FarmFormModal> {
             ),
           ),
 
+          // Form
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -552,89 +502,31 @@ class _FarmFormModalState extends State<FarmFormModal> {
                   children: [
                     _buildFormField(
                       label: 'Nome da Fazenda',
-                      controller: _nameController,
-                      icon: Icons.agriculture,
-                      hint: 'Ex: Fazenda Boa Vista',
+                      controller: _nomeController,
+                      icon: Icons.store,
+                      hint: 'Ex: Fazenda 1',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Localização',
-                      controller: _locationController,
-                      icon: Icons.location_on,
-                      hint: 'Ex: São Paulo, SP',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Área (hectares)',
+                      label: 'Área',
                       controller: _areaController,
-                      icon: Icons.crop_free,
-                      hint: 'Ex: 1200',
-                      keyboardType: TextInputType.number,
+                      icon: Icons.crop,
+                      hint: 'Ex: 1.200 ha',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Produção',
-                      controller: _productionController,
-                      icon: Icons.eco,
+                      controller: _producaoController,
+                      icon: Icons.agriculture,
                       hint: 'Ex: Soja, Milho',
                     ),
-                    const SizedBox(height: 16),
-
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Ícone',
-                          style: TextStyle(
-                            color: VerdeClaro,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: widget.availableIcons.map((icon) {
-                            return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedIcon = icon;
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: _selectedIcon == icon
-                                      ? VerdeEscuro
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: _selectedIcon == icon
-                                        ? VerdeEscuro
-                                        : Colors.grey.shade300,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: Icon(
-                                  icon,
-                                  color: _selectedIcon == icon
-                                      ? Bege
-                                      : VerdeClaro,
-                                  size: 24,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 24),
-                    
+
+                    // Botão Salvar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveFarm,
+                        onPressed: _saveFazenda,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -669,12 +561,10 @@ class _FarmFormModalState extends State<FarmFormModal> {
     required TextEditingController controller,
     required IconData icon,
     String? hint,
-    TextInputType? keyboardType,
-    int maxLines = 1,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: BegeClaro,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -686,8 +576,6 @@ class _FarmFormModalState extends State<FarmFormModal> {
       ),
       child: TextFormField(
         controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
@@ -705,27 +593,22 @@ class _FarmFormModalState extends State<FarmFormModal> {
           if (value == null || value.isEmpty) {
             return 'Campo obrigatório';
           }
-          if (label == 'Área (hectares)' && double.tryParse(value) == null) {
-            return 'Digite um número válido';
-          }
           return null;
         },
       ),
     );
   }
 
-  void _saveFarm() {
+  void _saveFazenda() {
     if (_formKey.currentState!.validate()) {
-      final newFarm = FarmItem(
-        id: widget.farm?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        name: _nameController.text,
-        location: _locationController.text,
-        area: 'Área: ${_areaController.text} ha',
-        production: 'Produção: ${_productionController.text}',
-        icon: _selectedIcon,
+      final newFazenda = FazendaItem(
+        id: widget.fazenda?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        nome: _nomeController.text,
+        area: _areaController.text,
+        producao: _producaoController.text,
       );
 
-      widget.onSave(newFarm);
+      widget.onSave(newFazenda);
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
