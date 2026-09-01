@@ -37,7 +37,7 @@ class TalhaoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final nome = talhaoData?['nome'] ?? 'Talhão';
     final fazenda = talhaoData?['fazenda'] ?? 'Fazenda';
-    final cidade = talhaoData?['cidade'] ?? 'Localização';
+    final cidade = talhaoData?['cidade'] ?? '';
     
     return Scaffold(
       appBar: AppBar(
@@ -77,7 +77,7 @@ class TalhaoPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
-              _buildHeaderInfo(nome, fazenda, cidade),
+              _buildHeaderInfo(nome, fazenda),
               const SizedBox(height: 24),
               Expanded(
                 child: ListView(
@@ -166,20 +166,20 @@ class TalhaoPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderInfo(String nome, String fazenda, String cidade) {
+  Widget _buildHeaderInfo(String nome, String fazenda) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: BegeClaro,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          // BoxShadow(
-          //   color: Colors.orange[50],
-          //   spreadRadius: 2,
-          //   blurRadius: 8,
-          //   offset: const Offset(0, 4),
-          // ),
-        ],
+        // boxShadow: [
+        //   // BoxShadow(
+        //   //   color: Colors.orange[50],
+        //   //   spreadRadius: 2,
+        //   //   blurRadius: 8,
+        //   //   offset: const Offset(0, 4),
+        //   // ),
+        // ],
       ),
       child: Row(
         children: [
@@ -218,7 +218,7 @@ class TalhaoPage extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '$fazenda, $cidade',
+                      '$fazenda',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
