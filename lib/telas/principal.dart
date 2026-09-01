@@ -20,7 +20,7 @@ class PrincipalPage extends StatelessWidget {
         final bool desktop = constraints.maxWidth >= 800;
         final double cardWidth = desktop ? 250 : 110;
         final double spacing = desktop ? 50 : 60;
-        final double padding = desktop ? 70 : 20;
+        final double padding = desktop ? 50 : 20;
         
         int cardsPerRow = (constraints.maxWidth - padding * 2 + spacing) ~/ (cardWidth + spacing);
         if (cardsPerRow < 1) cardsPerRow = 1;
