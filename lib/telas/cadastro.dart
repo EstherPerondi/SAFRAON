@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Cadastro extends StatefulWidget {
   const Cadastro({super.key});
@@ -18,8 +19,76 @@ class _CadastroState extends State<Cadastro> {
 
   bool _senhaVisivel = false;
   bool _confirmarSenhaVisivel = false;
+  bool _carregando = false;
 
   final _formKey = GlobalKey<FormState>();
+
+  // Função de cadastro
+  Future<void> _cadastrar() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() {
+      _carregando = true;
+    });
+
+    try {
+      final response = await Supabase.instance.client.auth.signUp(
+        email: _email.text.trim(),
+        password: _senha.text.trim(),
+        data: {
+          'nome': _nome.text.trim(),
+          'usuario': _usuario.text.trim(),
+          'estado': _estado,
+        },
+      );
+
+      if (response.user != null && mounted) {
+        _limparCampos();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Cadastro realizado! Verifique seu email para confirmar a conta.',
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            Navigator.pop(context);
+          }
+        });
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Vermelho,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Erro ao cadastrar. Tente novamente.'),
+            backgroundColor: Vermelho,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _carregando = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -31,7 +100,6 @@ class _CadastroState extends State<Cadastro> {
     super.dispose();
   }
 
-  // Função para limpar todos os campos
   void _limparCampos() {
     _nome.clear();
     _email.clear();
@@ -47,8 +115,8 @@ class _CadastroState extends State<Cadastro> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final viewInsets = MediaQuery.of(context).viewInsets;
     
-    // Largura do container baseada no tamanho da tela
     double containerWidth;
     double horizontalPadding;
     double verticalPadding;
@@ -87,6 +155,7 @@ class _CadastroState extends State<Cadastro> {
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: true, 
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -96,27 +165,37 @@ class _CadastroState extends State<Cadastro> {
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // Se for celular, ocupa a tela toda, senão fica na esquerda
             if (screenWidth < 600) {
               return SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: viewInsets.bottom,
+                ),
+                physics: const ClampingScrollPhysics(),
                 child: Container(
                   width: containerWidth,
+                  height: screenHeight,
                   padding: EdgeInsets.all(horizontalPadding),
                   color: Bege.withOpacity(0.95),
-                  child: _buildForm(
-                    context,
-                    screenWidth,
-                    titleFontSize,
-                    fieldFontSize,
-                    buttonWidth,
-                    buttonHeight,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildForm(
+                        context,
+                        screenWidth,
+                        titleFontSize,
+                        fieldFontSize,
+                        buttonWidth,
+                        buttonHeight,
+                      ),
+                      if (viewInsets.bottom > 0)
+                        SizedBox(height: 50),
+                    ],
                   ),
                 ),
               );
             } else {
               return Row(
                 children: [
-                  // Container fixo na lateral esquerda
                   Container(
                     width: containerWidth,
                     height: screenHeight,
@@ -138,7 +217,6 @@ class _CadastroState extends State<Cadastro> {
                       ),
                     ),
                   ),
-                  // Espaço vazio à direita (expande para ocupar o resto)
                   const Expanded(child: SizedBox()),
                 ],
               );
@@ -162,7 +240,6 @@ class _CadastroState extends State<Cadastro> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Botão de voltar alinhado à esquerda
           Row(
             children: [
               IconButton(
@@ -178,7 +255,7 @@ class _CadastroState extends State<Cadastro> {
             'Cadastro',
             style: tituloDaPg,
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 50),
 
           // Campo Nome Completo
           TextFormField(
@@ -234,141 +311,7 @@ class _CadastroState extends State<Cadastro> {
               return null;
             },
           ),
-          const SizedBox(height: 20),
-
-          // Campo Usuário
-          TextFormField(
-            controller: _usuario,
-            style: TextStyle(fontSize: fieldFontSize),
-            decoration: InputDecoration(
-              labelText: 'Usuário',
-              labelStyle: TextStyle(fontSize: fieldFontSize),
-              prefixIcon: Icon(
-                Icons.person_outline,
-                color: VerdeEscuro,
-                size: fieldFontSize + 4,
-              ),
-              floatingLabelStyle: TextStyle(color: VerdeClaro, fontSize: fieldFontSize),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: VerdeEscuro,
-                  width: 2.5,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: VerdeEscuro,
-                  width: 2.5,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: VerdeClaro,
-                  width: 2,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Vermelho, width: 1),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Vermelho, width: 2),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: screenWidth < 600 ? 12 : 14,
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Crie um nome de usuário';
-              }
-              if (value.length < 3) {
-                return 'Usuário deve ter pelo menos 3 caracteres';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
-
-          // Campo Estado
-          DropdownButtonFormField<String>(
-            value: _estado,
-            hint: Text(
-              'Selecione seu estado.',
-              style: TextStyle(fontSize: fieldFontSize),
-            ),
-            style: TextStyle(fontSize: fieldFontSize),
-            decoration: InputDecoration(
-              labelText: 'Estado',
-              labelStyle: TextStyle(fontSize: fieldFontSize),
-              prefixIcon: Icon(
-                Icons.location_on_outlined,
-                color: VerdeEscuro,
-                size: fieldFontSize + 4,
-              ),
-              floatingLabelStyle: TextStyle(color: VerdeClaro, fontSize: fieldFontSize),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: VerdeEscuro,
-                  width: 2.5,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: VerdeEscuro,
-                  width: 2.5,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: VerdeEscuro,
-                  width: 2,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Vermelho, width: 1),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Vermelho, width: 2),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: screenWidth < 600 ? 12 : 14,
-              ),
-            ),
-            dropdownColor: Colors.lightGreen,
-            items: estados.map((String estado) {
-              return DropdownMenuItem<String>(
-                value: estado,
-                child: Text(
-                  estado,
-                  style: TextStyle(color: Colors.black, fontSize: fieldFontSize),
-                ),
-              );
-            }).toList(),
-            onChanged: (String? novoEstado) {
-              setState(() {
-                _estado = novoEstado;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Selecione o estado onde estão localizadas suas fazendas';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 25),
 
           // Campo Email
           TextFormField(
@@ -431,7 +374,7 @@ class _CadastroState extends State<Cadastro> {
               return null;
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 25),
 
           // Campo Senha
           TextFormField(
@@ -515,7 +458,7 @@ class _CadastroState extends State<Cadastro> {
               return null;
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 25),
 
           // Campo Confirmar Senha
           TextFormField(
@@ -586,38 +529,14 @@ class _CadastroState extends State<Cadastro> {
               return null;
             },
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 40),
 
-          // Botão Cadastrar - MODIFICADO PARA VOLTAR AO LOGIN
+          // Botão Cadastrar
           SizedBox(
             width: buttonWidth,
             height: buttonHeight,
             child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  // Limpa os campos
-                  _limparCampos();
-                  
-                  // Mostra mensagem de sucesso
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Cadastro realizado com sucesso!',
-                      ),
-                      backgroundColor: Colors.green,
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                  
-                  // Aguarda 2 segundos e volta para a tela de login
-                  Future.delayed(const Duration(seconds: 2), () {
-                    if (mounted) {
-                      // Volta para a tela anterior (LoginPage)
-                      Navigator.pop(context);
-                    }
-                  });
-                }
-              },
+              onPressed: _carregando ? null : _cadastrar,
               style: ElevatedButton.styleFrom(
                 backgroundColor: VerdeClaro,
                 foregroundColor: Bege,
@@ -625,10 +544,19 @@ class _CadastroState extends State<Cadastro> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text(
-                'Cadastrar',
-                style: textoBotao,
-              ),
+              child: _carregando
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Bege,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      'Cadastrar',
+                      style: textoBotao,
+                    ),
             ),
           ),
         ],

@@ -1,144 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:safraon/telas/talhao.dart';
-import 'package:safraon/variaveis.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Talhões',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
-        useMaterial3: true,
-      ),
-      home: TalhoesPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-// MODELO DE DADOS
-class Fazenda {
-  final String id;
-  final String nome;
-  final String localizacao;
-  final List<Talhao> talhoes;
-
-  Fazenda({
-    required this.id,
-    required this.nome,
-    required this.localizacao,
-    this.talhoes = const [],
-  });
-
-  Fazenda copyWith({
-    String? id,
-    String? nome,
-    String? localizacao,
-    List<Talhao>? talhoes,
-  }) {
-    return Fazenda(
-      id: id ?? this.id,
-      nome: nome ?? this.nome,
-      localizacao: localizacao ?? this.localizacao,
-      talhoes: talhoes ?? this.talhoes,
-    );
-  }
-}
-
-class Talhao {
-  final String id;
-  final String nome;
-  final String? fazendaId;
-  final String localizacao; // NOVO CAMPO
-
-  Talhao({
-    required this.id,
-    required this.nome,
-    this.fazendaId,
-    required this.localizacao, // NOVO CAMPO
-  });
-
-  Talhao copyWith({
-    String? id,
-    String? nome,
-    String? fazendaId,
-    String? localizacao,
-  }) {
-    return Talhao(
-      id: id ?? this.id,
-      nome: nome ?? this.nome,
-      fazendaId: fazendaId ?? this.fazendaId,
-      localizacao: localizacao ?? this.localizacao,
-    );
-  }
-}
+import 'package:provider/provider.dart';
+import '../providers/talhao_provider.dart';
+import '../providers/fazenda_provider.dart';
+import '../models/talhao_model.dart';
+import '../models/fazenda_model.dart';
+import '../variaveis.dart';
+import 'talhao.dart';
 
 class TalhoesPage extends StatefulWidget {
+  const TalhoesPage({super.key});
+
   @override
   State<TalhoesPage> createState() => _TalhoesPageState();
 }
 
 class _TalhoesPageState extends State<TalhoesPage> {
-  List<Fazenda> fazendas = [];
-  List<Talhao> todosTalhoes = [];
-
   @override
   void initState() {
     super.initState();
-    _carregarDadosExemplo();
-  }
-
-  void _carregarDadosExemplo() {
-    final fazenda1 = Fazenda(
-      id: '1',
-      nome: 'Fazenda Santa Clara',
-      localizacao: 'Toledo',
-      talhoes: [
-        Talhao(id: '1-1', nome: 'Talhão 1', fazendaId: '1', localizacao: 'Toledo'),
-        Talhao(id: '1-2', nome: 'Talhão 2', fazendaId: '1', localizacao: 'Toledo'),
-        Talhao(id: '1-3', nome: 'Talhão 3', fazendaId: '1', localizacao: 'Toledo'),
-      ],
-    );
-
-    final fazenda2 = Fazenda(
-      id: '2',
-      nome: 'Fazenda São José',
-      localizacao: 'Cascavel',
-      talhoes: [
-        Talhao(id: '2-1', nome: 'Talhão A', fazendaId: '2', localizacao: 'Cascavel'),
-        Talhao(id: '2-2', nome: 'Talhão B', fazendaId: '2', localizacao: 'Cascavel'),
-      ],
-    );
-
-    final fazenda3 = Fazenda(
-      id: '3',
-      nome: 'Fazenda do Vale',
-      localizacao: 'Maringá',
-      talhoes: [
-        Talhao(id: '3-1', nome: 'Talhão Norte', fazendaId: '3', localizacao: 'Maringá'),
-        Talhao(id: '3-2', nome: 'Talhão Sul', fazendaId: '3', localizacao: 'Maringá'),
-        Talhao(id: '3-3', nome: 'Talhão Leste', fazendaId: '3', localizacao: 'Maringá'),
-        Talhao(id: '3-4', nome: 'Talhão Oeste', fazendaId: '3', localizacao: 'Maringá'),
-      ],
-    );
-
-    fazendas = [fazenda1, fazenda2, fazenda3];
-    _atualizarTodosTalhoes();
-  }
-
-  void _atualizarTodosTalhoes() {
-    todosTalhoes = [];
-    for (var fazenda in fazendas) {
-      todosTalhoes.addAll(fazenda.talhoes);
-    }
-    setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TalhaoProvider>().loadAll();
+      context.read<FazendaProvider>().loadUserFazendas();
+    });
   }
 
   @override
@@ -155,137 +38,180 @@ class _TalhoesPageState extends State<TalhoesPage> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.terrain,
+            Image(
+              image: AssetImage('Imagens/ICONE_TALHAO.png'),
               color: BegeClaro,
-              size: 35,
+              width: 35,
+              height: 35,
             ),
             const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Talhões',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: BegeClaro,
-                  ),
-                ),
-              ],
+            Text(
+              'Talhões',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: BegeClaro,
+              ),
             ),
           ],
         ),
         centerTitle: true,
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 16.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (todosTalhoes.isEmpty)
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.terrain,
-                            size: 80,
-                            color: Colors.grey[400],
+      body: Consumer2<TalhaoProvider, FazendaProvider>(
+        builder: (context, talhaoProvider, fazendaProvider, child) {
+          if (talhaoProvider.isLoading && talhaoProvider.talhoes.isEmpty) {
+            return Center(
+              child: CircularProgressIndicator(color: VerdeEscuro),
+            );
+          }
+
+          if (talhaoProvider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Erro ao carregar talhões',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    talhaoProvider.error!,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => talhaoProvider.loadAll(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: VerdeEscuro,
+                      foregroundColor: Bege,
+                    ),
+                    child: const Text('Tentar novamente'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (talhaoProvider.talhoes.isEmpty)
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.terrain,
+                                size: 80,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Nenhum talhão cadastrado',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Clique no botão + para adicionar',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () => talhaoProvider.loadAll(),
+                          child: ListView.builder(
+                            itemCount: talhaoProvider.talhoes.length,
+                            itemBuilder: (context, index) {
+                              final talhao = talhaoProvider.talhoes[index];
+                              // Buscar nome da fazenda
+                              final fazenda = fazendaProvider.fazendas
+                                  .firstWhere(
+                                    (f) => f.id == talhao.fazendaId,
+                                    orElse: () => FazendaModel(
+                                      id: '',
+                                      nome: 'Fazenda Desconhecida',
+                                      area: '',
+                                      userId: '',
+                                    ),
+                                  );
+                              return _buildTalhaoCard(talhao, fazenda);
+                            },
+                          ),
+                        ),
+                      ),
+
+                    // Rodapé
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VerdeEscuro,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
                           Text(
-                            'Nenhum talhão cadastrado',
+                            'Total de Talhões',
                             style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey[600],
+                              color: Bege,
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Clique no botão + para adicionar',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[500],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Bege,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              '${talhaoProvider.talhoes.length}',
+                              style: TextStyle(
+                                color: VerdeEscuro,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  )
-                else
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: todosTalhoes.length,
-                      itemBuilder: (context, index) {
-                        final talhao = todosTalhoes[index];
-                        final fazenda = fazendas.firstWhere(
-                          (f) => f.id == talhao.fazendaId,
-                          orElse: () => Fazenda(
-                            id: '',
-                            nome: 'Fazenda Desconhecida',
-                            localizacao: '',
-                          ),
-                        );
-                        return _buildTalhaoCard(talhao, fazenda);
-                      },
-                    ),
-                  ),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: VerdeEscuro,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total de Talhões',
-                        style: TextStyle(
-                          color: Bege,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Bege,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          '${todosTalhoes.length}',
-                          style: TextStyle(
-                            color: VerdeEscuro,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showTalhaoForm(context, null),
@@ -297,7 +223,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
     );
   }
 
-  Widget _buildTalhaoCard(Talhao talhao, Fazenda fazenda) {
+  Widget _buildTalhaoCard(TalhaoModel talhao, FazendaModel fazenda) {
     return Card(
       color: Colors.orange[50],
       margin: const EdgeInsets.only(bottom: 8),
@@ -312,7 +238,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                 talhaoData: {
                   'nome': talhao.nome,
                   'fazenda': fazenda.nome,
-                  'localizacao': talhao.localizacao,
+                  'cidade': talhao.localizacao,
                 },
               ),
             ),
@@ -321,84 +247,79 @@ class _TalhoesPageState extends State<TalhoesPage> {
         borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.green[100],
-                      borderRadius: BorderRadius.circular(8),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.green[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.terrain,
+                  color: VerdeEscuro,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      talhao.nome,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.terrain,
-                      color: VerdeEscuro,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
+                        Icon(Icons.business, size: 14, color: VerdeClaro),
+                        const SizedBox(width: 4),
                         Text(
-                          talhao.nome,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                          fazenda.nome,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Row(
-                          children: [
-                            Icon(Icons.business, size: 14, color: VerdeClaro),
-                            const SizedBox(width: 4),
-                            Text(
-                              fazenda.nome,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
-                            const SizedBox(width: 4),
-                            Text(
-                              talhao.localizacao,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(width: 12),
+                        Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                        const SizedBox(width: 4),
+                        Text(
+                          talhao.localizacao,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, size: 20),
+                    onPressed: () => _showTalhaoForm(context, talhao),
+                    color: VerdeClaro,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, size: 20),
-                        onPressed: () => _showTalhaoForm(context, talhao, fazenda),
-                        color: VerdeClaro,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                      const SizedBox(width: 15),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 20),
-                        onPressed: () => _deleteTalhao(talhao.id),
-                        color: Colors.red.shade400,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
+                  const SizedBox(width: 15),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    onPressed: () => _deleteTalhao(talhao.id),
+                    color: Colors.red.shade400,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
@@ -409,11 +330,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
     );
   }
 
-  void _showTalhaoForm(
-    BuildContext context,
-    Talhao? talhao, [
-    Fazenda? fazendaSelecionada,
-  ]) {
+  void _showTalhaoForm(BuildContext context, TalhaoModel? talhao) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -428,31 +345,15 @@ class _TalhoesPageState extends State<TalhoesPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: TalhaoFormModal(
+            child: _TalhaoFormModal(
               talhao: talhao,
-              fazendas: fazendas,
-              fazendaSelecionada: fazendaSelecionada,
-              onSave: (novoTalhao, fazendaId) {
-                setState(() {
-                  if (talhao == null) {
-                    // Adicionar novo talhão
-                    final fazenda = fazendas.firstWhere(
-                      (f) => f.id == fazendaId,
-                    );
-                    fazenda.talhoes.add(novoTalhao);
-                  } else {
-                    for (var f in fazendas) {
-                      for (var t in f.talhoes) {
-                        if (t.id == talhao.id) {
-                          final index = f.talhoes.indexOf(t);
-                          f.talhoes[index] = novoTalhao;
-                          break;
-                        }
-                      }
-                    }
-                  }
-                  _atualizarTodosTalhoes();
-                });
+              onSave: (novoTalhao) {
+                final provider = context.read<TalhaoProvider>();
+                if (talhao == null) {
+                  provider.create(novoTalhao);
+                } else {
+                  provider.update(novoTalhao);
+                }
               },
             ),
           ),
@@ -475,19 +376,8 @@ class _TalhoesPageState extends State<TalhoesPage> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  for (var fazenda in fazendas) {
-                    fazenda.talhoes.removeWhere((t) => t.id == id);
-                  }
-                  _atualizarTodosTalhoes();
-                });
+                context.read<TalhaoProvider>().delete(id);
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Talhão excluído com sucesso!'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Excluir'),
@@ -499,28 +389,26 @@ class _TalhoesPageState extends State<TalhoesPage> {
   }
 }
 
-class TalhaoFormModal extends StatefulWidget {
-  final Talhao? talhao;
-  final List<Fazenda> fazendas;
-  final Fazenda? fazendaSelecionada;
-  final Function(Talhao, String) onSave;
+// ============================================
+// MODAL DO FORMULÁRIO DE TALHÃO
+// ============================================
+class _TalhaoFormModal extends StatefulWidget {
+  final TalhaoModel? talhao;
+  final Function(TalhaoModel) onSave;
 
-  const TalhaoFormModal({
-    super.key,
+  const _TalhaoFormModal({
     this.talhao,
-    required this.fazendas,
-    this.fazendaSelecionada,
     required this.onSave,
   });
 
   @override
-  State<TalhaoFormModal> createState() => _TalhaoFormModalState();
+  State<_TalhaoFormModal> createState() => _TalhaoFormModalState();
 }
 
-class _TalhaoFormModalState extends State<TalhaoFormModal> {
+class _TalhaoFormModalState extends State<_TalhaoFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nomeController;
-  late TextEditingController _localizacaoController; // NOVO CONTROLLER
+  final _nomeController = TextEditingController();
+  final _localizacaoController = TextEditingController();
   String? _selectedFazendaId;
 
   bool get _isEditing => widget.talhao != null;
@@ -528,13 +416,11 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
   @override
   void initState() {
     super.initState();
-    _nomeController = TextEditingController(
-      text: widget.talhao?.nome ?? '',
-    );
-    _localizacaoController = TextEditingController(
-      text: widget.talhao?.localizacao ?? widget.fazendaSelecionada?.localizacao ?? '',
-    );
-    _selectedFazendaId = widget.talhao?.fazendaId ?? widget.fazendaSelecionada?.id;
+    if (widget.talhao != null) {
+      _nomeController.text = widget.talhao!.nome;
+      _localizacaoController.text = widget.talhao!.localizacao;
+      _selectedFazendaId = widget.talhao!.fazendaId;
+    }
   }
 
   @override
@@ -546,6 +432,8 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
 
   @override
   Widget build(BuildContext context) {
+    final fazendas = context.watch<FazendaProvider>().fazendas;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.green[50],
@@ -599,8 +487,76 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildDropdownField(),
+                    // Dropdown de Fazendas
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedFazendaId,
+                        decoration: InputDecoration(
+                          labelText: 'Fazenda',
+                          labelStyle: TextStyle(
+                            color: VerdeClaro,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          prefixIcon: Icon(Icons.business, color: VerdeClaro),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.all(16),
+                        ),
+                        items: fazendas.map((fazenda) {
+                          return DropdownMenuItem(
+                            value: fazenda.id,
+                            child: Text(fazenda.nome),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedFazendaId = value;
+                            // Auto preencher localização se disponível
+                            if (value != null) {
+                              final fazenda = fazendas.firstWhere(
+                                (f) => f.id == value,
+                                orElse: () => FazendaModel(
+                                  id: '',
+                                  nome: '',
+                                  area: '',
+                                  userId: '',
+                                ),
+                              );
+                              if (fazenda.area.isNotEmpty) {
+                                _localizacaoController.text = fazenda.area;
+                              }
+                            }
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Selecione uma fazenda';
+                          }
+                          return null;
+                        },
+                        dropdownColor: Colors.white,
+                        style: TextStyle(color: Colors.black87),
+                        icon: Icon(Icons.arrow_drop_down, color: VerdeClaro),
+                        isExpanded: true,
+                      ),
+                    ),
                     const SizedBox(height: 16),
+
                     _buildFormField(
                       label: 'Nome do Talhão',
                       controller: _nomeController,
@@ -609,7 +565,7 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Localização', // NOVO CAMPO
+                      label: 'Localização',
                       controller: _localizacaoController,
                       icon: Icons.location_on,
                       hint: 'Ex: Toledo',
@@ -650,68 +606,6 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
     );
   }
 
-  Widget _buildDropdownField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: DropdownButtonFormField<String>(
-        value: _selectedFazendaId,
-        decoration: InputDecoration(
-          labelText: 'Fazenda',
-          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
-          prefixIcon: Icon(Icons.business, color: VerdeClaro),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.all(16),
-        ),
-        items: widget.fazendas.map((fazenda) {
-          return DropdownMenuItem(
-            value: fazenda.id,
-            child: Text('${fazenda.nome} - ${fazenda.localizacao}'),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            _selectedFazendaId = value;
-            // Auto preencher a localizacao quando selecionar uma fazenda
-            if (value != null) {
-              final fazenda = widget.fazendas.firstWhere(
-                (f) => f.id == value,
-                orElse: () => Fazenda(id: '', nome: '', localizacao: ''),
-              );
-              if (fazenda.localizacao.isNotEmpty) {
-                _localizacaoController.text = fazenda.localizacao;
-              }
-            }
-          });
-        },
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Selecione uma fazenda';
-          }
-          return null;
-        },
-        dropdownColor: Colors.white,
-        style: TextStyle(color: Colors.black87),
-        icon: Icon(Icons.arrow_drop_down, color: VerdeClaro),
-        isExpanded: true,
-      ),
-    );
-  }
-
   Widget _buildFormField({
     required String label,
     required TextEditingController controller,
@@ -734,7 +628,10 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          labelStyle: TextStyle(
+            color: VerdeClaro,
+            fontWeight: FontWeight.w600,
+          ),
           hintText: hint,
           prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
@@ -756,15 +653,15 @@ class _TalhaoFormModalState extends State<TalhaoFormModal> {
   }
 
   void _saveTalhao() {
-    if (_formKey.currentState!.validate()) {
-      final novoTalhao = Talhao(
-        id: widget.talhao?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+    if (_formKey.currentState!.validate() && _selectedFazendaId != null) {
+      final novoTalhao = TalhaoModel(
+        id: widget.talhao?.id ?? '',
+        fazendaId: _selectedFazendaId!,
         nome: _nomeController.text,
-        fazendaId: _selectedFazendaId,
-        localizacao: _localizacaoController.text, // SALVANDO A localizacao
+        localizacao: _localizacaoController.text,
       );
 
-      widget.onSave(novoTalhao, _selectedFazendaId!);
+      widget.onSave(novoTalhao);
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(

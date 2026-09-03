@@ -84,7 +84,7 @@ class TalhaoPage extends StatelessWidget {
                   children: [
                     _buildModuleCard(
                       icon: Icons.grass,
-                      title: 'Plantio',
+                      title: 'Plantios',
                       subtitle: 'Gerenciar plantio',
                       color: VerdeClaro,
                       onTap: () {
@@ -120,7 +120,7 @@ class TalhaoPage extends StatelessWidget {
                     ),
                     _buildModuleCard(
                       icon: Icons.agriculture,
-                      title: 'Colheita',
+                      title: 'Colheitas',
                       subtitle: 'Planejamento e execução',
                       color: VerdeClaro,
                       onTap: () {

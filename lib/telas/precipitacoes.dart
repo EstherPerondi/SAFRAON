@@ -1,63 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:safraon/variaveis.dart'; // Mantendo a mesma importação
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Precipitações',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
-        useMaterial3: true,
-      ),
-      home: const PrecipitacoesPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-// MODELO DE DADOS
-class PrecipitacaoItem {
-  final String id;
-  final String quantidade;
-  final String data;
-  final String descricao;
-  final String fazenda;
-  final String talhao;
-
-  PrecipitacaoItem({
-    required this.id,
-    required this.quantidade,
-    required this.data,
-    required this.descricao,
-    required this.fazenda,
-    required this.talhao,
-  });
-
-  PrecipitacaoItem copyWith({
-    String? id,
-    String? quantidade,
-    String? data,
-    String? descricao,
-    String? fazenda,
-    String? talhao,
-  }) {
-    return PrecipitacaoItem(
-      id: id ?? this.id,
-      quantidade: quantidade ?? this.quantidade,
-      data: data ?? this.data,
-      descricao: descricao ?? this.descricao,
-      fazenda: fazenda ?? this.fazenda,
-      talhao: talhao ?? this.talhao,
-    );
-  }
-}
+import 'package:provider/provider.dart';
+import '../providers/precipitacao_provider.dart';
+import '../models/precipitacao_model.dart';
+import '../variaveis.dart';
 
 class PrecipitacoesPage extends StatefulWidget {
   const PrecipitacoesPage({super.key});
@@ -67,46 +12,20 @@ class PrecipitacoesPage extends StatefulWidget {
 }
 
 class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
-  List<PrecipitacaoItem> precipitacoes = [
-    PrecipitacaoItem(
-      id: '1',
-      quantidade: '15 mm',
-      data: '15/01/26',
-      descricao: 'Chuva moderada',
-      fazenda: 'Fazenda 1',
-      talhao: 'Talhão 1',
-    ),
-    PrecipitacaoItem(
-      id: '2',
-      quantidade: '10 mm',
-      data: '15/06/26',
-      descricao: 'Chuva leve',
-      fazenda: 'Fazenda 1',
-      talhao: 'Talhão 2',
-    ),
-    PrecipitacaoItem(
-      id: '3',
-      quantidade: '25 mm',
-      data: '20/02/26',
-      descricao: 'Chuva intensa',
-      fazenda: 'Fazenda 2',
-      talhao: 'Talhão 3',
-    ),
-  ];
+  String? _talhaoId;
 
-  // Cálculo dos totais
-  int get totalPrecipitacao {
-    int total = 0;
-    for (var item in precipitacoes) {
-      String numero = item.quantidade.replaceAll(' mm', '');
-      total += int.parse(numero);
-    }
-    return total;
-  }
-
-  double get mediaPrecipitacao {
-    if (precipitacoes.isEmpty) return 0;
-    return totalPrecipitacao / precipitacoes.length;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args.containsKey('talhaoId')) {
+        _talhaoId = args['talhaoId'].toString();
+        context.read<PrecipitacaoProvider>().loadByTalhaoId(_talhaoId!);
+      } else {
+        context.read<PrecipitacaoProvider>().loadAll();
+      }
+    });
   }
 
   @override
@@ -114,11 +33,11 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
     return Scaffold(
       backgroundColor: Bege,
       appBar: AppBar(
-        backgroundColor: VerdeEscuro, // Mesma cor do fundo da imagem
-        iconTheme: IconThemeData(color: BegeClaro), // Cor da seta (Bege)
+        backgroundColor: VerdeEscuro,
+        iconTheme: IconThemeData(color: BegeClaro),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context), // Ação de voltar
+          onPressed: () => Navigator.pop(context),
         ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -143,121 +62,173 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
         ),
         centerTitle: true,
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 16.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: precipitacoes.length,
-                    itemBuilder: (context, index) {
-                      final precipitacao = precipitacoes[index];
-                      return _buildPrecipitacaoCard(precipitacao, index);
-                    },
-                  ),
-                ),
+      body: Consumer<PrecipitacaoProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading && provider.precipitacoes.isEmpty) {
+            return Center(
+              child: CircularProgressIndicator(color: VerdeEscuro),
+            );
+          }
 
-                // Rodapé com total de registros
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+          if (provider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Erro ao carregar precipitações',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
-                  decoration: BoxDecoration(
-                    color: VerdeEscuro, // Mesma cor do original
-                    borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 8),
+                  Text(
+                    provider.error!,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    textAlign: TextAlign.center,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total de Precipitações',
-                        style: TextStyle(
-                          color: Bege,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_talhaoId != null) {
+                        provider.loadByTalhaoId(_talhaoId!);
+                      } else {
+                        provider.loadAll();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: VerdeEscuro,
+                      foregroundColor: Bege,
+                    ),
+                    child: const Text('Tentar novamente'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (provider.precipitacoes.isEmpty)
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.water_drop,
+                                size: 80,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Nenhuma precipitação registrada',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Clique no botão + para adicionar',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Bege, // Mesma cor do original
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          '${precipitacoes.length}',
-                          style: TextStyle(
-                            color: VerdeEscuro, // Mesma cor do original
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      )
+                    else
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () {
+                            if (_talhaoId != null) {
+                              return provider.loadByTalhaoId(_talhaoId!);
+                            } else {
+                              return provider.loadAll();
+                            }
+                          },
+                          child: ListView.builder(
+                            itemCount: provider.precipitacoes.length,
+                            itemBuilder: (context, index) {
+                              final precipitacao = provider.precipitacoes[index];
+                              return _buildPrecipitacaoCard(precipitacao, index);
+                            },
                           ),
                         ),
                       ),
-                    ],
-                  ),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VerdeEscuro,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total de Precipitações',
+                            style: TextStyle(
+                              color: Bege,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Bege,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              '${provider.precipitacoes.length}',
+                              style: TextStyle(
+                                color: VerdeEscuro,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showPrecipitacaoForm(context, null),
-        backgroundColor: VerdeEscuro, // Mesma cor do original
-        foregroundColor: Bege, // Mesma cor do original
+        backgroundColor: VerdeEscuro,
+        foregroundColor: Bege,
         child: const Icon(Icons.add, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: VerdeClaro.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: VerdeClaro.withOpacity(0.3), width: 1),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 20, color: VerdeEscuro), // Mesma cor
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: VerdeEscuro, // Mesma cor
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPrecipitacaoCard(PrecipitacaoItem precipitacao, int index) {
+  Widget _buildPrecipitacaoCard(PrecipitacaoModel precipitacao, int index) {
     return Card(
       color: Colors.orange[50],
       margin: const EdgeInsets.only(bottom: 8),
@@ -268,19 +239,18 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Linha superior com ícone, título e número - IGUAL AO ORIGINAL
             Row(
               children: [
                 Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.green[100], // Mesma cor do original
+                    color: Colors.green[100],
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    Icons.water_drop,
-                    color: VerdeEscuro, // Mesma cor
+                    _getQuantidadeIcon(precipitacao.quantidade),
+                    color: VerdeEscuro,
                     size: 22,
                   ),
                 ),
@@ -290,7 +260,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        precipitacao.quantidade,
+                        precipitacao.formattedQuantidade,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -299,10 +269,10 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                          Icon(Icons.calendar_today, size: 14, color: VerdeClaro),
                           const SizedBox(width: 4),
                           Text(
-                            '${precipitacao.fazenda} - ${precipitacao.talhao}',
+                            precipitacao.formattedDate,
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],
@@ -320,13 +290,13 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: VerdeClaro, // Mesma cor
+                    color: VerdeClaro,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '${index + 1}',
                     style: TextStyle(
-                      color: Bege, // Mesma cor
+                      color: Bege,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -337,30 +307,24 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
             const SizedBox(height: 8),
             const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 8),
-
-            // Informações em chips com ícones de ação - IGUAL AO ORIGINAL
             Row(
               children: [
-                // Chips de informações
                 Expanded(
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.calendar_today, precipitacao.data),
-                      _buildInfoChip(Icons.water_drop, precipitacao.descricao),
+                      _buildInfoChip(Icons.description, precipitacao.descricao),
                     ],
                   ),
                 ),
-                // Ícones de ação - IGUAL AO ORIGINAL
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () =>
-                          _showPrecipitacaoForm(context, precipitacao),
-                      color: VerdeClaro, // Mesma cor
+                      onPressed: () => _showPrecipitacaoForm(context, precipitacao),
+                      color: VerdeClaro,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -386,17 +350,17 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: VerdeClaro.withOpacity(0.1), // Mesmo estilo do original
+        color: VerdeClaro.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: VerdeEscuro), // Mesma cor
+          Icon(icon, size: 14, color: VerdeEscuro),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
-              label,
+              label.isNotEmpty ? label : 'Sem informação',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[700],
@@ -410,10 +374,19 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
     );
   }
 
-  void _showPrecipitacaoForm(
-    BuildContext context,
-    PrecipitacaoItem? precipitacao,
-  ) {
+  IconData _getQuantidadeIcon(double quantidade) {
+    if (quantidade < 5) {
+      return Icons.grain;
+    } else if (quantidade < 15) {
+      return Icons.water_drop;
+    } else if (quantidade < 25) {
+      return Icons.umbrella;
+    } else {
+      return Icons.thunderstorm;
+    }
+  }
+
+  void _showPrecipitacaoForm(BuildContext context, PrecipitacaoModel? precipitacao) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -428,21 +401,16 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: PrecipitacaoFormModal(
+            child: _PrecipitacaoFormModal(
               precipitacao: precipitacao,
-              onSave: (newPrecipitacao) {
-                setState(() {
-                  if (precipitacao == null) {
-                    precipitacoes.add(newPrecipitacao);
-                  } else {
-                    final index = precipitacoes.indexWhere(
-                      (a) => a.id == precipitacao.id,
-                    );
-                    if (index != -1) {
-                      precipitacoes[index] = newPrecipitacao;
-                    }
-                  }
-                });
+              talhaoId: _talhaoId,
+              onSave: (novaPrecipitacao) {
+                final provider = context.read<PrecipitacaoProvider>();
+                if (precipitacao == null) {
+                  provider.create(novaPrecipitacao);
+                } else {
+                  provider.update(novaPrecipitacao);
+                }
               },
             ),
           ),
@@ -467,9 +435,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  precipitacoes.removeWhere((a) => a.id == id);
-                });
+                context.read<PrecipitacaoProvider>().delete(id);
                 Navigator.pop(context);
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -482,59 +448,48 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - PRECIPITAÇÃO
-class PrecipitacaoFormModal extends StatefulWidget {
-  final PrecipitacaoItem? precipitacao;
-  final Function(PrecipitacaoItem) onSave;
+// ============================================
+// MODAL DO FORMULÁRIO DE PRECIPITAÇÃO
+// ============================================
+class _PrecipitacaoFormModal extends StatefulWidget {
+  final PrecipitacaoModel? precipitacao;
+  final String? talhaoId;
+  final Function(PrecipitacaoModel) onSave;
 
-  const PrecipitacaoFormModal({
-    super.key,
+  const _PrecipitacaoFormModal({
     this.precipitacao,
+    this.talhaoId,
     required this.onSave,
   });
 
   @override
-  State<PrecipitacaoFormModal> createState() => _PrecipitacaoFormModalState();
+  State<_PrecipitacaoFormModal> createState() => _PrecipitacaoFormModalState();
 }
 
-class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
+class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _quantidadeController;
-  late TextEditingController _dataController;
-  late TextEditingController _descricaoController;
-  late TextEditingController _fazendaController;
-  late TextEditingController _talhaoController;
+  final _quantidadeController = TextEditingController();
+  final _descricaoController = TextEditingController();
+  DateTime? _selectedDate;
 
-  bool _isEditing = false;
+  bool get _isEditing => widget.precipitacao != null;
 
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.precipitacao != null;
-    _quantidadeController = TextEditingController(
-      text: widget.precipitacao?.quantidade ?? '',
-    );
-    _dataController = TextEditingController(
-      text: widget.precipitacao?.data ?? '',
-    );
-    _descricaoController = TextEditingController(
-      text: widget.precipitacao?.descricao ?? '',
-    );
-    _fazendaController = TextEditingController(
-      text: widget.precipitacao?.fazenda ?? '',
-    );
-    _talhaoController = TextEditingController(
-      text: widget.precipitacao?.talhao ?? '',
-    );
+    if (widget.precipitacao != null) {
+      _quantidadeController.text = widget.precipitacao!.quantidade.toString();
+      _descricaoController.text = widget.precipitacao!.descricao;
+      _selectedDate = widget.precipitacao!.data;
+    } else {
+      _selectedDate = DateTime.now();
+    }
   }
 
   @override
   void dispose() {
     _quantidadeController.dispose();
-    _dataController.dispose();
     _descricaoController.dispose();
-    _fazendaController.dispose();
-    _talhaoController.dispose();
     super.dispose();
   }
 
@@ -555,11 +510,10 @@ class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header - IGUAL AO ORIGINAL
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: VerdeEscuro, // Mesma cor
+              color: VerdeEscuro,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -570,20 +524,18 @@ class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
                 Text(
                   _isEditing ? 'Editar Precipitação' : 'Nova Precipitação',
                   style: TextStyle(
-                    color: Bege, // Mesma cor
+                    color: Bege,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: Bege), // Mesma cor
+                  icon: Icon(Icons.close, color: Bege),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-
-          // Form
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -594,32 +546,14 @@ class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFormField(
-                      label: 'Fazenda',
-                      controller: _fazendaController,
-                      icon: Icons.store,
-                      hint: 'Ex: Fazenda 1',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Talhão',
-                      controller: _talhaoController,
-                      icon: Icons.crop,
-                      hint: 'Ex: Talhão 1',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
                       label: 'Milímetros (mm)',
                       controller: _quantidadeController,
                       icon: Icons.water_drop,
                       hint: 'Ex: 15.5',
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                     ),
                     const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Data',
-                      controller: _dataController,
-                      icon: Icons.calendar_today,
-                      hint: 'DD/MM/AA',
-                    ),
+                    _buildDateField(),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Observações',
@@ -628,15 +562,13 @@ class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
                       hint: 'Observações adicionais',
                     ),
                     const SizedBox(height: 24),
-
-                    // Botão Salvar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _savePrecipitacao,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: VerdeEscuro, // Mesma cor
-                          foregroundColor: Bege, // Mesma cor
+                          backgroundColor: VerdeEscuro,
+                          foregroundColor: Bege,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -668,6 +600,7 @@ class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
     required TextEditingController controller,
     required IconData icon,
     String? hint,
+    TextInputType? keyboardType,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -683,14 +616,15 @@ class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
       ),
       child: TextFormField(
         controller: controller,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
             color: VerdeClaro,
             fontWeight: FontWeight.w600,
-          ), // Mesma cor
+          ),
           hintText: hint,
-          prefixIcon: Icon(icon, color: VerdeClaro), // Mesma cor
+          prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -703,26 +637,92 @@ class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
           if (value == null || value.isEmpty) {
             return 'Campo obrigatório';
           }
+          if (label == 'Milímetros (mm)' && double.tryParse(value) == null) {
+            return 'Digite um número válido';
+          }
+          if (label == 'Milímetros (mm)' && double.tryParse(value) != null && double.parse(value) < 0) {
+            return 'Digite um valor positivo';
+          }
           return null;
         },
       ),
     );
   }
 
+  Widget _buildDateField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: _selectDate,
+        borderRadius: BorderRadius.circular(12),
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: 'Data',
+            labelStyle: TextStyle(
+              color: VerdeClaro,
+              fontWeight: FontWeight.w600,
+            ),
+            prefixIcon: Icon(Icons.calendar_today, color: VerdeClaro),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(16),
+          ),
+          child: Text(
+            _selectedDate != null
+                ? '${_selectedDate!.day.toString().padLeft(2, '0')}/'
+                    '${_selectedDate!.month.toString().padLeft(2, '0')}/'
+                    '${_selectedDate!.year}'
+                : 'Selecione uma data',
+            style: TextStyle(
+              fontSize: 16,
+              color: _selectedDate != null ? Colors.black87 : Colors.grey,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      locale: const Locale('pt', 'BR'),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
   void _savePrecipitacao() {
-    if (_formKey.currentState!.validate()) {
-      final newPrecipitacao = PrecipitacaoItem(
-        id:
-            widget.precipitacao?.id ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
-        quantidade: _quantidadeController.text,
-        data: _dataController.text,
+    if (_formKey.currentState!.validate() && _selectedDate != null) {
+      final novaPrecipitacao = PrecipitacaoModel(
+        id: widget.precipitacao?.id ?? '',
+        talhaoId: widget.talhaoId ?? widget.precipitacao?.talhaoId ?? '',
+        quantidade: double.parse(_quantidadeController.text),
+        data: _selectedDate!,
         descricao: _descricaoController.text,
-        fazenda: _fazendaController.text,
-        talhao: _talhaoController.text,
       );
 
-      widget.onSave(newPrecipitacao);
+      widget.onSave(novaPrecipitacao);
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -732,7 +732,7 @@ class _PrecipitacaoFormModalState extends State<PrecipitacaoFormModal> {
                 ? 'Registro atualizado com sucesso!'
                 : 'Registro criado com sucesso!',
           ),
-          backgroundColor: VerdeEscuro, // Mesma cor
+          backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),
         ),
       );

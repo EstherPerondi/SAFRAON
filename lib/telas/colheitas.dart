@@ -1,68 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:safraon/variaveis.dart';
-
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Colheitas',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
-        useMaterial3: true,
-      ),
-      home: const ColheitasPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-// MODELO DE DADOS - COLHEITA
-class ColheitaItem {
-  final String id;
-  final String crop;
-  final String data;
-  final double humidity;
-  final double production;
-  final String fazenda;
-  final String talhao;
-
-  ColheitaItem({
-    required this.id,
-    required this.crop,
-    required this.data,
-    required this.humidity,
-    required this.production,
-    required this.fazenda,
-    required this.talhao,
-  });
-
-  ColheitaItem copyWith({
-    String? id,
-    String? crop,
-    String? data,
-    double? humidity,
-    double? production,
-    String? fazenda,
-    String? talhao,
-  }) {
-    return ColheitaItem(
-      id: id ?? this.id,
-      crop: crop ?? this.crop,
-      data: data ?? this.data,
-      humidity: humidity ?? this.humidity,
-      production: production ?? this.production,
-      fazenda: fazenda ?? this.fazenda,
-      talhao: talhao ?? this.talhao,
-    );
-  }
-}
+import 'package:provider/provider.dart';
+import '../providers/colheita_provider.dart';
+import '../models/colheita_model.dart';
+import '../variaveis.dart';
 
 class ColheitasPage extends StatefulWidget {
   const ColheitasPage({super.key});
@@ -72,46 +12,32 @@ class ColheitasPage extends StatefulWidget {
 }
 
 class _ColheitasPageState extends State<ColheitasPage> {
-  List<ColheitaItem> colheitas = [
-    ColheitaItem(
-      id: '1',
-      crop: 'Soja',
-      data: '15/01/26',
-      humidity: 14.5,
-      production: 4200,
-      fazenda: 'Fazenda 1',
-      talhao: 'Talhão 1',
-    ),
-    ColheitaItem(
-      id: '2',
-      crop: 'Milho',
-      data: '15/06/26',
-      humidity: 12.0,
-      production: 3800,
-      fazenda: 'Fazenda 1',
-      talhao: 'Talhão 2',
-    ),
-    ColheitaItem(
-      id: '3',
-      crop: 'Café',
-      data: '10/07/26',
-      humidity: 11.2,
-      production: 2500,
-      fazenda: 'Fazenda 2',
-      talhao: 'Talhão 3',
-    ),
-  ];
+  String? _talhaoId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args.containsKey('talhaoId')) {
+        _talhaoId = args['talhaoId'].toString();
+        context.read<ColheitaProvider>().loadByTalhaoId(_talhaoId!);
+      } else {
+        context.read<ColheitaProvider>().loadAll();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Bege,
       appBar: AppBar(
-        backgroundColor: VerdeEscuro, // Mesma cor do fundo da imagem
-        iconTheme: IconThemeData(color: BegeClaro), // Cor da seta (Bege)
+        backgroundColor: VerdeEscuro,
+        iconTheme: IconThemeData(color: BegeClaro),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context), // Ação de voltar
+          onPressed: () => Navigator.pop(context),
         ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -135,74 +61,162 @@ class _ColheitasPageState extends State<ColheitasPage> {
           ],
         ),
         centerTitle: true,
-      ),      
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 16.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: colheitas.length,
-                    itemBuilder: (context, index) {
-                      final colheita = colheitas[index];
-                      return _buildColheitaCard(colheita, index);
-                    },
-                  ),
-                ),
+      ),
+      body: Consumer<ColheitaProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading && provider.colheitas.isEmpty) {
+            return Center(
+              child: CircularProgressIndicator(color: VerdeEscuro),
+            );
+          }
 
-                // Rodapé com estatísticas
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+          if (provider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Erro ao carregar colheitas',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
-                  decoration: BoxDecoration(
-                    color: VerdeEscuro,
-                    borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 8),
+                  Text(
+                    provider.error!,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    textAlign: TextAlign.center,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total de Colheitas',
-                        style: TextStyle(
-                          color: Bege,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_talhaoId != null) {
+                        provider.loadByTalhaoId(_talhaoId!);
+                      } else {
+                        provider.loadAll();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: VerdeEscuro,
+                      foregroundColor: Bege,
+                    ),
+                    child: const Text('Tentar novamente'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (provider.colheitas.isEmpty)
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.agriculture,
+                                size: 80,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Nenhuma colheita registrada',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Clique no botão + para adicionar',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Bege,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          '${colheitas.length}',
-                          style: TextStyle(
-                            color: VerdeEscuro,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      )
+                    else
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () {
+                            if (_talhaoId != null) {
+                              return provider.loadByTalhaoId(_talhaoId!);
+                            } else {
+                              return provider.loadAll();
+                            }
+                          },
+                          child: ListView.builder(
+                            itemCount: provider.colheitas.length,
+                            itemBuilder: (context, index) {
+                              final colheita = provider.colheitas[index];
+                              return _buildColheitaCard(colheita, index);
+                            },
                           ),
                         ),
                       ),
-                    ],
-                  ),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VerdeEscuro,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total de Colheitas',
+                            style: TextStyle(
+                              color: Bege,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Bege,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              '${provider.colheitas.length}',
+                              style: TextStyle(
+                                color: VerdeEscuro,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showColheitaForm(context, null),
@@ -214,19 +228,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
     );
   }
 
-  Widget _buildColheitaCard(ColheitaItem colheita, int index) {
-    IconData _getcropIcon(String crop) {
-      if (crop.toLowerCase().contains('soja')) {
-        return Icons.eco;
-      } else if (crop.toLowerCase().contains('milho')) {
-        return Icons.grass;
-      } else if (crop.toLowerCase().contains('café')) {
-        return Icons.coffee;
-      } else {
-        return Icons.agriculture;
-      }
-    }
-
+  Widget _buildColheitaCard(ColheitaModel colheita, int index) {
     return Card(
       color: Colors.orange[50],
       margin: const EdgeInsets.only(bottom: 8),
@@ -237,7 +239,6 @@ class _ColheitasPageState extends State<ColheitasPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Linha superior com ícone, título e número
             Row(
               children: [
                 Container(
@@ -248,7 +249,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getcropIcon(colheita.crop),
+                    _getCulturaIcon(colheita.cultura),
                     color: VerdeEscuro,
                     size: 22,
                   ),
@@ -259,7 +260,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        colheita.crop,
+                        colheita.cultura,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -268,10 +269,10 @@ class _ColheitasPageState extends State<ColheitasPage> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                          Icon(Icons.calendar_today, size: 14, color: VerdeClaro),
                           const SizedBox(width: 4),
                           Text(
-                            '${colheita.fazenda} - ${colheita.talhao}',
+                            colheita.formattedDate,
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],
@@ -297,7 +298,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
                     style: TextStyle(
                       color: Bege,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 13,
                     ),
                   ),
                 ),
@@ -306,23 +307,24 @@ class _ColheitasPageState extends State<ColheitasPage> {
             const SizedBox(height: 8),
             const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 8),
-
-            // Informações em chips com ícones de ação na mesma linha
             Row(
               children: [
-                // Chips de informações - ocupam o espaço disponível
                 Expanded(
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.calendar_today, colheita.data),
-                      _buildInfoChip(Icons.water_drop_outlined, '${colheita.humidity} %'),
-                      _buildInfoChip(Icons.inbox, '${colheita.production} sacas'),
+                      _buildInfoChip(
+                        Icons.bar_chart,
+                        '${colheita.producao.toStringAsFixed(0)} sacas',
+                      ),
+                      _buildInfoChip(
+                        Icons.water_drop_outlined,
+                        '${colheita.umidade.toStringAsFixed(1)}%',
+                      ),
                     ],
                   ),
                 ),
-                // Ícones de ação no canto direito
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -379,10 +381,19 @@ class _ColheitasPageState extends State<ColheitasPage> {
     );
   }
 
-  void _showColheitaForm(
-    BuildContext context,
-    ColheitaItem? colheita,
-  ) {
+  IconData _getCulturaIcon(String cultura) {
+    if (cultura.toLowerCase().contains('soja')) {
+      return Icons.eco;
+    } else if (cultura.toLowerCase().contains('milho')) {
+      return Icons.grass;
+    } else if (cultura.toLowerCase().contains('café')) {
+      return Icons.coffee;
+    } else {
+      return Icons.agriculture;
+    }
+  }
+
+  void _showColheitaForm(BuildContext context, ColheitaModel? colheita) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -397,21 +408,16 @@ class _ColheitasPageState extends State<ColheitasPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: ColheitaFormModal(
+            child: _ColheitaFormModal(
               colheita: colheita,
+              talhaoId: _talhaoId,
               onSave: (novaColheita) {
-                setState(() {
-                  if (colheita == null) {
-                    colheitas.add(novaColheita);
-                  } else {
-                    final index = colheitas.indexWhere(
-                      (a) => a.id == colheita.id,
-                    );
-                    if (index != -1) {
-                      colheitas[index] = novaColheita;
-                    }
-                  }
-                });
+                final provider = context.read<ColheitaProvider>();
+                if (colheita == null) {
+                  provider.create(novaColheita);
+                } else {
+                  provider.update(novaColheita);
+                }
               },
             ),
           ),
@@ -434,9 +440,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  colheitas.removeWhere((a) => a.id == id);
-                });
+                context.read<ColheitaProvider>().delete(id);
                 Navigator.pop(context);
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -449,64 +453,51 @@ class _ColheitasPageState extends State<ColheitasPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - COLHEITAS
-class ColheitaFormModal extends StatefulWidget {
-  final ColheitaItem? colheita;
-  final Function(ColheitaItem) onSave;
+// ============================================
+// MODAL DO FORMULÁRIO DE COLHEITA
+// ============================================
+class _ColheitaFormModal extends StatefulWidget {
+  final ColheitaModel? colheita;
+  final String? talhaoId;
+  final Function(ColheitaModel) onSave;
 
-  const ColheitaFormModal({
-    super.key,
+  const _ColheitaFormModal({
     this.colheita,
+    this.talhaoId,
     required this.onSave,
   });
 
   @override
-  State<ColheitaFormModal> createState() => _ColheitaFormModalState();
+  State<_ColheitaFormModal> createState() => _ColheitaFormModalState();
 }
 
-class _ColheitaFormModalState extends State<ColheitaFormModal> {
+class _ColheitaFormModalState extends State<_ColheitaFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _cropController;
-  late TextEditingController _dataController;
-  late TextEditingController _humidityController;
-  late TextEditingController _productionController;
-  late TextEditingController _fazendaController;
-  late TextEditingController _talhaoController;
+  final _culturaController = TextEditingController();
+  final _producaoController = TextEditingController();
+  final _umidadeController = TextEditingController();
+  DateTime? _selectedDate;
 
-  bool _isEditing = false;
+  bool get _isEditing => widget.colheita != null;
 
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.colheita != null;
-    _cropController = TextEditingController(
-      text: widget.colheita?.crop ?? '',
-    );
-    _dataController = TextEditingController(
-      text: widget.colheita?.data ?? '',
-    );
-    _humidityController = TextEditingController(
-      text: widget.colheita?.humidity.toString() ?? '',
-    );
-    _productionController = TextEditingController(
-      text: widget.colheita?.production.toString() ?? '',
-    );
-    _fazendaController = TextEditingController(
-      text: widget.colheita?.fazenda ?? '',
-    );
-    _talhaoController = TextEditingController(
-      text: widget.colheita?.talhao ?? '',
-    );
+    if (widget.colheita != null) {
+      _culturaController.text = widget.colheita!.cultura;
+      _producaoController.text = widget.colheita!.producao.toString();
+      _umidadeController.text = widget.colheita!.umidade.toString();
+      _selectedDate = widget.colheita!.data;
+    } else {
+      _selectedDate = DateTime.now();
+    }
   }
 
   @override
   void dispose() {
-    _cropController.dispose();
-    _dataController.dispose();
-    _humidityController.dispose();
-    _productionController.dispose();
-    _fazendaController.dispose();
-    _talhaoController.dispose();
+    _culturaController.dispose();
+    _producaoController.dispose();
+    _umidadeController.dispose();
     super.dispose();
   }
 
@@ -527,7 +518,6 @@ class _ColheitaFormModalState extends State<ColheitaFormModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
@@ -554,8 +544,6 @@ class _ColheitaFormModalState extends State<ColheitaFormModal> {
               ],
             ),
           ),
-
-          // Form
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -566,49 +554,30 @@ class _ColheitaFormModalState extends State<ColheitaFormModal> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFormField(
-                      label: 'Fazenda',
-                      controller: _fazendaController,
-                      icon: Icons.store,
-                      hint: 'Ex: Fazenda 1',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Talhão',
-                      controller: _talhaoController,
-                      icon: Icons.crop,
-                      hint: 'Ex: Talhão 1',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
                       label: 'Planta',
-                      controller: _cropController,
+                      controller: _culturaController,
                       icon: Icons.eco,
                       hint: 'Ex: Soja, Milho, Café',
                     ),
                     const SizedBox(height: 16),
+                    _buildDateField(),
+                    const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Data',
-                      controller: _dataController,
-                      icon: Icons.calendar_today,
-                      hint: 'DD/MM/AAAA',
+                      label: 'Produção (sacas)',
+                      controller: _producaoController,
+                      icon: Icons.bar_chart,
+                      hint: 'Ex: 4200',
+                      keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Produção (production)',
-                      controller: _productionController,
-                      icon: Icons.bar_chart,
-                      hint: 'Ex: 4200',
-                    ),
-                    const SizedBox(height: 16),                                        
-                    _buildFormField(
                       label: 'Umidade (%)',
-                      controller: _humidityController,
+                      controller: _umidadeController,
                       icon: Icons.water_drop_outlined,
                       hint: 'Ex: 14.5',
-                    ),                   
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    ),
                     const SizedBox(height: 24),
-
-                    // Botão Salvar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -647,6 +616,7 @@ class _ColheitaFormModalState extends State<ColheitaFormModal> {
     required TextEditingController controller,
     required IconData icon,
     String? hint,
+    TextInputType? keyboardType,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -662,9 +632,13 @@ class _ColheitaFormModalState extends State<ColheitaFormModal> {
       ),
       child: TextFormField(
         controller: controller,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          labelStyle: TextStyle(
+            color: VerdeClaro,
+            fontWeight: FontWeight.w600,
+          ),
           hintText: hint,
           prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
@@ -679,23 +653,90 @@ class _ColheitaFormModalState extends State<ColheitaFormModal> {
           if (value == null || value.isEmpty) {
             return 'Campo obrigatório';
           }
+          if (label == 'Produção (sacas)' && double.tryParse(value) == null) {
+            return 'Digite um número válido';
+          }
+          if (label == 'Umidade (%)' && double.tryParse(value) == null) {
+            return 'Digite um número válido (ex: 14.5)';
+          }
           return null;
         },
       ),
     );
   }
 
+  Widget _buildDateField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: _selectDate,
+        borderRadius: BorderRadius.circular(12),
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: 'Data',
+            labelStyle: TextStyle(
+              color: VerdeClaro,
+              fontWeight: FontWeight.w600,
+            ),
+            prefixIcon: Icon(Icons.calendar_today, color: VerdeClaro),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(16),
+          ),
+          child: Text(
+            _selectedDate != null
+                ? '${_selectedDate!.day.toString().padLeft(2, '0')}/'
+                    '${_selectedDate!.month.toString().padLeft(2, '0')}/'
+                    '${_selectedDate!.year}'
+                : 'Selecione uma data',
+            style: TextStyle(
+              fontSize: 16,
+              color: _selectedDate != null ? Colors.black87 : Colors.grey,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      locale: const Locale('pt', 'BR'),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
   void _saveColheita() {
-    if (_formKey.currentState!.validate()) {
-      final novaColheita = ColheitaItem(
-        id: widget.colheita?.id ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
-        crop: _cropController.text,
-        data: _dataController.text,
-        humidity: double.parse(_humidityController.text),
-        production: double.parse(_productionController.text),
-        fazenda: _fazendaController.text,
-        talhao: _talhaoController.text,
+    if (_formKey.currentState!.validate() && _selectedDate != null) {
+      final novaColheita = ColheitaModel(
+        id: widget.colheita?.id ?? '',
+        talhaoId: widget.talhaoId ?? widget.colheita?.talhaoId ?? '',
+        cultura: _culturaController.text,
+        data: _selectedDate!,
+        producao: double.parse(_producaoController.text),
+        umidade: double.parse(_umidadeController.text),
       );
 
       widget.onSave(novaColheita);

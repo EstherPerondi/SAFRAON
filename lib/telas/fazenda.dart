@@ -114,10 +114,11 @@ class _FazendaPageState extends State<FazendaPage> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.terrain,
+            Image(
+              image: AssetImage('Imagens/ICONE_TALHAO.png'),
               color: BegeClaro,
-              size: 35,
+              width: 35,
+              height: 35,
             ),
             const SizedBox(width: 8),
             Column(

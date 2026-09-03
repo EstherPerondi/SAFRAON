@@ -1,75 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:safraon/variaveis.dart'; // Mantendo a mesma importação
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Plantio',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
-        useMaterial3: true,
-      ),
-      home: const PlantiosPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-// MODELO DE DADOS
-class PlantioItem {
-  final String id;
-  final String cultura;
-  final String data;
-  final String variedade;
-  final String adubo;
-  final String inoculante;
-  final String sementes;
-  final String fazenda;
-  final String talhao;
-
-  PlantioItem({
-    required this.id,
-    required this.cultura,
-    required this.data,
-    required this.variedade,
-    required this.adubo,
-    required this.inoculante,
-    required this.sementes,
-    required this.fazenda,
-    required this.talhao,
-  });
-
-  PlantioItem copyWith({
-    String? id,
-    String? cultura,
-    String? data,
-    String? variedade,
-    String? adubo,
-    String? inoculante,
-    String? sementes,
-    String? fazenda,
-    String? talhao,
-  }) {
-    return PlantioItem(
-      id: id ?? this.id,
-      cultura: cultura ?? this.cultura,
-      data: data ?? this.data,
-      variedade: variedade ?? this.variedade,
-      adubo: adubo ?? this.adubo,
-      inoculante: inoculante ?? this.inoculante,
-      sementes: sementes ?? this.sementes,
-      fazenda: fazenda ?? this.fazenda,
-      talhao: talhao ?? this.talhao,
-    );
-  }
-}
+import 'package:provider/provider.dart';
+import '../providers/plantio_provider.dart';
+import '../models/plantio_model.dart';
+import '../variaveis.dart';
 
 class PlantiosPage extends StatefulWidget {
   const PlantiosPage({super.key});
@@ -79,41 +12,32 @@ class PlantiosPage extends StatefulWidget {
 }
 
 class _PlantiosPageState extends State<PlantiosPage> {
-  List<PlantioItem> plantios = [
-    PlantioItem(
-      id: '1',
-      cultura: 'Soja',
-      data: '20/09/25',
-      variedade: 'BR 123',
-      adubo: 'NPK 10-10-10',
-      inoculante: 'Sim',
-      sementes: '2.500 kg',
-      fazenda: 'Fazenda 1',
-      talhao: 'Talhão 1',
-    ),
-    PlantioItem(
-      id: '2',
-      cultura: 'Milho',
-      data: '15/01/26',
-      variedade: 'Hibrido X',
-      adubo: 'Ureia',
-      inoculante: 'Não',
-      sementes: '3.200 kg',
-      fazenda: 'Fazenda 1',
-      talhao: 'Talhão 2',
-    ),
-  ];
+  String? _talhaoId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args.containsKey('talhaoId')) {
+        _talhaoId = args['talhaoId'].toString();
+        context.read<PlantioProvider>().loadByTalhaoId(_talhaoId!);
+      } else {
+        context.read<PlantioProvider>().loadAll();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Bege,
       appBar: AppBar(
-        backgroundColor: VerdeEscuro, // Mesma cor do fundo da imagem
-        iconTheme: IconThemeData(color: BegeClaro), // Cor da seta (Bege)
+        backgroundColor: VerdeEscuro,
+        iconTheme: IconThemeData(color: BegeClaro),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context), // Ação de voltar
+          onPressed: () => Navigator.pop(context),
         ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -138,122 +62,175 @@ class _PlantiosPageState extends State<PlantiosPage> {
         ),
         centerTitle: true,
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 16.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: plantios.length,
-                    itemBuilder: (context, index) {
-                      final plantio = plantios[index];
-                      return _buildPlantioCard(plantio, index);
-                    },
-                  ),
-                ),
+      body: Consumer<PlantioProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading && provider.plantios.isEmpty) {
+            return Center(
+              child: CircularProgressIndicator(color: VerdeEscuro),
+            );
+          }
 
-                // Rodapé com total de plantios
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+          if (provider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Erro ao carregar plantios',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
-                  decoration: BoxDecoration(
-                    color: VerdeEscuro, // Mesma cor do original
-                    borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 8),
+                  Text(
+                    provider.error!,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    textAlign: TextAlign.center,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total de Plantios',
-                        style: TextStyle(
-                          color: Bege, // Mesma cor do original
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_talhaoId != null) {
+                        provider.loadByTalhaoId(_talhaoId!);
+                      } else {
+                        provider.loadAll();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: VerdeEscuro,
+                      foregroundColor: Bege,
+                    ),
+                    child: const Text('Tentar novamente'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (provider.plantios.isEmpty)
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.eco,
+                                size: 80,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Nenhum plantio registrado',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Clique no botão + para adicionar',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Bege, // Mesma cor do original
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          '${plantios.length}',
-                          style: TextStyle(
-                            color: VerdeEscuro, // Mesma cor do original
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      )
+                    else
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () {
+                            if (_talhaoId != null) {
+                              return provider.loadByTalhaoId(_talhaoId!);
+                            } else {
+                              return provider.loadAll();
+                            }
+                          },
+                          child: ListView.builder(
+                            itemCount: provider.plantios.length,
+                            itemBuilder: (context, index) {
+                              final plantio = provider.plantios[index];
+                              return _buildPlantioCard(plantio, index);
+                            },
                           ),
                         ),
                       ),
-                    ],
-                  ),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VerdeEscuro,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total de Plantios',
+                            style: TextStyle(
+                              color: Bege,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Bege,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              '${provider.plantios.length}',
+                              style: TextStyle(
+                                color: VerdeEscuro,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showPlantioForm(context, null),
-        backgroundColor: VerdeEscuro, // Mesma cor do original
-        foregroundColor: Bege, // Mesma cor do original
+        backgroundColor: VerdeEscuro,
+        foregroundColor: Bege,
         child: const Icon(Icons.add, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: VerdeClaro.withOpacity(0.1), // Mesmo estilo do original
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: VerdeClaro.withOpacity(0.3), width: 1),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 20, color: VerdeEscuro), // Mesma cor
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: VerdeEscuro, // Mesma cor
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlantioCard(PlantioItem plantio, int index) {
+  Widget _buildPlantioCard(PlantioModel plantio, int index) {
     return Card(
-      color: Colors.orange[50], // MESMA COR DO CARD ORIGINAL
+      color: Colors.orange[50],
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -262,19 +239,18 @@ class _PlantiosPageState extends State<PlantiosPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Linha superior com ícone, título e número - IGUAL AO ORIGINAL
             Row(
               children: [
                 Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.green[100], // Mesma cor
+                    color: Colors.green[100],
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     _getCulturaIcon(plantio.cultura),
-                    color: VerdeEscuro, // Mesma cor
+                    color: VerdeEscuro,
                     size: 22,
                   ),
                 ),
@@ -293,10 +269,10 @@ class _PlantiosPageState extends State<PlantiosPage> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                          Icon(Icons.calendar_today, size: 14, color: VerdeClaro),
                           const SizedBox(width: 4),
                           Text(
-                            '${plantio.fazenda} - ${plantio.talhao}',
+                            plantio.formattedDate,
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[700],
@@ -314,13 +290,13 @@ class _PlantiosPageState extends State<PlantiosPage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: VerdeClaro, // Mesma cor
+                    color: VerdeClaro,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '${index + 1}',
                     style: TextStyle(
-                      color: Bege, // Mesma cor
+                      color: Bege,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -331,32 +307,27 @@ class _PlantiosPageState extends State<PlantiosPage> {
             const SizedBox(height: 8),
             const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 8),
-
-            // Informações em chips com ícones de ação - IGUAL AO ORIGINAL
             Row(
               children: [
-                // Chips de informações
                 Expanded(
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.calendar_today, 'Data: ${plantio.data}'),
-                      _buildInfoChip(Icons.science, 'Variedade: ${plantio.variedade}'),
+                      _buildInfoChip(Icons.science, plantio.variedade),
                       _buildInfoChip(Icons.agriculture, plantio.adubo),
                       _buildInfoChip(Icons.biotech, 'Inoculante: ${plantio.inoculante}'),
-                      _buildInfoChip(Icons.grain, 'Sementes: ${plantio.sementes}'),
+                      _buildInfoChip(Icons.grain, plantio.sementes),
                     ],
                   ),
                 ),
-                // Ícones de ação - IGUAL AO ORIGINAL
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
                       onPressed: () => _showPlantioForm(context, plantio),
-                      color: VerdeClaro, // Mesma cor
+                      color: VerdeClaro,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -382,13 +353,13 @@ class _PlantiosPageState extends State<PlantiosPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: VerdeClaro.withOpacity(0.1), // Mesmo estilo do original
+        color: VerdeClaro.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: VerdeEscuro), // Mesma cor
+          Icon(icon, size: 14, color: VerdeEscuro),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
@@ -411,15 +382,14 @@ class _PlantiosPageState extends State<PlantiosPage> {
       return Icons.eco;
     } else if (cultura.toLowerCase().contains('milho')) {
       return Icons.grass;
+    } else if (cultura.toLowerCase().contains('café')) {
+      return Icons.coffee;
     } else {
       return Icons.spa;
     }
   }
 
-  void _showPlantioForm(
-    BuildContext context,
-    PlantioItem? plantio,
-  ) {
+  void _showPlantioForm(BuildContext context, PlantioModel? plantio) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -434,21 +404,16 @@ class _PlantiosPageState extends State<PlantiosPage> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
-            child: PlantioFormModal(
+            child: _PlantioFormModal(
               plantio: plantio,
-              onSave: (newPlantio) {
-                setState(() {
-                  if (plantio == null) {
-                    plantios.add(newPlantio);
-                  } else {
-                    final index = plantios.indexWhere(
-                      (a) => a.id == plantio.id,
-                    );
-                    if (index != -1) {
-                      plantios[index] = newPlantio;
-                    }
-                  }
-                });
+              talhaoId: _talhaoId,
+              onSave: (novoPlantio) {
+                final provider = context.read<PlantioProvider>();
+                if (plantio == null) {
+                  provider.create(novoPlantio);
+                } else {
+                  provider.update(novoPlantio);
+                }
               },
             ),
           ),
@@ -471,9 +436,7 @@ class _PlantiosPageState extends State<PlantiosPage> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  plantios.removeWhere((a) => a.id == id);
-                });
+                context.read<PlantioProvider>().delete(id);
                 Navigator.pop(context);
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -486,74 +449,57 @@ class _PlantiosPageState extends State<PlantiosPage> {
   }
 }
 
-// MODAL DE FORMULÁRIO - PLANTIO
-class PlantioFormModal extends StatefulWidget {
-  final PlantioItem? plantio;
-  final Function(PlantioItem) onSave;
+// ============================================
+// MODAL DO FORMULÁRIO DE PLANTIO
+// ============================================
+class _PlantioFormModal extends StatefulWidget {
+  final PlantioModel? plantio;
+  final String? talhaoId;
+  final Function(PlantioModel) onSave;
 
-  const PlantioFormModal({
-    super.key,
+  const _PlantioFormModal({
     this.plantio,
+    this.talhaoId,
     required this.onSave,
   });
 
   @override
-  State<PlantioFormModal> createState() => _PlantioFormModalState();
+  State<_PlantioFormModal> createState() => _PlantioFormModalState();
 }
 
-class _PlantioFormModalState extends State<PlantioFormModal> {
+class _PlantioFormModalState extends State<_PlantioFormModal> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _culturaController;
-  late TextEditingController _dataController;
-  late TextEditingController _variedadeController;
-  late TextEditingController _aduboController;
-  late TextEditingController _inoculanteController;
-  late TextEditingController _sementesController;
-  late TextEditingController _fazendaController;
-  late TextEditingController _talhaoController;
+  final _culturaController = TextEditingController();
+  final _variedadeController = TextEditingController();
+  final _aduboController = TextEditingController();
+  final _inoculanteController = TextEditingController();
+  final _sementesController = TextEditingController();
+  DateTime? _selectedDate;
 
-  bool _isEditing = false;
+  bool get _isEditing => widget.plantio != null;
 
   @override
   void initState() {
     super.initState();
-    _isEditing = widget.plantio != null;
-    _culturaController = TextEditingController(
-      text: widget.plantio?.cultura ?? '',
-    );
-    _dataController = TextEditingController(
-      text: widget.plantio?.data ?? '',
-    );
-    _variedadeController = TextEditingController(
-      text: widget.plantio?.variedade ?? '',
-    );
-    _aduboController = TextEditingController(
-      text: widget.plantio?.adubo ?? '',
-    );
-    _inoculanteController = TextEditingController(
-      text: widget.plantio?.inoculante ?? '',
-    );
-    _sementesController = TextEditingController(
-      text: widget.plantio?.sementes ?? '',
-    );
-    _fazendaController = TextEditingController(
-      text: widget.plantio?.fazenda ?? '',
-    );
-    _talhaoController = TextEditingController(
-      text: widget.plantio?.talhao ?? '',
-    );
+    if (widget.plantio != null) {
+      _culturaController.text = widget.plantio!.cultura;
+      _variedadeController.text = widget.plantio!.variedade;
+      _aduboController.text = widget.plantio!.adubo;
+      _inoculanteController.text = widget.plantio!.inoculante;
+      _sementesController.text = widget.plantio!.sementes;
+      _selectedDate = widget.plantio!.data;
+    } else {
+      _selectedDate = DateTime.now();
+    }
   }
 
   @override
   void dispose() {
     _culturaController.dispose();
-    _dataController.dispose();
     _variedadeController.dispose();
     _aduboController.dispose();
     _inoculanteController.dispose();
     _sementesController.dispose();
-    _fazendaController.dispose();
-    _talhaoController.dispose();
     super.dispose();
   }
 
@@ -574,11 +520,10 @@ class _PlantioFormModalState extends State<PlantioFormModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header - IGUAL AO ORIGINAL
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: VerdeEscuro, // Mesma cor
+              color: VerdeEscuro,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -589,20 +534,18 @@ class _PlantioFormModalState extends State<PlantioFormModal> {
                 Text(
                   _isEditing ? 'Editar Plantio' : 'Novo Plantio',
                   style: TextStyle(
-                    color: Bege, // Mesma cor
+                    color: Bege,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: Bege), // Mesma cor
+                  icon: Icon(Icons.close, color: Bege),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-
-          // Form
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -613,52 +556,33 @@ class _PlantioFormModalState extends State<PlantioFormModal> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFormField(
-                      label: 'Fazenda',
-                      controller: _fazendaController,
-                      icon: Icons.store,
-                      hint: 'Ex: Fazenda 1',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Talhão',
-                      controller: _talhaoController,
-                      icon: Icons.crop,
-                      hint: 'Ex: Talhão 1',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
                       label: 'Planta de Cultivo',
                       controller: _culturaController,
                       icon: Icons.eco,
-                      hint: 'Ex: Soja, Milho',
+                      hint: 'Ex: Soja, Milho, Café',
                     ),
                     const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Data',
-                      controller: _dataController,
-                      icon: Icons.calendar_today,
-                      hint: 'DD/MM/AA',
-                    ),
+                    _buildDateField(),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Variedade',
                       controller: _variedadeController,
                       icon: Icons.science,
-                      hint: 'Ex: BR 123',
+                      hint: 'Ex: BR 123, Híbrido X',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Adubo',
                       controller: _aduboController,
                       icon: Icons.agriculture,
-                      hint: 'Ex: NPK 10-10-10',
+                      hint: 'Ex: NPK, Ureia',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Inoculante',
                       controller: _inoculanteController,
                       icon: Icons.biotech,
-                      hint: 'Sim / Não',
+                      hint: 'Sim / Não / Tipo',
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
@@ -668,15 +592,13 @@ class _PlantioFormModalState extends State<PlantioFormModal> {
                       hint: 'Ex: 2.500 kg',
                     ),
                     const SizedBox(height: 24),
-
-                    // Botão Salvar - IGUAL AO ORIGINAL
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _savePlantio,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: VerdeEscuro, // Mesma cor
-                          foregroundColor: Bege, // Mesma cor
+                          backgroundColor: VerdeEscuro,
+                          foregroundColor: Bege,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -725,9 +647,12 @@ class _PlantioFormModalState extends State<PlantioFormModal> {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600), // Mesma cor
+          labelStyle: TextStyle(
+            color: VerdeClaro,
+            fontWeight: FontWeight.w600,
+          ),
           hintText: hint,
-          prefixIcon: Icon(icon, color: VerdeClaro), // Mesma cor
+          prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -746,23 +671,83 @@ class _PlantioFormModalState extends State<PlantioFormModal> {
     );
   }
 
+  Widget _buildDateField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: _selectDate,
+        borderRadius: BorderRadius.circular(12),
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: 'Data',
+            labelStyle: TextStyle(
+              color: VerdeClaro,
+              fontWeight: FontWeight.w600,
+            ),
+            prefixIcon: Icon(Icons.calendar_today, color: VerdeClaro),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(16),
+          ),
+          child: Text(
+            _selectedDate != null
+                ? '${_selectedDate!.day.toString().padLeft(2, '0')}/'
+                    '${_selectedDate!.month.toString().padLeft(2, '0')}/'
+                    '${_selectedDate!.year}'
+                : 'Selecione uma data',
+            style: TextStyle(
+              fontSize: 16,
+              color: _selectedDate != null ? Colors.black87 : Colors.grey,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      locale: const Locale('pt', 'BR'),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
   void _savePlantio() {
-    if (_formKey.currentState!.validate()) {
-      final newPlantio = PlantioItem(
-        id:
-            widget.plantio?.id ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
+    if (_formKey.currentState!.validate() && _selectedDate != null) {
+      final novoPlantio = PlantioModel(
+        id: widget.plantio?.id ?? '',
+        talhaoId: widget.talhaoId ?? widget.plantio?.talhaoId ?? '',
         cultura: _culturaController.text,
-        data: _dataController.text,
+        data: _selectedDate!,
         variedade: _variedadeController.text,
         adubo: _aduboController.text,
         inoculante: _inoculanteController.text,
         sementes: _sementesController.text,
-        fazenda: _fazendaController.text,
-        talhao: _talhaoController.text,
       );
 
-      widget.onSave(newPlantio);
+      widget.onSave(novoPlantio);
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -772,7 +757,7 @@ class _PlantioFormModalState extends State<PlantioFormModal> {
                 ? 'Plantio atualizado com sucesso!'
                 : 'Plantio criado com sucesso!',
           ),
-          backgroundColor: VerdeEscuro, // Mesma cor
+          backgroundColor: VerdeEscuro,
           duration: const Duration(seconds: 2),
         ),
       );
