@@ -1,11 +1,10 @@
+// lib/screens/fazendas.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../telas/fazenda.dart';  // ← CORRIGIDO: caminho correto
 import '../providers/fazenda_provider.dart';
-import '../providers/talhao_provider.dart';
 import '../models/fazenda_model.dart';
-import '../models/talhao_model.dart';
 import '../variaveis.dart';
-import 'fazenda.dart';
 
 class FazendasPage extends StatefulWidget {
   const FazendasPage({super.key});
@@ -18,7 +17,6 @@ class _FazendasPageState extends State<FazendasPage> {
   @override
   void initState() {
     super.initState();
-    // Carregar dados ao abrir a tela
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -27,207 +25,43 @@ class _FazendasPageState extends State<FazendasPage> {
   Future<void> _loadData() async {
     final provider = context.read<FazendaProvider>();
     await provider.loadUserFazendas();
-    print('📊 Total de fazendas carregadas: ${provider.fazendas.length}');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Bege,
-      appBar: AppBar(
-        backgroundColor: VerdeEscuro,
-        iconTheme: IconThemeData(color: BegeClaro),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image(
-              image: const AssetImage('Imagens/ICONE_FAZENDAS.png'),
-              width: 35,
-              height: 35,
-              fit: BoxFit.cover,
-              color: BegeClaro,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Fazendas',
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w600,
-                color: BegeClaro,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: BegeClaro),
-            onPressed: _loadData,
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: Consumer<FazendaProvider>(
         builder: (context, provider, child) {
-          // Estado de loading
-          if (provider.isLoading && provider.fazendas.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: VerdeEscuro),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Carregando fazendas...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            );
+          // Mostrar mensagens de sucesso/erro
+          if (provider.successMessage != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(provider.successMessage!),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+              provider.resetMessages();
+            });
           }
 
-          // Estado de erro
           if (provider.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Erro ao carregar fazendas',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    provider.error!,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: VerdeEscuro,
-                      foregroundColor: Bege,
-                    ),
-                    child: const Text('Tentar novamente'),
-                  ),
-                ],
-              ),
-            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(provider.error!),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+              provider.resetMessages();
+            });
           }
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 16.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (provider.fazendas.isEmpty)
-                      Expanded(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.house,
-                                size: 80,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Nenhuma fazenda cadastrada',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Clique no botão + para adicionar',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[500],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      Expanded(
-                        child: RefreshIndicator(
-                          onRefresh: _loadData,
-                          child: ListView.builder(
-                            itemCount: provider.fazendas.length,
-                            itemBuilder: (context, index) {
-                              final fazenda = provider.fazendas[index];
-                              return _buildFazendaCard(fazenda);
-                            },
-                          ),
-                        ),
-                      ),
-
-                    // Rodapé com estatísticas
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VerdeEscuro,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total de Fazendas',
-                            style: TextStyle(
-                              color: Bege,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Bege,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              '${provider.fazendas.length}',
-                              style: TextStyle(
-                                color: VerdeEscuro,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
+          return _buildBody(provider);
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -237,6 +71,120 @@ class _FazendasPageState extends State<FazendasPage> {
         child: const Icon(Icons.add, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: VerdeEscuro,
+      iconTheme: const IconThemeData(color: Colors.white),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            'Imagens/ICONE_FAZENDAS.png',
+            width: 35,
+            height: 35,
+            color: BegeClaro,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Fazendas',
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w600,
+              color: BegeClaro,
+            ),
+          ),
+        ],
+      ),
+      centerTitle: true,
+      actions: [
+        IconButton(
+          icon: Icon(Icons.refresh, color: BegeClaro),
+          onPressed: _loadData,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBody(FazendaProvider provider) {
+    // Estado de loading
+    if (provider.isLoading && provider.fazendas.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Colors.green),
+            SizedBox(height: 16),
+            Text('Carregando fazendas...'),
+          ],
+        ),
+      );
+    }
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 24.0,
+            vertical: 16.0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (provider.fazendas.isEmpty)
+                _buildEmptyState()
+              else
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _loadData,
+                    child: ListView.builder(
+                      itemCount: provider.fazendas.length,
+                      itemBuilder: (context, index) {
+                        final fazenda = provider.fazendas[index];
+                        return _buildFazendaCard(fazenda);
+                      },
+                    ),
+                  ),
+                ),
+              _buildFooter(provider),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Expanded(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.house, size: 80, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'Nenhuma fazenda cadastrada',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Clique no botão + para adicionar',
+              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -261,11 +209,7 @@ class _FazendasPageState extends State<FazendasPage> {
                   color: Colors.green[100],
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  Icons.house,
-                  color: VerdeEscuro,
-                  size: 28,
-                ),
+                child: Icon(Icons.house, color: VerdeEscuro, size: 28),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -282,11 +226,7 @@ class _FazendasPageState extends State<FazendasPage> {
                     ),
                     Row(
                       children: [
-                        Icon(
-                          Icons.location_on,
-                          size: 14,
-                          color: VerdeClaro,
-                        ),
+                        Icon(Icons.location_on, size: 14, color: VerdeClaro),
                         const SizedBox(width: 4),
                         Text(
                           fazenda.area,
@@ -324,6 +264,40 @@ class _FazendasPageState extends State<FazendasPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(FazendaProvider provider) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: VerdeEscuro,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Total de Fazendas',
+            style: TextStyle(color: Bege, fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
+            decoration: BoxDecoration(
+              color: Bege,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              '${provider.fazendas.length}',
+              style: TextStyle(
+                color: VerdeEscuro,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -367,35 +341,9 @@ class _FazendasPageState extends State<FazendasPage> {
                   success = await provider.update(novaFazenda);
                 }
 
-                if (success) {
-                  // Recarregar a lista após salvar
+                if (success && mounted) {
+                  Navigator.pop(context);
                   await provider.loadUserFazendas();
-
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          fazenda == null
-                              ? 'Fazenda criada com sucesso!'
-                              : 'Fazenda atualizada com sucesso!',
-                        ),
-                        backgroundColor: VerdeEscuro,
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                } else {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'Erro ao salvar fazenda. Tente novamente.',
-                        ),
-                        backgroundColor: Colors.red,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  }
                 }
               },
             ),
@@ -425,31 +373,9 @@ class _FazendasPageState extends State<FazendasPage> {
                 final provider = context.read<FazendaProvider>();
                 final success = await provider.delete(id);
 
-                if (success) {
-                  // Recarregar após deletar
-                  await provider.loadUserFazendas();
-
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fazenda excluída com sucesso!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } else {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Erro ao excluir fazenda.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-
-                if (mounted) {
+                if (success && mounted) {
                   Navigator.pop(context);
+                  await provider.loadUserFazendas();
                 }
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -482,6 +408,7 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _areaController = TextEditingController();
+  bool _isSaving = false;
 
   bool get _isEditing => widget.fazenda != null;
 
@@ -575,7 +502,7 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveFazenda,
+                        onPressed: _isSaving ? null : _saveFazenda,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -585,13 +512,22 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
                           ),
                           elevation: 4,
                         ),
-                        child: const Text(
-                          'Salvar',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Salvar',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -627,10 +563,7 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(
-            color: VerdeClaro,
-            fontWeight: FontWeight.w600,
-          ),
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
           hintText: hint,
           prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
@@ -642,7 +575,7 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
           contentPadding: const EdgeInsets.all(16),
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) {
+          if (value == null || value.trim().isEmpty) {
             return 'Campo obrigatório';
           }
           return null;
@@ -651,16 +584,33 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
     );
   }
 
-  void _saveFazenda() {
-    if (_formKey.currentState!.validate()) {
+  void _saveFazenda() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
+
+    try {
       final novaFazenda = FazendaModel(
         id: widget.fazenda?.id ?? '',
-        nome: _nomeController.text,
-        area: _areaController.text,
-        userId: '', // Será preenchido pelo provider
+        nome: _nomeController.text.trim(),
+        area: _areaController.text.trim(),
+        userId: '', // Será preenchido pelo service
       );
 
-      widget.onSave(novaFazenda);
+      await widget.onSave(novaFazenda);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 }

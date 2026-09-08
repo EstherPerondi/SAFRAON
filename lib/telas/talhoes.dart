@@ -19,9 +19,13 @@ class _TalhoesPageState extends State<TalhoesPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TalhaoProvider>().loadAll();
-      context.read<FazendaProvider>().loadUserFazendas();
+      _loadData();
     });
+  }
+
+  Future<void> _loadData() async {
+    await context.read<TalhaoProvider>().loadAll();
+    await context.read<FazendaProvider>().loadUserFazendas();
   }
 
   @override
@@ -30,7 +34,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
       backgroundColor: Bege,
       appBar: AppBar(
         backgroundColor: VerdeEscuro,
-        iconTheme: IconThemeData(color: BegeClaro),
+        iconTheme: const IconThemeData(color: Colors.white),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -38,8 +42,8 @@ class _TalhoesPageState extends State<TalhoesPage> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image(
-              image: AssetImage('Imagens/ICONE_TALHAO.png'),
+            Image.asset(
+              'Imagens/ICONE_TALHAO.png',
               color: BegeClaro,
               width: 35,
               height: 35,
@@ -56,16 +60,55 @@ class _TalhoesPageState extends State<TalhoesPage> {
           ],
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: BegeClaro),
+            onPressed: _loadData,
+          ),
+        ],
       ),
       body: Consumer2<TalhaoProvider, FazendaProvider>(
         builder: (context, talhaoProvider, fazendaProvider, child) {
-          if (talhaoProvider.isLoading && talhaoProvider.talhoes.isEmpty) {
-            return Center(
-              child: CircularProgressIndicator(color: VerdeEscuro),
-            );
+          if (talhaoProvider.successMessage != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(talhaoProvider.successMessage!),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+              talhaoProvider.resetMessages();
+            });
           }
 
           if (talhaoProvider.error != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(talhaoProvider.error!),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+              talhaoProvider.resetMessages();
+            });
+          }
+
+          if (talhaoProvider.isLoading && talhaoProvider.talhoes.isEmpty) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.green),
+                  SizedBox(height: 16),
+                  Text('Carregando talhões...'),
+                ],
+              ),
+            );
+          }
+
+          if (talhaoProvider.error != null && talhaoProvider.talhoes.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -84,7 +127,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => talhaoProvider.loadAll(),
+                    onPressed: _loadData,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: VerdeEscuro,
                       foregroundColor: Bege,
@@ -142,12 +185,11 @@ class _TalhoesPageState extends State<TalhoesPage> {
                     else
                       Expanded(
                         child: RefreshIndicator(
-                          onRefresh: () => talhaoProvider.loadAll(),
+                          onRefresh: _loadData,
                           child: ListView.builder(
                             itemCount: talhaoProvider.talhoes.length,
                             itemBuilder: (context, index) {
                               final talhao = talhaoProvider.talhoes[index];
-                              // Buscar nome da fazenda
                               final fazenda = fazendaProvider.fazendas
                                   .firstWhere(
                                     (f) => f.id == talhao.fazendaId,
@@ -228,7 +270,9 @@ class _TalhoesPageState extends State<TalhoesPage> {
       color: Colors.orange[50],
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -236,9 +280,11 @@ class _TalhoesPageState extends State<TalhoesPage> {
             MaterialPageRoute(
               builder: (context) => TalhaoPage(
                 talhaoData: {
+                  'id': talhao.id,
                   'nome': talhao.nome,
                   'fazenda': fazenda.nome,
-                  'cidade': talhao.localizacao,
+                  'cidade': talhao.cidade,
+                  'fazenda_id': talhao.fazendaId,
                 },
               ),
             ),
@@ -291,7 +337,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                         Icon(Icons.location_on, size: 14, color: VerdeClaro),
                         const SizedBox(width: 4),
                         Text(
-                          talhao.localizacao,
+                          talhao.cidade,
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey[700],
@@ -347,12 +393,19 @@ class _TalhoesPageState extends State<TalhoesPage> {
             ),
             child: _TalhaoFormModal(
               talhao: talhao,
-              onSave: (novoTalhao) {
+              onSave: (novoTalhao) async {
                 final provider = context.read<TalhaoProvider>();
+                bool success;
+
                 if (talhao == null) {
-                  provider.create(novoTalhao);
+                  success = await provider.create(novoTalhao);
                 } else {
-                  provider.update(novoTalhao);
+                  success = await provider.update(novoTalhao);
+                }
+
+                if (success && mounted) {
+                  Navigator.pop(context);
+                  await _loadData();
                 }
               },
             ),
@@ -375,9 +428,14 @@ class _TalhoesPageState extends State<TalhoesPage> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
-                context.read<TalhaoProvider>().delete(id);
-                Navigator.pop(context);
+              onPressed: () async {
+                final provider = context.read<TalhaoProvider>();
+                final success = await provider.delete(id);
+
+                if (success && mounted) {
+                  Navigator.pop(context);
+                  await _loadData();
+                }
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Excluir'),
@@ -389,9 +447,6 @@ class _TalhoesPageState extends State<TalhoesPage> {
   }
 }
 
-// ============================================
-// MODAL DO FORMULÁRIO DE TALHÃO
-// ============================================
 class _TalhaoFormModal extends StatefulWidget {
   final TalhaoModel? talhao;
   final Function(TalhaoModel) onSave;
@@ -408,8 +463,9 @@ class _TalhaoFormModal extends StatefulWidget {
 class _TalhaoFormModalState extends State<_TalhaoFormModal> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
-  final _localizacaoController = TextEditingController();
+  final _cidadeController = TextEditingController();
   String? _selectedFazendaId;
+  bool _isSaving = false;
 
   bool get _isEditing => widget.talhao != null;
 
@@ -418,7 +474,7 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
     super.initState();
     if (widget.talhao != null) {
       _nomeController.text = widget.talhao!.nome;
-      _localizacaoController.text = widget.talhao!.localizacao;
+      _cidadeController.text = widget.talhao!.cidade;
       _selectedFazendaId = widget.talhao!.fazendaId;
     }
   }
@@ -426,7 +482,7 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
   @override
   void dispose() {
     _nomeController.dispose();
-    _localizacaoController.dispose();
+    _cidadeController.dispose();
     super.dispose();
   }
 
@@ -487,7 +543,6 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Dropdown de Fazendas
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -526,21 +581,6 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
                         onChanged: (value) {
                           setState(() {
                             _selectedFazendaId = value;
-                            // Auto preencher localização se disponível
-                            if (value != null) {
-                              final fazenda = fazendas.firstWhere(
-                                (f) => f.id == value,
-                                orElse: () => FazendaModel(
-                                  id: '',
-                                  nome: '',
-                                  area: '',
-                                  userId: '',
-                                ),
-                              );
-                              if (fazenda.area.isNotEmpty) {
-                                _localizacaoController.text = fazenda.area;
-                              }
-                            }
                           });
                         },
                         validator: (value) {
@@ -550,7 +590,7 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
                           return null;
                         },
                         dropdownColor: Colors.white,
-                        style: TextStyle(color: Colors.black87),
+                        style: const TextStyle(color: Colors.black87),
                         icon: Icon(Icons.arrow_drop_down, color: VerdeClaro),
                         isExpanded: true,
                       ),
@@ -566,7 +606,7 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
                     const SizedBox(height: 16),
                     _buildFormField(
                       label: 'Localização',
-                      controller: _localizacaoController,
+                      controller: _cidadeController,
                       icon: Icons.location_on,
                       hint: 'Ex: Toledo',
                     ),
@@ -576,7 +616,7 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveTalhao,
+                        onPressed: _isSaving ? null : _saveTalhao,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -586,13 +626,22 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
                           ),
                           elevation: 4,
                         ),
-                        child: const Text(
-                          'Salvar',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Salvar',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -643,7 +692,7 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
           contentPadding: const EdgeInsets.all(16),
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) {
+          if (value == null || value.trim().isEmpty) {
             return 'Campo obrigatório';
           }
           return null;
@@ -652,29 +701,43 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
     );
   }
 
-  void _saveTalhao() {
-    if (_formKey.currentState!.validate() && _selectedFazendaId != null) {
+  void _saveTalhao() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedFazendaId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecione uma fazenda'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
       final novoTalhao = TalhaoModel(
         id: widget.talhao?.id ?? '',
         fazendaId: _selectedFazendaId!,
-        nome: _nomeController.text,
-        localizacao: _localizacaoController.text,
+        nome: _nomeController.text.trim(),
+        cidade: _cidadeController.text.trim(),
+        userId: '', 
       );
 
-      widget.onSave(novoTalhao);
-      Navigator.pop(context);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isEditing
-                ? 'Talhão atualizado com sucesso!'
-                : 'Talhão criado com sucesso!',
+      await widget.onSave(novoTalhao);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar: ${e.toString()}'),
+            backgroundColor: Colors.red,
           ),
-          backgroundColor: VerdeEscuro,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 }

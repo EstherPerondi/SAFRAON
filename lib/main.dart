@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:safraon/services/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // PROVIDERS
@@ -27,15 +28,19 @@ import 'telas/precipitacoes.dart';
 
 import 'variaveis.dart';
 
+// lib/main.dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'services/supabase_service.dart';
+import 'providers/fazenda_provider.dart';
+import 'providers/talhao_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // 🔑 COLOQUE SUAS CREDENCIAIS AQUI
-  await Supabase.initialize(
-    url: 'https://lqrelxniitrfhdcpbvwu.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxcmVseG5paXRyZmhkY3Bidnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MDYyNjksImV4cCI6MjEwMTI4MjI2OX0.ZNltZGSP_OZtjH7EE3cJqKXqoh9p7A5PP8sN5dM9hyc',
-  );
-
+  
+  // Inicializar Supabase
+  await SupabaseService().init();
+  
   runApp(const MyApp());
 }
 
@@ -48,56 +53,27 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => FazendaProvider()),
         ChangeNotifierProvider(create: (_) => TalhaoProvider()),
-        ChangeNotifierProvider(create: (_) => AplicacaoProvider()),
-        ChangeNotifierProvider(create: (_) => PlantioProvider()),
-        ChangeNotifierProvider(create: (_) => ManejoProvider()),
-        ChangeNotifierProvider(create: (_) => ColheitaProvider()),
-        ChangeNotifierProvider(create: (_) => PrecipitacaoProvider()),
       ],
       child: MaterialApp(
-        title: 'SafraOn',
+        title: 'SafraON',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: VerdeEscuro),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1B5E20),
+          ),
           useMaterial3: true,
         ),
-        debugShowCheckedModeBanner: false,
         initialRoute: '/',
         routes: {
-          '/': (context) => LoginPage(),
-          '/principal': (context) => const PrincipalPage(),
+          '/': (context) => const PrincipalPage(),
           '/fazendas': (context) => const FazendasPage(),
           '/talhoes': (context) => const TalhoesPage(),
-          '/aplicacoes': (context) => const AplicacoesPage(),
-          '/plantios': (context) => const PlantiosPage(),
-          '/manejos': (context) => const ManejosPage(),
-          '/colheitas': (context) => const ColheitasPage(),
-          '/precipitacoes': (context) => const PrecipitacoesPage(),
-          '/cadastro': (context) => const Cadastro(),
+          '/aplicacoes': (context) => const Placeholder(child: Text('Aplicações')),
+          '/plantios': (context) => const Placeholder(child: Text('Plantios')),
+          '/manejos': (context) => const Placeholder(child: Text('Manejos')),
+          '/colheitas': (context) => const Placeholder(child: Text('Colheitas')),
+          '/precipitacoes': (context) => const Placeholder(child: Text('Precipitações')),
         },
-        onGenerateRoute: (settings) {
-          if (settings.name == '/fazenda') {
-            final args = settings.arguments as Map<String, String>;
-            return MaterialPageRoute(
-              builder: (context) => FazendaPage(
-                fazendaId: args['fazendaId']!,
-                fazendaNome: args['fazendaNome']!,
-              ),
-            );
-          }
-          if (settings.name == '/talhao') {
-            final args = settings.arguments as Map<String, String>;
-            return MaterialPageRoute(
-              builder: (context) => TalhaoPage(
-                talhaoData: {
-                  'nome': args['nome']!,
-                  'fazenda': args['fazenda']!,
-                  'cidade': args['cidade'] ?? '',
-                },
-              ),
-            );
-          }
-          return null;
-        },
+        debugShowCheckedModeBanner: false,
       ),
     );
   }
