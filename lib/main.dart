@@ -44,6 +44,32 @@ void main() async {
   runApp(const MyApp());
 }
 
+// Decide, ao abrir o app, se mostra o Login ou a tela Principal,
+// com base em já existir (ou não) uma sessão ativa no Supabase.
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<AuthState>(
+      stream: SupabaseService().client.auth.onAuthStateChange,
+      initialData: AuthState(
+        AuthChangeEvent.initialSession,
+        SupabaseService().client.auth.currentSession,
+      ),
+      builder: (context, snapshot) {
+        final session = snapshot.data?.session ??
+            SupabaseService().client.auth.currentSession;
+
+        if (session != null) {
+          return const PrincipalPage();
+        }
+        return const LoginPage();
+      },
+    );
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -64,7 +90,10 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => const PrincipalPage(),
+          '/': (context) => const AuthGate(),
+          '/login': (context) => const LoginPage(),
+          '/cadastro': (context) => const Cadastro(),
+          '/principal': (context) => const PrincipalPage(),
           '/fazendas': (context) => const FazendasPage(),
           '/talhoes': (context) => const TalhoesPage(),
           '/aplicacoes': (context) => const Placeholder(child: Text('Aplicações')),

@@ -5,7 +5,7 @@ import 'supabase_service.dart';
 
 class FazendaService {
   final SupabaseClient _client = SupabaseService().client;
-  final String _table = 'fazendas';
+  final String _table = 'fazenda';
 
   // Buscar todas as fazendas do usuário
   Future<List<FazendaModel>> getAll() async {
@@ -115,7 +115,6 @@ class FazendaService {
       print('  - Mensagem: ${e.message}');
       print('  - Detalhes: ${e.details}');
       print('  - Dica: ${e.hint}');
-      print('  - Error: ${e.error}');
       print('========================================');
       return null;
       
