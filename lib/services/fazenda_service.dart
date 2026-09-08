@@ -11,11 +11,12 @@ class FazendaService {
   Future<List<FazendaModel>> getAll() async {
     try {
       final userId = SupabaseService().currentUserId;
-      print('📊 Buscando fazendas para user: $userId');
+      print('📊 Buscando fazendas para usuario_id: $userId');
 
       final response = await _client
           .from(_table)
           .select()
+          .eq('usuario_id', userId)
           .order('created_at', ascending: false);
 
       print('✅ ${response.length} fazendas encontradas');
@@ -52,78 +53,51 @@ class FazendaService {
       print('🚀 INICIANDO CRIAÇÃO DE FAZENDA');
       print('========================================');
 
-      // 1. VERIFICAR AUTENTICAÇÃO
       final supabase = SupabaseService();
-      print('🔐 Verificando autenticação...');
       print('🔐 Usuário logado: ${supabase.isAuthenticated}');
-      
-      // 2. OBTER USER ID
-      final userId = supabase.currentUserId;
-      print('🆔 User ID obtido: "$userId"');
-      
-      if (userId.isEmpty) {
-        print('❌ ERRO: User ID está vazio!');
+
+      final usuarioId = supabase.currentUserId;
+      print('🆔 usuario_id obtido: "$usuarioId"');
+
+      if (usuarioId.isEmpty) {
+        print('❌ ERRO: usuario_id está vazio!');
         throw Exception('Usuário não autenticado. Faça login primeiro.');
       }
 
-      // 3. VALIDAR DADOS
       print('📝 Validando dados...');
       print('📝 Nome: "${fazenda.nome}"');
-      print('📝 Área: "${fazenda.area}"');
-      
+      print('📝 estado_id: "${fazenda.estadoId}"');
+
       if (fazenda.nome.trim().isEmpty) {
         throw Exception('Nome da fazenda não pode estar vazio');
       }
-      if (fazenda.area.trim().isEmpty) {
-        throw Exception('Área da fazenda não pode estar vazia');
+      if (fazenda.estadoId.trim().isEmpty) {
+        throw Exception('Estado da fazenda não pode estar vazio');
       }
 
-      // 4. PREPARAR DADOS PARA ENVIO
       final data = {
         'nome': fazenda.nome.trim(),
-        'area': fazenda.area.trim(),
-        'user_id': userId,
+        'estado_id': fazenda.estadoId.trim(),
+        'usuario_id': usuarioId,
       };
-      
-      print('📤 Dados a serem enviados:');
-      print('  - nome: ${data['nome']}');
-      print('  - area: ${data['area']}');
-      print('  - user_id: ${data['user_id']}');
-      print('  - user_id type: ${data['user_id'].runtimeType}');
 
-      // 5. TENTAR INSERIR
-      print('📤 Enviando para Supabase...');
-      
+      print('📤 Dados a serem enviados: $data');
+
       final response = await _client
           .from(_table)
           .insert(data)
           .select()
           .single();
 
-      print('✅ SUCESSO! Fazenda criada:');
-      print('  - ID: ${response['id']}');
-      print('  - Nome: ${response['nome']}');
-      print('  - Resposta completa: $response');
+      print('✅ SUCESSO! Fazenda criada: ${response['id']}');
       print('========================================');
 
       return FazendaModel.fromJson(response);
-      
     } on PostgrestException catch (e) {
-      print('========================================');
-      print('❌ ERRO POSTGRESQL:');
-      print('  - Código: ${e.code}');
-      print('  - Mensagem: ${e.message}');
-      print('  - Detalhes: ${e.details}');
-      print('  - Dica: ${e.hint}');
-      print('========================================');
+      print('❌ ERRO POSTGRESQL: ${e.code} | ${e.message} | ${e.details}');
       return null;
-      
     } catch (e) {
-      print('========================================');
-      print('❌ ERRO GERAL:');
-      print('  - Tipo: ${e.runtimeType}');
-      print('  - Mensagem: $e');
-      print('========================================');
+      print('❌ ERRO GERAL: $e');
       return null;
     }
   }
@@ -137,12 +111,10 @@ class FazendaService {
 
       final data = {
         'nome': fazenda.nome.trim(),
-        'area': fazenda.area.trim(),
+        'estado_id': fazenda.estadoId.trim(),
       };
 
-      print('📤 Atualizando fazenda: ${fazenda.id}');
-      print('  - Nome: ${data['nome']}');
-      print('  - Área: ${data['area']}');
+      print('📤 Atualizando fazenda: ${fazenda.id} -> $data');
 
       final response = await _client
           .from(_table)
@@ -169,10 +141,7 @@ class FazendaService {
 
       print('🗑️ Deletando fazenda: $id');
 
-      await _client
-          .from(_table)
-          .delete()
-          .eq('id', id);
+      await _client.from(_table).delete().eq('id', id);
 
       print('✅ Fazenda deletada com sucesso!');
       return true;
@@ -182,15 +151,15 @@ class FazendaService {
     }
   }
 
-  // Verificar se existe fazenda com mesmo nome
+  // Verificar se existe fazenda com mesmo nome (para o usuário atual)
   Future<bool> existsWithName(String nome) async {
     try {
-      final userId = SupabaseService().currentUserId;
+      final usuarioId = SupabaseService().currentUserId;
       final response = await _client
           .from(_table)
           .select('id')
           .eq('nome', nome.trim())
-          .eq('user_id', userId);
+          .eq('usuario_id', usuarioId);
 
       return response.isNotEmpty;
     } catch (e) {

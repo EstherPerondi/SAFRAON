@@ -1,24 +1,26 @@
 class PlantioModel {
   final String id;
   final String talhaoId;
-  final String cultura;
+  final String culturaId;
+  final String variedadeId;
+  final String aduboId;
+  final String? inoculanteId;
   final DateTime data;
-  final String variedade;
-  final String adubo;
-  final String inoculante;
-  final String sementes;
+  final double quantidadeSementesPorMetro;
+  final double quantidadeAduboPorAlqueire;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   PlantioModel({
     required this.id,
     required this.talhaoId,
-    required this.cultura,
+    required this.culturaId,
+    required this.variedadeId,
+    required this.aduboId,
+    this.inoculanteId,
     required this.data,
-    required this.variedade,
-    required this.adubo,
-    required this.inoculante,
-    required this.sementes,
+    required this.quantidadeSementesPorMetro,
+    required this.quantidadeAduboPorAlqueire,
     this.createdAt,
     this.updatedAt,
   });
@@ -27,17 +29,20 @@ class PlantioModel {
     return PlantioModel(
       id: json['id'].toString(),
       talhaoId: json['talhao_id'].toString(),
-      cultura: json['cultura'] ?? '',
-      data: json['data'] != null ? DateTime.parse(json['data']) : DateTime.now(),
-      variedade: json['variedade'] ?? '',
-      adubo: json['adubo'] ?? '',
-      inoculante: json['inoculante'] ?? '',
-      sementes: json['sementes'] ?? '',
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      culturaId: json['cultura_id']?.toString() ?? '',
+      variedadeId: json['variedade_id']?.toString() ?? '',
+      aduboId: json['adubo_id']?.toString() ?? '',
+      inoculanteId: json['inoculante_id']?.toString(),
+      data: json['dataplantio'] != null
+          ? DateTime.parse(json['dataplantio'])
+          : DateTime.now(),
+      quantidadeSementesPorMetro: (json['quantidadessementespormetro'] ?? 0).toDouble(),
+      quantidadeAduboPorAlqueire: (json['quantidadeaduboporalqueire'] ?? 0).toDouble(),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
     );
   }
@@ -45,12 +50,13 @@ class PlantioModel {
   Map<String, dynamic> toJson() {
     return {
       'talhao_id': talhaoId,
-      'cultura': cultura,
-      'data': data.toIso8601String().split('T').first,
-      'variedade': variedade,
-      'adubo': adubo,
-      'inoculante': inoculante,
-      'sementes': sementes,
+      'cultura_id': culturaId,
+      'variedade_id': variedadeId,
+      'adubo_id': aduboId,
+      'inoculante_id': inoculanteId,
+      'dataplantio': data.toIso8601String(),
+      'quantidadessementespormetro': quantidadeSementesPorMetro,
+      'quantidadeaduboporalqueire': quantidadeAduboPorAlqueire,
     };
   }
 

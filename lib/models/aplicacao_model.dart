@@ -1,20 +1,20 @@
 class AplicacaoModel {
   final String id;
   final String talhaoId;
-  final String tipo;
+  final String defensivoId;
+  final double doseporhectare;
   final DateTime data;
   final String motivo;
-  final String defensivos;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   AplicacaoModel({
     required this.id,
     required this.talhaoId,
-    required this.tipo,
+    required this.defensivoId,
+    required this.doseporhectare,
     required this.data,
     required this.motivo,
-    required this.defensivos,
     this.createdAt,
     this.updatedAt,
   });
@@ -23,15 +23,17 @@ class AplicacaoModel {
     return AplicacaoModel(
       id: json['id'].toString(),
       talhaoId: json['talhao_id'].toString(),
-      tipo: json['tipo'] ?? '',
-      data: json['data'] != null ? DateTime.parse(json['data']) : DateTime.now(),
+      defensivoId: json['defensivo_id']?.toString() ?? '',
+      doseporhectare: (json['doseporhectare'] ?? 0).toDouble(),
+      data: json['dataaplicacao'] != null
+          ? DateTime.parse(json['dataaplicacao'])
+          : DateTime.now(),
       motivo: json['motivo'] ?? '',
-      defensivos: json['defensivos'] ?? '',
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
     );
   }
@@ -39,10 +41,10 @@ class AplicacaoModel {
   Map<String, dynamic> toJson() {
     return {
       'talhao_id': talhaoId,
-      'tipo': tipo,
-      'data': data.toIso8601String().split('T').first,
+      'defensivo_id': defensivoId,
+      'doseporhectare': doseporhectare,
+      'dataaplicacao': data.toIso8601String(),
       'motivo': motivo,
-      'defensivos': defensivos,
     };
   }
 

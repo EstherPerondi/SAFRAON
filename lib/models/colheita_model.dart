@@ -1,7 +1,7 @@
 class ColheitaModel {
   final String id;
   final String talhaoId;
-  final String cultura;
+  final String culturaId;
   final DateTime data;
   final double producao;
   final double umidade;
@@ -11,7 +11,7 @@ class ColheitaModel {
   ColheitaModel({
     required this.id,
     required this.talhaoId,
-    required this.cultura,
+    required this.culturaId,
     required this.data,
     required this.producao,
     required this.umidade,
@@ -23,15 +23,17 @@ class ColheitaModel {
     return ColheitaModel(
       id: json['id'].toString(),
       talhaoId: json['talhao_id'].toString(),
-      cultura: json['cultura'] ?? '',
-      data: json['data'] != null ? DateTime.parse(json['data']) : DateTime.now(),
+      culturaId: json['cultura_id']?.toString() ?? '',
+      data: json['datacolheita'] != null
+          ? DateTime.parse(json['datacolheita'])
+          : DateTime.now(),
       producao: (json['producao'] ?? 0).toDouble(),
       umidade: (json['umidade'] ?? 0).toDouble(),
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
     );
   }
@@ -39,8 +41,8 @@ class ColheitaModel {
   Map<String, dynamic> toJson() {
     return {
       'talhao_id': talhaoId,
-      'cultura': cultura,
-      'data': data.toIso8601String().split('T').first,
+      'cultura_id': culturaId,
+      'datacolheita': data.toIso8601String(),
       'producao': producao,
       'umidade': umidade,
     };
