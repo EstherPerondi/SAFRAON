@@ -5,20 +5,19 @@ import 'supabase_service.dart';
 
 class TalhaoService {
   final SupabaseClient _client = SupabaseService().client;
-  final String _table = 'talhoes';
+  final String _table = 'talhao';
 
-  // ============================================
-  // ✅ ADICIONAR ESTE MÉTODO
-  // ============================================
+  // Buscar todos os talhões do usuário (via fazenda.usuario_id, pois
+  // a tabela talhao não tem coluna de usuário própria)
   Future<List<TalhaoModel>> getAll() async {
     try {
       final userId = SupabaseService().currentUserId;
-      print('📊 Buscando todos os talhões para user: $userId');
+      print('📊 Buscando todos os talhões para usuario_id: $userId');
 
       final response = await _client
           .from(_table)
-          .select()
-          .eq('user_id', userId)
+          .select('*, fazenda!inner(usuario_id)')
+          .eq('fazenda.usuario_id', userId)
           .order('created_at', ascending: false);
 
       print('✅ ${response.length} talhões encontrados');
@@ -35,14 +34,12 @@ class TalhaoService {
   // Buscar talhões por fazenda
   Future<List<TalhaoModel>> getByFazenda(String fazendaId) async {
     try {
-      final userId = SupabaseService().currentUserId;
       print('📊 Buscando talhões para fazenda: $fazendaId');
 
       final response = await _client
           .from(_table)
           .select()
           .eq('fazenda_id', fazendaId)
-          .eq('user_id', userId)
           .order('created_at', ascending: false);
 
       print('✅ ${response.length} talhões encontrados');
@@ -75,23 +72,15 @@ class TalhaoService {
   // Criar talhão
   Future<TalhaoModel?> create(TalhaoModel talhao) async {
     try {
-      final userId = SupabaseService().currentUserId;
-      
-      if (userId.isEmpty) {
-        throw Exception('Usuário não autenticado');
-      }
-
       final data = {
         'nome': talhao.nome.trim(),
         'cidade': talhao.cidade.trim(),
         'fazenda_id': talhao.fazendaId,
-        'user_id': userId,
+        'latitude': talhao.latitude,
+        'longitude': talhao.longitude,
       };
 
-      print('📤 Criando talhão:');
-      print('  - Nome: ${data['nome']}');
-      print('  - Cidade: ${data['cidade']}');
-      print('  - Fazenda ID: ${data['fazenda_id']}');
+      print('📤 Criando talhão: $data');
 
       final response = await _client
           .from(_table)
@@ -123,11 +112,11 @@ class TalhaoService {
       final data = {
         'nome': talhao.nome.trim(),
         'cidade': talhao.cidade.trim(),
+        'latitude': talhao.latitude,
+        'longitude': talhao.longitude,
       };
 
-      print('📤 Atualizando talhão: ${talhao.id}');
-      print('  - Nome: ${data['nome']}');
-      print('  - Cidade: ${data['cidade']}');
+      print('📤 Atualizando talhão: ${talhao.id} -> $data');
 
       final response = await _client
           .from(_table)
@@ -154,10 +143,7 @@ class TalhaoService {
 
       print('🗑️ Deletando talhão: $id');
 
-      await _client
-          .from(_table)
-          .delete()
-          .eq('id', id);
+      await _client.from(_table).delete().eq('id', id);
 
       print('✅ Talhão deletado com sucesso!');
       return true;

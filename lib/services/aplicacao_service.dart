@@ -4,7 +4,7 @@ import 'supabase_service.dart';
 
 class AplicacaoService {
   final SupabaseClient _client = SupabaseService().client;
-  final String _table = 'aplicacoes';
+  final String _table = 'aplicacao';
 
   // Buscar aplicações de um talhão
   Future<List<AplicacaoModel>> getByTalhaoId(String talhaoId) async {
@@ -13,7 +13,7 @@ class AplicacaoService {
           .from(_table)
           .select()
           .eq('talhao_id', talhaoId)
-          .order('data', ascending: false);
+          .order('dataaplicacao', ascending: false);
 
       return response.map<AplicacaoModel>((json) {
         return AplicacaoModel.fromJson(json);
@@ -31,15 +31,15 @@ class AplicacaoService {
           .from(_table)
           .select('''
             *,
-            talhoes!inner (
+            talhao!inner (
               fazenda_id,
-              fazendas!inner (
-                user_id
+              fazenda!inner (
+                usuario_id
               )
             )
           ''')
-          .eq('talhoes.fazendas.user_id', SupabaseService().currentUserId)
-          .order('data', ascending: false);
+          .eq('talhao.fazenda.usuario_id', SupabaseService().currentUserId)
+          .order('dataaplicacao', ascending: false);
 
       return response.map<AplicacaoModel>((json) {
         return AplicacaoModel.fromJson(json);

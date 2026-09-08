@@ -4,7 +4,8 @@ class TalhaoModel {
   final String nome;
   final String cidade;
   final String fazendaId;
-  final String userId;
+  final double latitude;
+  final double longitude;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -13,7 +14,8 @@ class TalhaoModel {
     required this.nome,
     required this.cidade,
     required this.fazendaId,
-    required this.userId,
+    required this.latitude,
+    required this.longitude,
     this.createdAt,
     this.updatedAt,
   });
@@ -25,7 +27,8 @@ class TalhaoModel {
       nome: json['nome']?.toString() ?? '',
       cidade: json['cidade']?.toString() ?? '',
       fazendaId: json['fazenda_id']?.toString() ?? '',
-      userId: json['user_id']?.toString() ?? '',
+      latitude: (json['latitude'] ?? 0).toDouble(),
+      longitude: (json['longitude'] ?? 0).toDouble(),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
@@ -41,15 +44,16 @@ class TalhaoModel {
       'nome': nome.trim(),
       'cidade': cidade.trim(),
       'fazenda_id': fazendaId,
-      'user_id': userId,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
   // Validação
   bool get isValid {
-    return nome.trim().isNotEmpty && 
-           cidade.trim().isNotEmpty && 
-           fazendaId.trim().isNotEmpty;
+    return nome.trim().isNotEmpty &&
+        cidade.trim().isNotEmpty &&
+        fazendaId.trim().isNotEmpty;
   }
 
   // Criar cópia com novos valores
@@ -58,7 +62,8 @@ class TalhaoModel {
     String? nome,
     String? cidade,
     String? fazendaId,
-    String? userId,
+    double? latitude,
+    double? longitude,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -67,7 +72,8 @@ class TalhaoModel {
       nome: nome ?? this.nome,
       cidade: cidade ?? this.cidade,
       fazendaId: fazendaId ?? this.fazendaId,
-      userId: userId ?? this.userId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

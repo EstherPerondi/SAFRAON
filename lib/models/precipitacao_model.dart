@@ -1,34 +1,48 @@
-class PrecipitacaoModel {
+class PlantioModel {
   final String id;
   final String talhaoId;
-  final double quantidade;
+  final String culturaId;
+  final String variedadeId;
+  final String aduboId;
+  final String? inoculanteId;
   final DateTime data;
-  final String descricao;
+  final double quantidadeSementesPorMetro;
+  final double quantidadeAduboPorAlqueire;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  PrecipitacaoModel({
+  PlantioModel({
     required this.id,
     required this.talhaoId,
-    required this.quantidade,
+    required this.culturaId,
+    required this.variedadeId,
+    required this.aduboId,
+    this.inoculanteId,
     required this.data,
-    required this.descricao,
+    required this.quantidadeSementesPorMetro,
+    required this.quantidadeAduboPorAlqueire,
     this.createdAt,
     this.updatedAt,
   });
 
-  factory PrecipitacaoModel.fromJson(Map<String, dynamic> json) {
-    return PrecipitacaoModel(
+  factory PlantioModel.fromJson(Map<String, dynamic> json) {
+    return PlantioModel(
       id: json['id'].toString(),
       talhaoId: json['talhao_id'].toString(),
-      quantidade: (json['quantidade'] ?? 0).toDouble(),
-      data: json['data'] != null ? DateTime.parse(json['data']) : DateTime.now(),
-      descricao: json['descricao'] ?? '',
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      culturaId: json['cultura_id']?.toString() ?? '',
+      variedadeId: json['variedade_id']?.toString() ?? '',
+      aduboId: json['adubo_id']?.toString() ?? '',
+      inoculanteId: json['inoculante_id']?.toString(),
+      data: json['dataplantio'] != null
+          ? DateTime.parse(json['dataplantio'])
+          : DateTime.now(),
+      quantidadeSementesPorMetro: (json['quantidadessementespormetro'] ?? 0).toDouble(),
+      quantidadeAduboPorAlqueire: (json['quantidadeaduboporalqueire'] ?? 0).toDouble(),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
     );
   }
@@ -36,9 +50,13 @@ class PrecipitacaoModel {
   Map<String, dynamic> toJson() {
     return {
       'talhao_id': talhaoId,
-      'quantidade': quantidade,
-      'data': data.toIso8601String().split('T').first,
-      'descricao': descricao,
+      'cultura_id': culturaId,
+      'variedade_id': variedadeId,
+      'adubo_id': aduboId,
+      'inoculante_id': inoculanteId,
+      'dataplantio': data.toIso8601String(),
+      'quantidadessementespormetro': quantidadeSementesPorMetro,
+      'quantidadeaduboporalqueire': quantidadeAduboPorAlqueire,
     };
   }
 
@@ -46,9 +64,5 @@ class PrecipitacaoModel {
     return '${data.day.toString().padLeft(2, '0')}/'
         '${data.month.toString().padLeft(2, '0')}/'
         '${data.year.toString().substring(2)}';
-  }
-
-  String get formattedQuantidade {
-    return '${quantidade.toStringAsFixed(1)} mm';
   }
 }

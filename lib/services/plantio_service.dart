@@ -4,7 +4,7 @@ import 'supabase_service.dart';
 
 class PlantioService {
   final SupabaseClient _client = SupabaseService().client;
-  final String _table = 'plantios';
+  final String _table = 'plantio';
 
   Future<List<PlantioModel>> getByTalhaoId(String talhaoId) async {
     try {
@@ -12,7 +12,7 @@ class PlantioService {
           .from(_table)
           .select()
           .eq('talhao_id', talhaoId)
-          .order('data', ascending: false);
+          .order('dataplantio', ascending: false);
 
       return response.map<PlantioModel>((json) {
         return PlantioModel.fromJson(json);
@@ -29,15 +29,15 @@ class PlantioService {
           .from(_table)
           .select('''
             *,
-            talhoes!inner (
+            talhao!inner (
               fazenda_id,
-              fazendas!inner (
-                user_id
+              fazenda!inner (
+                usuario_id
               )
             )
           ''')
-          .eq('talhoes.fazendas.user_id', SupabaseService().currentUserId)
-          .order('data', ascending: false);
+          .eq('talhao.fazenda.usuario_id', SupabaseService().currentUserId)
+          .order('dataplantio', ascending: false);
 
       return response.map<PlantioModel>((json) {
         return PlantioModel.fromJson(json);

@@ -1,18 +1,18 @@
 class ManejoModel {
   final String id;
   final String talhaoId;
-  final String pratica;
+  final String tipoManejoId;
   final DateTime data;
-  final String motivo;
+  final String descricao;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   ManejoModel({
     required this.id,
     required this.talhaoId,
-    required this.pratica,
+    required this.tipoManejoId,
     required this.data,
-    required this.motivo,
+    required this.descricao,
     this.createdAt,
     this.updatedAt,
   });
@@ -21,14 +21,16 @@ class ManejoModel {
     return ManejoModel(
       id: json['id'].toString(),
       talhaoId: json['talhao_id'].toString(),
-      pratica: json['pratica'] ?? '',
-      data: json['data'] != null ? DateTime.parse(json['data']) : DateTime.now(),
-      motivo: json['motivo'] ?? '',
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      tipoManejoId: json['tipo_manejo_id']?.toString() ?? '',
+      data: json['datamanejo'] != null
+          ? DateTime.parse(json['datamanejo'])
+          : DateTime.now(),
+      descricao: json['descricao'] ?? '',
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
     );
   }
@@ -36,9 +38,9 @@ class ManejoModel {
   Map<String, dynamic> toJson() {
     return {
       'talhao_id': talhaoId,
-      'pratica': pratica,
-      'data': data.toIso8601String().split('T').first,
-      'motivo': motivo,
+      'tipo_manejo_id': tipoManejoId,
+      'datamanejo': data.toIso8601String(),
+      'descricao': descricao,
     };
   }
 

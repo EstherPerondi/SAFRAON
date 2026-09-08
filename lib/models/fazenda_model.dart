@@ -2,16 +2,16 @@
 class FazendaModel {
   final String id;
   final String nome;
-  final String area;
-  final String userId;
+  final String estadoId;
+  final String usuarioId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   FazendaModel({
     required this.id,
     required this.nome,
-    required this.area,
-    required this.userId,
+    required this.estadoId,
+    required this.usuarioId,
     this.createdAt,
     this.updatedAt,
   });
@@ -21,8 +21,8 @@ class FazendaModel {
     return FazendaModel(
       id: json['id']?.toString() ?? '',
       nome: json['nome']?.toString() ?? '',
-      area: json['area']?.toString() ?? '',
-      userId: json['user_id']?.toString() ?? '',
+      estadoId: json['estado_id']?.toString() ?? '',
+      usuarioId: json['usuario_id']?.toString() ?? '',
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
@@ -36,30 +36,30 @@ class FazendaModel {
   Map<String, dynamic> toJson() {
     return {
       'nome': nome.trim(),
-      'area': area.trim(),
-      'user_id': userId,
+      'estado_id': estadoId,
+      'usuario_id': usuarioId,
     };
   }
 
   // Validação
   bool get isValid {
-    return nome.trim().isNotEmpty && area.trim().isNotEmpty;
+    return nome.trim().isNotEmpty && estadoId.trim().isNotEmpty;
   }
 
   // Criar cópia com novos valores
   FazendaModel copyWith({
     String? id,
     String? nome,
-    String? area,
-    String? userId,
+    String? estadoId,
+    String? usuarioId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return FazendaModel(
       id: id ?? this.id,
       nome: nome ?? this.nome,
-      area: area ?? this.area,
-      userId: userId ?? this.userId,
+      estadoId: estadoId ?? this.estadoId,
+      usuarioId: usuarioId ?? this.usuarioId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -67,6 +67,6 @@ class FazendaModel {
 
   @override
   String toString() {
-    return 'FazendaModel(id: $id, nome: $nome, area: $area, userId: $userId)';
+    return 'FazendaModel(id: $id, nome: $nome, estadoId: $estadoId, usuarioId: $usuarioId)';
   }
 }
