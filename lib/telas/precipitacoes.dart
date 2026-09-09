@@ -314,7 +314,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.description, precipitacao.descricao),
+                      _buildInfoChip(Icons.source, precipitacao.fonte),
                     ],
                   ),
                 ),
@@ -469,7 +469,6 @@ class _PrecipitacaoFormModal extends StatefulWidget {
 class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
   final _formKey = GlobalKey<FormState>();
   final _quantidadeController = TextEditingController();
-  final _descricaoController = TextEditingController();
   DateTime? _selectedDate;
 
   bool get _isEditing => widget.precipitacao != null;
@@ -479,7 +478,6 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
     super.initState();
     if (widget.precipitacao != null) {
       _quantidadeController.text = widget.precipitacao!.quantidade.toString();
-      _descricaoController.text = widget.precipitacao!.descricao;
       _selectedDate = widget.precipitacao!.data;
     } else {
       _selectedDate = DateTime.now();
@@ -489,7 +487,6 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
   @override
   void dispose() {
     _quantidadeController.dispose();
-    _descricaoController.dispose();
     super.dispose();
   }
 
@@ -554,13 +551,6 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildDateField(),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Observações',
-                      controller: _descricaoController,
-                      icon: Icons.description,
-                      hint: 'Observações adicionais',
-                    ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
@@ -719,7 +709,7 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
         talhaoId: widget.talhaoId ?? widget.precipitacao?.talhaoId ?? '',
         quantidade: double.parse(_quantidadeController.text),
         data: _selectedDate!,
-        descricao: _descricaoController.text,
+        fonte: 'manual',
       );
 
       widget.onSave(novaPrecipitacao);

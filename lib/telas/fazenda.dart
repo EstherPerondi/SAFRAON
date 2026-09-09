@@ -631,7 +631,8 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
         nome: _nomeController.text.trim(),
         cidade: _cidadeController.text.trim(),
         fazendaId: widget.fazendaId,
-        userId: '',
+        latitude: widget.talhao?.latitude ?? 0,
+        longitude: widget.talhao?.longitude ?? 0,
       );
 
       await widget.onSave(novoTalhao);

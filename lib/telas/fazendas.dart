@@ -1,7 +1,7 @@
 // lib/screens/fazendas.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../telas/fazenda.dart';  // ← CORRIGIDO: caminho correto
+import '../telas/fazenda.dart';  
 import '../providers/fazenda_provider.dart';
 import '../models/fazenda_model.dart';
 import '../variaveis.dart';
@@ -224,20 +224,6 @@ class _FazendasPageState extends State<FazendasPage> {
                         color: Colors.black87,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, size: 14, color: VerdeClaro),
-                        const SizedBox(width: 4),
-                        Text(
-                          fazenda.area,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -407,7 +393,6 @@ class _FazendaFormModal extends StatefulWidget {
 class _FazendaFormModalState extends State<_FazendaFormModal> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
-  final _areaController = TextEditingController();
   bool _isSaving = false;
 
   bool get _isEditing => widget.fazenda != null;
@@ -417,14 +402,12 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
     super.initState();
     if (widget.fazenda != null) {
       _nomeController.text = widget.fazenda!.nome;
-      _areaController.text = widget.fazenda!.area;
     }
   }
 
   @override
   void dispose() {
     _nomeController.dispose();
-    _areaController.dispose();
     super.dispose();
   }
 
@@ -488,13 +471,6 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
                       controller: _nomeController,
                       icon: Icons.house,
                       hint: 'Ex: Fazenda Santa Clara',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Área',
-                      controller: _areaController,
-                      icon: Icons.crop,
-                      hint: 'Ex: 1.200 ha',
                     ),
                     const SizedBox(height: 24),
 
@@ -593,7 +569,6 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
       final novaFazenda = FazendaModel(
         id: widget.fazenda?.id ?? '',
         nome: _nomeController.text.trim(),
-        area: _areaController.text.trim(),
         userId: '', // Será preenchido pelo service
       );
 
