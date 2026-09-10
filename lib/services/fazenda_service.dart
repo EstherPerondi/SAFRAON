@@ -6,6 +6,7 @@ import 'supabase_service.dart';
 class FazendaService {
   final SupabaseClient _client = SupabaseService().client;
   final String _table = 'fazenda';
+  static const _selectComEstado = '*, estados ( nome )';
 
   // Buscar todas as fazendas do usuário
   Future<List<FazendaModel>> getAll() async {
@@ -15,7 +16,7 @@ class FazendaService {
 
       final response = await _client
           .from(_table)
-          .select()
+          .select(_selectComEstado)
           .order('created_at', ascending: false);
 
       print('✅ ${response.length} fazendas encontradas');
@@ -34,7 +35,7 @@ class FazendaService {
     try {
       final response = await _client
           .from(_table)
-          .select()
+          .select(_selectComEstado)
           .eq('id', id)
           .single();
 
@@ -73,17 +74,21 @@ class FazendaService {
       if (fazenda.nome.trim().isEmpty) {
         throw Exception('Nome da fazenda não pode estar vazio');
       }
+      if (fazenda.estadoId.trim().isEmpty) {
+        throw Exception('Estado da fazenda não pode estar vazio');
+      }
 
       // 4. PREPARAR DADOS PARA ENVIO
       final data = {
         'nome': fazenda.nome.trim(),
         'usuario_id': userId,
+        'estado_id': fazenda.estadoId,
       };
       
       print('📤 Dados a serem enviados:');
       print('  - nome: ${data['nome']}');
       print('  - usuario_id: ${data['usuario_id']}');
-      print('  - usuario_id type: ${data['usuario_id'].runtimeType}');
+      print('  - estado_id: ${data['estado_id']}');
 
       // 5. TENTAR INSERIR
       print('📤 Enviando para Supabase...');
@@ -91,7 +96,7 @@ class FazendaService {
       final response = await _client
           .from(_table)
           .insert(data)
-          .select()
+          .select(_selectComEstado)
           .single();
 
       print('✅ SUCESSO! Fazenda criada:');
@@ -131,16 +136,18 @@ class FazendaService {
 
       final data = {
         'nome': fazenda.nome.trim(),
+        'estado_id': fazenda.estadoId,
       };
 
       print('📤 Atualizando fazenda: ${fazenda.id}');
       print('  - Nome: ${data['nome']}');
+      print('  - Estado: ${data['estado_id']}');
 
       final response = await _client
           .from(_table)
           .update(data)
           .eq('id', fazenda.id)
-          .select()
+          .select(_selectComEstado)
           .single();
 
       print('✅ Fazenda atualizada com sucesso!');

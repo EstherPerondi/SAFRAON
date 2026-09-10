@@ -5,14 +5,15 @@ import 'supabase_service.dart';
 class ColheitaService {
   final SupabaseClient _client = SupabaseService().client;
   final String _table = 'colheita';
+  static const _selectComNome = '*, cultura (plantacultivada)';
 
   Future<List<ColheitaModel>> getByTalhaoId(String talhaoId) async {
     try {
       final response = await _client
           .from(_table)
-          .select()
+          .select(_selectComNome)
           .eq('talhao_id', talhaoId)
-          .order('datacolheita', ascending: false);
+          .order('datadacolheita', ascending: false);
 
       return response.map<ColheitaModel>((json) {
         return ColheitaModel.fromJson(json);
@@ -29,6 +30,7 @@ class ColheitaService {
           .from(_table)
           .select('''
             *,
+            cultura ( plantacultivada ),
             talhao!inner (
               fazenda_id,
               fazenda!inner (
@@ -37,7 +39,7 @@ class ColheitaService {
             )
           ''')
           .eq('talhao.fazenda.usuario_id', SupabaseService().currentUserId)
-          .order('datacolheita', ascending: false);
+          .order('datadacolheita', ascending: false);
 
       return response.map<ColheitaModel>((json) {
         return ColheitaModel.fromJson(json);
@@ -53,7 +55,7 @@ class ColheitaService {
       final response = await _client
           .from(_table)
           .insert(colheita.toJson())
-          .select()
+          .select(_selectComNome)
           .single();
 
       return ColheitaModel.fromJson(response);
@@ -69,7 +71,7 @@ class ColheitaService {
           .from(_table)
           .update(colheita.toJson())
           .eq('id', colheita.id)
-          .select()
+          .select(_selectComNome)
           .single();
 
       return ColheitaModel.fromJson(response);

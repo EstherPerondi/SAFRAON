@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/colheita_provider.dart';
 import '../models/colheita_model.dart';
+import '../services/lookup_service.dart';
 import '../variaveis.dart';
 
 class ColheitasPage extends StatefulWidget {
@@ -13,10 +14,18 @@ class ColheitasPage extends StatefulWidget {
 
 class _ColheitasPageState extends State<ColheitasPage> {
   String? _talhaoId;
+  List<LookupItem> _culturas = [];
+
+  Map<String, String> get _culturasMap => {
+        for (final c in _culturas) c.id: c.nome,
+      };
 
   @override
   void initState() {
     super.initState();
+    LookupService().getCulturas().then((lista) {
+      if (mounted) setState(() => _culturas = lista);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map && args.containsKey('talhaoId')) {
@@ -229,6 +238,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
   }
 
   Widget _buildColheitaCard(ColheitaModel colheita, int index) {
+    final culturaNome = _culturasMap[colheita.culturaId] ?? 'Cultura desconhecida';
     return Card(
       color: Colors.orange[50],
       margin: const EdgeInsets.only(bottom: 8),
@@ -249,7 +259,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getCulturaIcon(colheita.cultura),
+                    _getCulturaIcon(culturaNome),
                     color: VerdeEscuro,
                     size: 22,
                   ),
@@ -260,7 +270,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        colheita.cultura,
+                        culturaNome,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -411,6 +421,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
             child: _ColheitaFormModal(
               colheita: colheita,
               talhaoId: _talhaoId,
+              culturas: _culturas,
               onSave: (novaColheita) {
                 final provider = context.read<ColheitaProvider>();
                 if (colheita == null) {
@@ -459,11 +470,13 @@ class _ColheitasPageState extends State<ColheitasPage> {
 class _ColheitaFormModal extends StatefulWidget {
   final ColheitaModel? colheita;
   final String? talhaoId;
+  final List<LookupItem> culturas;
   final Function(ColheitaModel) onSave;
 
   const _ColheitaFormModal({
     this.colheita,
     this.talhaoId,
+    required this.culturas,
     required this.onSave,
   });
 
@@ -473,9 +486,9 @@ class _ColheitaFormModal extends StatefulWidget {
 
 class _ColheitaFormModalState extends State<_ColheitaFormModal> {
   final _formKey = GlobalKey<FormState>();
-  final _culturaController = TextEditingController();
   final _producaoController = TextEditingController();
   final _umidadeController = TextEditingController();
+  String? _culturaId;
   DateTime? _selectedDate;
 
   bool get _isEditing => widget.colheita != null;
@@ -484,7 +497,7 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
   void initState() {
     super.initState();
     if (widget.colheita != null) {
-      _culturaController.text = widget.colheita!.cultura;
+      _culturaId = widget.colheita!.culturaId;
       _producaoController.text = widget.colheita!.producao.toString();
       _umidadeController.text = widget.colheita!.umidade.toString();
       _selectedDate = widget.colheita!.data;
@@ -495,7 +508,6 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
 
   @override
   void dispose() {
-    _culturaController.dispose();
     _producaoController.dispose();
     _umidadeController.dispose();
     super.dispose();
@@ -553,12 +565,7 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildFormField(
-                      label: 'Planta',
-                      controller: _culturaController,
-                      icon: Icons.eco,
-                      hint: 'Ex: Soja, Milho, Café',
-                    ),
+                    _buildCulturaDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
                     const SizedBox(height: 16),
@@ -607,6 +614,43 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCulturaDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _culturaId,
+        decoration: InputDecoration(
+          labelText: 'Cultura',
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(Icons.eco, color: VerdeClaro),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        items: widget.culturas
+            .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome)))
+            .toList(),
+        onChanged: (value) => setState(() => _culturaId = value),
+        validator: (value) =>
+            value == null || value.isEmpty ? 'Selecione a cultura' : null,
       ),
     );
   }
@@ -733,7 +777,7 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
       final novaColheita = ColheitaModel(
         id: widget.colheita?.id ?? '',
         talhaoId: widget.talhaoId ?? widget.colheita?.talhaoId ?? '',
-        cultura: _culturaController.text,
+        culturaId: _culturaId!,
         data: _selectedDate!,
         producao: double.parse(_producaoController.text),
         umidade: double.parse(_umidadeController.text),

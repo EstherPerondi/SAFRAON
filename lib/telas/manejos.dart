@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/manejo_provider.dart';
 import '../models/manejo_model.dart';
+import '../services/lookup_service.dart';
 import '../variaveis.dart';
 
 class ManejosPage extends StatefulWidget {
@@ -13,10 +14,18 @@ class ManejosPage extends StatefulWidget {
 
 class _ManejosPageState extends State<ManejosPage> {
   String? _talhaoId;
+  List<LookupItem> _tiposManejo = [];
+
+  Map<String, String> get _tiposManejoMap => {
+        for (final t in _tiposManejo) t.id: t.nome,
+      };
 
   @override
   void initState() {
     super.initState();
+    LookupService().getTiposManejo().then((lista) {
+      if (mounted) setState(() => _tiposManejo = lista);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map && args.containsKey('talhaoId')) {
@@ -404,6 +413,7 @@ class _ManejosPageState extends State<ManejosPage> {
             child: _ManejoFormModal(
               manejo: manejo,
               talhaoId: _talhaoId,
+              tiposManejo: _tiposManejo,
               onSave: (novoManejo) {
                 final provider = context.read<ManejoProvider>();
                 if (manejo == null) {
@@ -452,11 +462,13 @@ class _ManejosPageState extends State<ManejosPage> {
 class _ManejoFormModal extends StatefulWidget {
   final ManejoModel? manejo;
   final String? talhaoId;
+  final List<LookupItem> tiposManejo;
   final Function(ManejoModel) onSave;
 
   const _ManejoFormModal({
     this.manejo,
     this.talhaoId,
+    required this.tiposManejo,
     required this.onSave,
   });
 
@@ -466,8 +478,8 @@ class _ManejoFormModal extends StatefulWidget {
 
 class _ManejoFormModalState extends State<_ManejoFormModal> {
   final _formKey = GlobalKey<FormState>();
-  final _praticaController = TextEditingController();
   final _motivoController = TextEditingController();
+  String? _tipoManejoId;
   DateTime? _selectedDate;
 
   bool get _isEditing => widget.manejo != null;
@@ -476,7 +488,7 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
   void initState() {
     super.initState();
     if (widget.manejo != null) {
-      _praticaController.text = widget.manejo!.pratica;
+      _tipoManejoId = widget.manejo!.tipoManejoId;
       _motivoController.text = widget.manejo!.motivo;
       _selectedDate = widget.manejo!.data;
     } else {
@@ -486,7 +498,6 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
 
   @override
   void dispose() {
-    _praticaController.dispose();
     _motivoController.dispose();
     super.dispose();
   }
@@ -543,12 +554,7 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildFormField(
-                      label: 'Tipo de Manejo',
-                      controller: _praticaController,
-                      icon: Icons.build,
-                      hint: 'Ex: Correção de solo, Calagem',
-                    ),
+                    _buildTipoManejoDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
                     const SizedBox(height: 16),
@@ -588,6 +594,43 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTipoManejoDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _tipoManejoId,
+        decoration: InputDecoration(
+          labelText: 'Tipo de Manejo',
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(Icons.build, color: VerdeClaro),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        items: widget.tiposManejo
+            .map((t) => DropdownMenuItem(value: t.id, child: Text(t.nome)))
+            .toList(),
+        onChanged: (value) => setState(() => _tipoManejoId = value),
+        validator: (value) =>
+            value == null || value.isEmpty ? 'Selecione o tipo de manejo' : null,
       ),
     );
   }
@@ -706,9 +749,9 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
       final novoManejo = ManejoModel(
         id: widget.manejo?.id ?? '',
         talhaoId: widget.talhaoId ?? widget.manejo?.talhaoId ?? '',
-        pratica: _praticaController.text,
+        tipoManejoId: _tipoManejoId!,
         data: _selectedDate!,
-        motivo: _motivoController.text,
+        descricao: _motivoController.text,
       );
 
       widget.onSave(novoManejo);

@@ -197,6 +197,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                                       id: '',
                                       nome: 'Fazenda Desconhecida',
                                       userId: '',
+                                      estadoId: '',
                                     ),
                                   );
                               return _buildTalhaoCard(talhao, fazenda);

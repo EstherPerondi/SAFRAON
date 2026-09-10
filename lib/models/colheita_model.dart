@@ -2,6 +2,7 @@ class ColheitaModel {
   final String id;
   final String talhaoId;
   final String culturaId;
+  final String? culturaNome; // vem de um join com a tabela 'cultura'
   final DateTime data;
   final double producao;
   final double umidade;
@@ -12,6 +13,7 @@ class ColheitaModel {
     required this.id,
     required this.talhaoId,
     required this.culturaId,
+    this.culturaNome,
     required this.data,
     required this.producao,
     required this.umidade,
@@ -19,13 +21,19 @@ class ColheitaModel {
     this.updatedAt,
   });
 
+  // Nome de exibição da cultura (usado nos cards da tela)
+  String get cultura => culturaNome ?? 'Não informado';
+
   factory ColheitaModel.fromJson(Map<String, dynamic> json) {
     return ColheitaModel(
       id: json['id'].toString(),
       talhaoId: json['talhao_id'].toString(),
       culturaId: json['cultura_id']?.toString() ?? '',
-      data: json['datacolheita'] != null
-          ? DateTime.parse(json['datacolheita'])
+      culturaNome: json['cultura'] is Map
+          ? json['cultura']['plantacultivada']?.toString()
+          : null,
+      data: json['datadacolheita'] != null
+          ? DateTime.parse(json['datadacolheita'])
           : DateTime.now(),
       producao: (json['producao'] ?? 0).toDouble(),
       umidade: (json['umidade'] ?? 0).toDouble(),
@@ -42,7 +50,7 @@ class ColheitaModel {
     return {
       'talhao_id': talhaoId,
       'cultura_id': culturaId,
-      'datacolheita': data.toIso8601String(),
+      'datadacolheita': data.toIso8601String(),
       'producao': producao,
       'umidade': umidade,
     };

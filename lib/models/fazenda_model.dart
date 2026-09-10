@@ -3,6 +3,8 @@ class FazendaModel {
   final String id;
   final String nome;
   final String userId;
+  final String estadoId;
+  final String? estadoNome; // vem de um join com a tabela 'estados'
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -10,9 +12,13 @@ class FazendaModel {
     required this.id,
     required this.nome,
     required this.userId,
+    required this.estadoId,
+    this.estadoNome,
     this.createdAt,
     this.updatedAt,
   });
+
+  String get estado => estadoNome ?? 'Não informado';
 
   // Converter JSON para objeto
   factory FazendaModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +26,10 @@ class FazendaModel {
       id: json['id']?.toString() ?? '',
       nome: json['nome']?.toString() ?? '',
       userId: json['usuario_id']?.toString() ?? '',
+      estadoId: json['estado_id']?.toString() ?? '',
+      estadoNome: json['estados'] is Map
+          ? json['estados']['nome']?.toString()
+          : null,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
@@ -34,12 +44,13 @@ class FazendaModel {
     return {
       'nome': nome.trim(),
       'usuario_id': userId,
+      'estado_id': estadoId,
     };
   }
 
   // Validação
   bool get isValid {
-    return nome.trim().isNotEmpty;
+    return nome.trim().isNotEmpty && estadoId.trim().isNotEmpty;
   }
 
   // Criar cópia com novos valores
@@ -47,6 +58,8 @@ class FazendaModel {
     String? id,
     String? nome,
     String? userId,
+    String? estadoId,
+    String? estadoNome,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -54,6 +67,8 @@ class FazendaModel {
       id: id ?? this.id,
       nome: nome ?? this.nome,
       userId: userId ?? this.userId,
+      estadoId: estadoId ?? this.estadoId,
+      estadoNome: estadoNome ?? this.estadoNome,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -61,6 +76,6 @@ class FazendaModel {
 
   @override
   String toString() {
-    return 'FazendaModel(id: $id, nome: $nome, userId: $userId)';
+    return 'FazendaModel(id: $id, nome: $nome, userId: $userId, estadoId: $estadoId)';
   }
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/aplicacao_provider.dart';
 import '../providers/talhao_provider.dart';
 import '../models/aplicacao_model.dart';
+import '../services/lookup_service.dart';
 import '../variaveis.dart';
 
 class AplicacoesPage extends StatefulWidget {
@@ -14,10 +15,14 @@ class AplicacoesPage extends StatefulWidget {
 
 class _AplicacoesPageState extends State<AplicacoesPage> {
   String? _talhaoId;
+  List<LookupItem> _defensivos = [];
 
   @override
   void initState() {
     super.initState();
+    LookupService().getDefensivos().then((lista) {
+      if (mounted) setState(() => _defensivos = lista);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Tentar obter talhaoId dos argumentos
       final args = ModalRoute.of(context)?.settings.arguments;
@@ -253,7 +258,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getTipoIcon(aplicacao.tipo),
+                    Icons.science,
                     color: VerdeEscuro,
                     size: 22,
                   ),
@@ -264,7 +269,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        aplicacao.tipo,
+                        aplicacao.defensivos,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -319,7 +324,6 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     runSpacing: 4,
                     children: [
                       _buildInfoChip(Icons.description, aplicacao.motivo),
-                      _buildInfoChip(Icons.science, aplicacao.defensivos),
                     ],
                   ),
                 ),
@@ -411,6 +415,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
             child: _AplicacaoFormModal(
               aplicacao: aplicacao,
               talhaoId: _talhaoId,
+              defensivos: _defensivos,
               onSave: (novaAplicacao) {
                 final provider = context.read<AplicacaoProvider>();
                 if (aplicacao == null) {
@@ -459,11 +464,13 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
 class _AplicacaoFormModal extends StatefulWidget {
   final AplicacaoModel? aplicacao;
   final String? talhaoId;
+  final List<LookupItem> defensivos;
   final Function(AplicacaoModel) onSave;
 
   const _AplicacaoFormModal({
     this.aplicacao,
     this.talhaoId,
+    required this.defensivos,
     required this.onSave,
   });
 
@@ -473,9 +480,9 @@ class _AplicacaoFormModal extends StatefulWidget {
 
 class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
   final _formKey = GlobalKey<FormState>();
-  final _tipoController = TextEditingController();
   final _motivoController = TextEditingController();
-  final _defensivosController = TextEditingController();
+  final _doseController = TextEditingController();
+  String? _defensivoId;
   DateTime? _selectedDate;
 
   bool get _isEditing => widget.aplicacao != null;
@@ -484,9 +491,9 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
   void initState() {
     super.initState();
     if (widget.aplicacao != null) {
-      _tipoController.text = widget.aplicacao!.tipo;
+      _defensivoId = widget.aplicacao!.defensivoId;
       _motivoController.text = widget.aplicacao!.motivo;
-      _defensivosController.text = widget.aplicacao!.defensivos;
+      _doseController.text = widget.aplicacao!.doseporhectare.toString();
       _selectedDate = widget.aplicacao!.data;
     } else {
       _selectedDate = DateTime.now();
@@ -495,9 +502,8 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
 
   @override
   void dispose() {
-    _tipoController.dispose();
     _motivoController.dispose();
-    _defensivosController.dispose();
+    _doseController.dispose();
     super.dispose();
   }
 
@@ -556,12 +562,7 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildFormField(
-                      label: 'Tipo de Aplicação',
-                      controller: _tipoController,
-                      icon: Icons.spa,
-                      hint: 'Ex: Fungicida, Dessecação',
-                    ),
+                    _buildDefensivoDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
                     const SizedBox(height: 16),
@@ -573,10 +574,11 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Defensivos Usados',
-                      controller: _defensivosController,
-                      icon: Icons.science,
-                      hint: 'Lista de defensivos utilizados',
+                      label: 'Dose por hectare',
+                      controller: _doseController,
+                      icon: Icons.water_drop_outlined,
+                      hint: 'Ex: 2.5',
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                     ),
                     const SizedBox(height: 24),
 
@@ -614,11 +616,49 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
     );
   }
 
+  Widget _buildDefensivoDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _defensivoId,
+        decoration: InputDecoration(
+          labelText: 'Defensivo',
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(Icons.science, color: VerdeClaro),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        items: widget.defensivos
+            .map((d) => DropdownMenuItem(value: d.id, child: Text(d.nome)))
+            .toList(),
+        onChanged: (value) => setState(() => _defensivoId = value),
+        validator: (value) =>
+            value == null || value.isEmpty ? 'Selecione o defensivo' : null,
+      ),
+    );
+  }
+
   Widget _buildFormField({
     required String label,
     required TextEditingController controller,
     required IconData icon,
     String? hint,
+    TextInputType? keyboardType,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -634,6 +674,7 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
       ),
       child: TextFormField(
         controller: controller,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
@@ -728,10 +769,10 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
       final novaAplicacao = AplicacaoModel(
         id: widget.aplicacao?.id ?? '',
         talhaoId: widget.talhaoId ?? widget.aplicacao?.talhaoId ?? '',
-        tipo: _tipoController.text,
+        defensivoId: _defensivoId!,
         data: _selectedDate!,
         motivo: _motivoController.text,
-        defensivos: _defensivosController.text,
+        doseporhectare: double.parse(_doseController.text),
       );
 
       widget.onSave(novaAplicacao);
