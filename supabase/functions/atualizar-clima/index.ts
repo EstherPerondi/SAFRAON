@@ -93,9 +93,10 @@ Deno.serve(async (_req) => {
             {
               talhao_id: talhao.id,
               data: dataISO,
-              temperatura_min: dia.temp?.min,
-              temperatura_max: dia.temp?.max,
-              umidade_media: dia.humidity,
+              temperatura_min: dia.main?.temp_min,
+              temperatura_max: dia.main?.temp_max,
+              umidade_media: dia.main?.humidity,
+              velocidade_vento: dia.wind?.speed,
             },
             { onConflict: "talhao_id,data" },
           );
