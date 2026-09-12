@@ -1,43 +1,38 @@
-class PlantioModel {
+// lib/models/precipitacao_model.dart
+//
+// Representa uma linha da tabela 'clima_dia' focada em precipitação.
+// A mesma tabela também recebe registros automáticos da Edge Function
+// 'atualizar-clima' (fonte: 'openweathermap'); quando o cadastro é
+// feito manualmente pelo app, gravamos fonte: 'manual'.
+class PrecipitacaoModel {
   final String id;
   final String talhaoId;
-  final String culturaId;
-  final String variedadeId;
-  final String aduboId;
-  final String? inoculanteId;
+  final double quantidade; // coluna: precipitacao_dia
   final DateTime data;
-  final double quantidadeSementesPorMetro;
-  final double quantidadeAduboPorAlqueire;
+  final String fonte;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  PlantioModel({
+  PrecipitacaoModel({
     required this.id,
     required this.talhaoId,
-    required this.culturaId,
-    required this.variedadeId,
-    required this.aduboId,
-    this.inoculanteId,
+    required this.quantidade,
     required this.data,
-    required this.quantidadeSementesPorMetro,
-    required this.quantidadeAduboPorAlqueire,
+    this.fonte = 'manual',
     this.createdAt,
     this.updatedAt,
   });
 
-  factory PlantioModel.fromJson(Map<String, dynamic> json) {
-    return PlantioModel(
-      id: json['id'].toString(),
-      talhaoId: json['talhao_id'].toString(),
-      culturaId: json['cultura_id']?.toString() ?? '',
-      variedadeId: json['variedade_id']?.toString() ?? '',
-      aduboId: json['adubo_id']?.toString() ?? '',
-      inoculanteId: json['inoculante_id']?.toString(),
-      data: json['dataplantio'] != null
-          ? DateTime.parse(json['dataplantio'])
+  // Converter JSON para objeto
+  factory PrecipitacaoModel.fromJson(Map<String, dynamic> json) {
+    return PrecipitacaoModel(
+      id: json['id']?.toString() ?? '',
+      talhaoId: json['talhao_id']?.toString() ?? '',
+      quantidade: (json['precipitacao_dia'] ?? 0).toDouble(),
+      data: json['data'] != null
+          ? DateTime.parse(json['data'])
           : DateTime.now(),
-      quantidadeSementesPorMetro: (json['quantidadessementespormetro'] ?? 0).toDouble(),
-      quantidadeAduboPorAlqueire: (json['quantidadeaduboporalqueire'] ?? 0).toDouble(),
+      fonte: json['fonte']?.toString() ?? 'manual',
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
@@ -47,22 +42,54 @@ class PlantioModel {
     );
   }
 
+  // Converter objeto para JSON
   Map<String, dynamic> toJson() {
     return {
       'talhao_id': talhaoId,
-      'cultura_id': culturaId,
-      'variedade_id': variedadeId,
-      'adubo_id': aduboId,
-      'inoculante_id': inoculanteId,
-      'dataplantio': data.toIso8601String(),
-      'quantidadessementespormetro': quantidadeSementesPorMetro,
-      'quantidadeaduboporalqueire': quantidadeAduboPorAlqueire,
+      'precipitacao_dia': quantidade,
+      'data': data.toIso8601String().split('T').first,
+      'fonte': fonte,
     };
+  }
+
+  // Validação
+  bool get isValid {
+    return talhaoId.trim().isNotEmpty && quantidade >= 0;
+  }
+
+  // Criar cópia com novos valores
+  PrecipitacaoModel copyWith({
+    String? id,
+    String? talhaoId,
+    double? quantidade,
+    DateTime? data,
+    String? fonte,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return PrecipitacaoModel(
+      id: id ?? this.id,
+      talhaoId: talhaoId ?? this.talhaoId,
+      quantidade: quantidade ?? this.quantidade,
+      data: data ?? this.data,
+      fonte: fonte ?? this.fonte,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 
   String get formattedDate {
     return '${data.day.toString().padLeft(2, '0')}/'
         '${data.month.toString().padLeft(2, '0')}/'
-        '${data.year.toString().substring(2)}';
+        '${data.year}';
+  }
+
+  String get formattedQuantidade {
+    return '${quantidade.toStringAsFixed(1)} mm';
+  }
+
+  @override
+  String toString() {
+    return 'PrecipitacaoModel(id: $id, talhaoId: $talhaoId, quantidade: $quantidade, data: $data)';
   }
 }

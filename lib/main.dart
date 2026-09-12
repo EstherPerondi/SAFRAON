@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:safraon/services/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -79,9 +80,23 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => FazendaProvider()),
         ChangeNotifierProvider(create: (_) => TalhaoProvider()),
+        ChangeNotifierProvider(create: (_) => AplicacaoProvider()),
+        ChangeNotifierProvider(create: (_) => PlantioProvider()),
+        ChangeNotifierProvider(create: (_) => ManejoProvider()),
+        ChangeNotifierProvider(create: (_) => ColheitaProvider()),
+        ChangeNotifierProvider(create: (_) => PrecipitacaoProvider()),
       ],
       child: MaterialApp(
         title: 'SafraON',
+        locale: const Locale('pt', 'BR'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('pt', 'BR'),
+        ],
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF1B5E20),
@@ -96,11 +111,11 @@ class MyApp extends StatelessWidget {
           '/principal': (context) => const PrincipalPage(),
           '/fazendas': (context) => const FazendasPage(),
           '/talhoes': (context) => const TalhoesPage(),
-          '/aplicacoes': (context) => const Placeholder(child: Text('Aplicações')),
-          '/plantios': (context) => const Placeholder(child: Text('Plantios')),
-          '/manejos': (context) => const Placeholder(child: Text('Manejos')),
-          '/colheitas': (context) => const Placeholder(child: Text('Colheitas')),
-          '/precipitacoes': (context) => const Placeholder(child: Text('Precipitações')),
+          '/aplicacoes': (context) => const AplicacoesPage(),
+          '/plantios': (context) => const PlantiosPage(),
+          '/manejos': (context) => const ManejosPage(),
+          '/colheitas': (context) => const ColheitasPage(),
+          '/precipitacoes': (context) => const PrecipitacoesPage(),
         },
         debugShowCheckedModeBanner: false,
       ),

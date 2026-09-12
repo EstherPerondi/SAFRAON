@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/talhao_provider.dart';
 import '../models/talhao_model.dart';
+import 'talhao.dart';
 import '../variaveis.dart';
 
 class FazendaPage extends StatefulWidget {
@@ -256,25 +257,18 @@ class _FazendaPageState extends State<FazendaPage> {
       ),
       child: InkWell(
         onTap: () {
-          // Navegar para detalhes do talhão
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text(talhao.nome),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Localização: ${talhao.cidade}'),
-                  Text('Fazenda: ${widget.fazendaNome}'),
-                ],
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TalhaoPage(
+                talhaoData: {
+                  'id': talhao.id,
+                  'nome': talhao.nome,
+                  'fazenda': widget.fazendaNome,
+                  'cidade': talhao.cidade,
+                  'fazenda_id': widget.fazendaId,
+                },
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Fechar'),
-                ),
-              ],
             ),
           );
         },
@@ -631,7 +625,8 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
         nome: _nomeController.text.trim(),
         cidade: _cidadeController.text.trim(),
         fazendaId: widget.fazendaId,
-        userId: '',
+        latitude: widget.talhao?.latitude ?? 0,
+        longitude: widget.talhao?.longitude ?? 0,
       );
 
       await widget.onSave(novoTalhao);

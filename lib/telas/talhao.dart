@@ -1,32 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:safraon/telas/aplicacao.dart';
 import 'package:safraon/telas/clima.dart';
-import 'package:safraon/telas/colheita.dart';
-import 'package:safraon/telas/manejo.dart';
-import 'package:safraon/telas/plantio.dart';
-import 'package:safraon/telas/precipitacao.dart';
 import 'package:safraon/variaveis.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Talhão',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        useMaterial3: true,
-      ),
-      home: const TalhaoPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
 
 class TalhaoPage extends StatelessWidget {
   final Map<String, String>? talhaoData;
@@ -35,6 +9,7 @@ class TalhaoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final id = talhaoData?['id'] ?? '';
     final nome = talhaoData?['nome'] ?? 'Talhão';
     final fazenda = talhaoData?['fazenda'] ?? 'Fazenda';
     final cidade = talhaoData?['cidade'] ?? '';
@@ -88,10 +63,8 @@ class TalhaoPage extends StatelessWidget {
                       subtitle: 'Gerenciar plantio',
                       color: VerdeClaro,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const PlantioPage()),
-                        );
+                        Navigator.pushNamed(context, '/plantios',
+                            arguments: {'talhaoId': id});
                       },
                     ),
                     _buildModuleCard(
@@ -100,10 +73,8 @@ class TalhaoPage extends StatelessWidget {
                       subtitle: 'Práticas de manejo',
                       color: VerdeClaro,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ManejoPage()),
-                        );
+                        Navigator.pushNamed(context, '/manejos',
+                            arguments: {'talhaoId': id});
                       },
                     ),
                     _buildModuleCard(
@@ -112,10 +83,8 @@ class TalhaoPage extends StatelessWidget {
                       subtitle: 'Insumos e defensivos',
                       color: VerdeClaro,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const AplicacaoPage()),
-                        );
+                        Navigator.pushNamed(context, '/aplicacoes',
+                            arguments: {'talhaoId': id});
                       },
                     ),
                     _buildModuleCard(
@@ -124,10 +93,8 @@ class TalhaoPage extends StatelessWidget {
                       subtitle: 'Planejamento e execução',
                       color: VerdeClaro,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ColheitaPage()),
-                        );
+                        Navigator.pushNamed(context, '/colheitas',
+                            arguments: {'talhaoId': id});
                       },
                     ),
                     _buildModuleCard(
@@ -136,10 +103,8 @@ class TalhaoPage extends StatelessWidget {
                       subtitle: 'Histórico de chuvas',
                       color: VerdeClaro,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const PrecipitacaoPage()),
-                        );
+                        Navigator.pushNamed(context, '/precipitacoes',
+                            arguments: {'talhaoId': id});
                       },
                     ),
                     _buildModuleCard(
@@ -150,7 +115,7 @@ class TalhaoPage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const ClimaPage()),
+                          MaterialPageRoute(builder: (context) => ClimaPage(talhaoData: talhaoData)),
                         );
                       },
                     ),

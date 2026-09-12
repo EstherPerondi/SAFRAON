@@ -196,8 +196,8 @@ class _TalhoesPageState extends State<TalhoesPage> {
                                     orElse: () => FazendaModel(
                                       id: '',
                                       nome: 'Fazenda Desconhecida',
-                                      area: '',
                                       userId: '',
+                                      estadoId: '',
                                     ),
                                   );
                               return _buildTalhaoCard(talhao, fazenda);
@@ -721,7 +721,8 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
         fazendaId: _selectedFazendaId!,
         nome: _nomeController.text.trim(),
         cidade: _cidadeController.text.trim(),
-        userId: '', 
+        latitude: widget.talhao?.latitude ?? 0,
+        longitude: widget.talhao?.longitude ?? 0,
       );
 
       await widget.onSave(novoTalhao);

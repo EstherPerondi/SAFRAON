@@ -2,6 +2,7 @@ class AplicacaoModel {
   final String id;
   final String talhaoId;
   final String defensivoId;
+  final String? defensivoNome; // vem de um join com a tabela 'defensivo'
   final double doseporhectare;
   final DateTime data;
   final String motivo;
@@ -12,6 +13,7 @@ class AplicacaoModel {
     required this.id,
     required this.talhaoId,
     required this.defensivoId,
+    this.defensivoNome,
     required this.doseporhectare,
     required this.data,
     required this.motivo,
@@ -19,11 +21,17 @@ class AplicacaoModel {
     this.updatedAt,
   });
 
+  // Alias de exibição usado nas telas
+  String get defensivos => defensivoNome ?? 'Não informado';
+
   factory AplicacaoModel.fromJson(Map<String, dynamic> json) {
     return AplicacaoModel(
       id: json['id'].toString(),
       talhaoId: json['talhao_id'].toString(),
       defensivoId: json['defensivo_id']?.toString() ?? '',
+      defensivoNome: json['defensivo'] is Map
+          ? json['defensivo']['nome']?.toString()
+          : null,
       doseporhectare: (json['doseporhectare'] ?? 0).toDouble(),
       data: json['dataaplicacao'] != null
           ? DateTime.parse(json['dataaplicacao'])

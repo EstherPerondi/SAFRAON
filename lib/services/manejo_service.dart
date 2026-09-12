@@ -5,14 +5,15 @@ import 'supabase_service.dart';
 class ManejoService {
   final SupabaseClient _client = SupabaseService().client;
   final String _table = 'manejo';
+  static const _selectComNome = '*, tipo_manejo ( tipo_de_manejo )';
 
   Future<List<ManejoModel>> getByTalhaoId(String talhaoId) async {
     try {
       final response = await _client
           .from(_table)
-          .select()
+          .select(_selectComNome)
           .eq('talhao_id', talhaoId)
-          .order('datamanejo', ascending: false);
+          .order('datadomanejo', ascending: false);
 
       return response.map<ManejoModel>((json) {
         return ManejoModel.fromJson(json);
@@ -29,6 +30,7 @@ class ManejoService {
           .from(_table)
           .select('''
             *,
+            tipo_manejo ( tipo_de_manejo ),
             talhao!inner (
               fazenda_id,
               fazenda!inner (
@@ -37,7 +39,7 @@ class ManejoService {
             )
           ''')
           .eq('talhao.fazenda.usuario_id', SupabaseService().currentUserId)
-          .order('datamanejo', ascending: false);
+          .order('datadomanejo', ascending: false);
 
       return response.map<ManejoModel>((json) {
         return ManejoModel.fromJson(json);
@@ -53,7 +55,7 @@ class ManejoService {
       final response = await _client
           .from(_table)
           .insert(manejo.toJson())
-          .select()
+          .select(_selectComNome)
           .single();
 
       return ManejoModel.fromJson(response);
@@ -69,7 +71,7 @@ class ManejoService {
           .from(_table)
           .update(manejo.toJson())
           .eq('id', manejo.id)
-          .select()
+          .select(_selectComNome)
           .single();
 
       return ManejoModel.fromJson(response);

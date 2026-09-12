@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/plantio_provider.dart';
 import '../models/plantio_model.dart';
+import '../services/lookup_service.dart';
 import '../variaveis.dart';
 
 class PlantiosPage extends StatefulWidget {
@@ -13,10 +14,22 @@ class PlantiosPage extends StatefulWidget {
 
 class _PlantiosPageState extends State<PlantiosPage> {
   String? _talhaoId;
+  List<LookupItem> _culturas = [];
+  List<LookupItem> _adubos = [];
+  List<LookupItem> _inoculantes = [];
 
   @override
   void initState() {
     super.initState();
+    LookupService().getCulturas().then((lista) {
+      if (mounted) setState(() => _culturas = lista);
+    });
+    LookupService().getAdubos().then((lista) {
+      if (mounted) setState(() => _adubos = lista);
+    });
+    LookupService().getInoculantes().then((lista) {
+      if (mounted) setState(() => _inoculantes = lista);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map && args.containsKey('talhaoId')) {
@@ -407,6 +420,9 @@ class _PlantiosPageState extends State<PlantiosPage> {
             child: _PlantioFormModal(
               plantio: plantio,
               talhaoId: _talhaoId,
+              culturas: _culturas,
+              adubos: _adubos,
+              inoculantes: _inoculantes,
               onSave: (novoPlantio) {
                 final provider = context.read<PlantioProvider>();
                 if (plantio == null) {
@@ -455,11 +471,17 @@ class _PlantiosPageState extends State<PlantiosPage> {
 class _PlantioFormModal extends StatefulWidget {
   final PlantioModel? plantio;
   final String? talhaoId;
+  final List<LookupItem> culturas;
+  final List<LookupItem> adubos;
+  final List<LookupItem> inoculantes;
   final Function(PlantioModel) onSave;
 
   const _PlantioFormModal({
     this.plantio,
     this.talhaoId,
+    required this.culturas,
+    required this.adubos,
+    required this.inoculantes,
     required this.onSave,
   });
 
@@ -469,11 +491,14 @@ class _PlantioFormModal extends StatefulWidget {
 
 class _PlantioFormModalState extends State<_PlantioFormModal> {
   final _formKey = GlobalKey<FormState>();
-  final _culturaController = TextEditingController();
-  final _variedadeController = TextEditingController();
-  final _aduboController = TextEditingController();
-  final _inoculanteController = TextEditingController();
   final _sementesController = TextEditingController();
+  final _aduboQuantidadeController = TextEditingController();
+  String? _culturaId;
+  String? _variedadeId;
+  String? _aduboId;
+  String? _inoculanteId;
+  List<LookupItem> _variedades = [];
+  bool _carregandoVariedades = false;
   DateTime? _selectedDate;
 
   bool get _isEditing => widget.plantio != null;
@@ -482,24 +507,40 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
   void initState() {
     super.initState();
     if (widget.plantio != null) {
-      _culturaController.text = widget.plantio!.cultura;
-      _variedadeController.text = widget.plantio!.variedade;
-      _aduboController.text = widget.plantio!.adubo;
-      _inoculanteController.text = widget.plantio!.inoculante;
-      _sementesController.text = widget.plantio!.sementes;
+      _culturaId = widget.plantio!.culturaId;
+      _variedadeId = widget.plantio!.variedadeId;
+      _aduboId = widget.plantio!.aduboId;
+      _inoculanteId = widget.plantio!.inoculanteId;
+      _sementesController.text =
+          widget.plantio!.quantidadeSementesPorMetro.toString();
+      _aduboQuantidadeController.text =
+          widget.plantio!.quantidadeAduboPorAlqueire.toString();
       _selectedDate = widget.plantio!.data;
+      if (_culturaId != null) _carregarVariedades(_culturaId!);
     } else {
       _selectedDate = DateTime.now();
     }
   }
 
+  Future<void> _carregarVariedades(String culturaId) async {
+    setState(() => _carregandoVariedades = true);
+    final lista = await LookupService().getVariedades(culturaId: culturaId);
+    if (mounted) {
+      setState(() {
+        _variedades = lista;
+        _carregandoVariedades = false;
+        // Se a variedade selecionada não pertence mais à cultura escolhida, limpa.
+        if (_variedadeId != null && !lista.any((v) => v.id == _variedadeId)) {
+          _variedadeId = null;
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
-    _culturaController.dispose();
-    _variedadeController.dispose();
-    _aduboController.dispose();
-    _inoculanteController.dispose();
     _sementesController.dispose();
+    _aduboQuantidadeController.dispose();
     super.dispose();
   }
 
@@ -555,41 +596,30 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildFormField(
-                      label: 'Planta de Cultivo',
-                      controller: _culturaController,
-                      icon: Icons.eco,
-                      hint: 'Ex: Soja, Milho, Café',
-                    ),
+                    _buildCulturaDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
                     const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Variedade',
-                      controller: _variedadeController,
-                      icon: Icons.science,
-                      hint: 'Ex: BR 123, Híbrido X',
-                    ),
+                    _buildVariedadeDropdown(),
+                    const SizedBox(height: 16),
+                    _buildAduboDropdown(),
+                    const SizedBox(height: 16),
+                    _buildInoculanteDropdown(),
                     const SizedBox(height: 16),
                     _buildFormField(
-                      label: 'Adubo',
-                      controller: _aduboController,
-                      icon: Icons.agriculture,
-                      hint: 'Ex: NPK, Ureia',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Inoculante',
-                      controller: _inoculanteController,
-                      icon: Icons.biotech,
-                      hint: 'Sim / Não / Tipo',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Sementes',
+                      label: 'Sementes por metro',
                       controller: _sementesController,
                       icon: Icons.grain,
-                      hint: 'Ex: 2.500 kg',
+                      hint: 'Ex: 12.5',
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: 'Adubo por alqueire',
+                      controller: _aduboQuantidadeController,
+                      icon: Icons.agriculture,
+                      hint: 'Ex: 300',
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
@@ -625,11 +655,165 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
     );
   }
 
+  Widget _buildCulturaDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _culturaId,
+        decoration: InputDecoration(
+          labelText: 'Cultura',
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(Icons.eco, color: VerdeClaro),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        items: widget.culturas
+            .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome)))
+            .toList(),
+        onChanged: (value) {
+          setState(() => _culturaId = value);
+          if (value != null) _carregarVariedades(value);
+        },
+        validator: (value) =>
+            value == null || value.isEmpty ? 'Selecione a cultura' : null,
+      ),
+    );
+  }
+
+  Widget _buildVariedadeDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _variedadeId,
+        decoration: InputDecoration(
+          labelText: _carregandoVariedades
+              ? 'Carregando variedades...'
+              : 'Variedade',
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(Icons.science, color: VerdeClaro),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        items: _variedades
+            .map((v) => DropdownMenuItem(value: v.id, child: Text(v.nome)))
+            .toList(),
+        onChanged: _culturaId == null
+            ? null
+            : (value) => setState(() => _variedadeId = value),
+        validator: (value) =>
+            value == null || value.isEmpty ? 'Selecione a variedade' : null,
+      ),
+    );
+  }
+
+  Widget _buildAduboDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _aduboId,
+        decoration: InputDecoration(
+          labelText: 'Adubo',
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(Icons.agriculture, color: VerdeClaro),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        items: widget.adubos
+            .map((a) => DropdownMenuItem(value: a.id, child: Text(a.nome)))
+            .toList(),
+        onChanged: (value) => setState(() => _aduboId = value),
+        validator: (value) =>
+            value == null || value.isEmpty ? 'Selecione o adubo' : null,
+      ),
+    );
+  }
+
+  Widget _buildInoculanteDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _inoculanteId,
+        decoration: InputDecoration(
+          labelText: 'Inoculante (opcional)',
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(Icons.biotech, color: VerdeClaro),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        items: widget.inoculantes
+            .map((i) => DropdownMenuItem(value: i.id, child: Text(i.nome)))
+            .toList(),
+        onChanged: (value) => setState(() => _inoculanteId = value),
+      ),
+    );
+  }
+
   Widget _buildFormField({
     required String label,
     required TextEditingController controller,
     required IconData icon,
     String? hint,
+    TextInputType? keyboardType,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -645,6 +829,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
       ),
       child: TextFormField(
         controller: controller,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(
@@ -739,12 +924,13 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
       final novoPlantio = PlantioModel(
         id: widget.plantio?.id ?? '',
         talhaoId: widget.talhaoId ?? widget.plantio?.talhaoId ?? '',
-        cultura: _culturaController.text,
+        culturaId: _culturaId!,
+        variedadeId: _variedadeId!,
+        aduboId: _aduboId!,
+        inoculanteId: _inoculanteId,
         data: _selectedDate!,
-        variedade: _variedadeController.text,
-        adubo: _aduboController.text,
-        inoculante: _inoculanteController.text,
-        sementes: _sementesController.text,
+        quantidadeSementesPorMetro: double.parse(_sementesController.text),
+        quantidadeAduboPorAlqueire: double.parse(_aduboQuantidadeController.text),
       );
 
       widget.onSave(novoPlantio);

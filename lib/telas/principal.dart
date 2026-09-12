@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
+import '../services/auth_service.dart';
+
 class PrincipalPage extends StatelessWidget {
   const PrincipalPage({super.key});
   
@@ -27,6 +29,28 @@ class PrincipalPage extends StatelessWidget {
         
         return Scaffold(
           backgroundColor: Bege,
+          appBar: AppBar(
+            title: const Text('SafraOn'),
+            backgroundColor: Bege,
+            elevation: 0,
+            foregroundColor: Colors.black87,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: 'Sair',
+                onPressed: () async {
+                  await AuthService().signOut();
+                  if (context.mounted) {
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/',
+                      (route) => false,
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
           body: SafeArea(
             child: Padding(
               padding: EdgeInsets.all(padding),

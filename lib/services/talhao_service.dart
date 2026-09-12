@@ -90,7 +90,11 @@ class TalhaoService {
 
       print('✅ Talhão criado com sucesso! ID: ${response['id']}');
 
-      return TalhaoModel.fromJson(response);
+      final talhaoCriado = TalhaoModel.fromJson(response);
+
+      // Geocodifica a cidade em segundo plano (não bloqueia o cadastro
+      // caso a function/API falhe)
+      return await _geocodificarEBuscar(talhaoCriado);
     } catch (e) {
       print('❌ Erro ao criar talhão: $e');
       if (e is PostgrestException) {
@@ -127,10 +131,41 @@ class TalhaoService {
 
       print('✅ Talhão atualizado com sucesso!');
 
-      return TalhaoModel.fromJson(response);
+      final talhaoAtualizado = TalhaoModel.fromJson(response);
+
+      return await _geocodificarEBuscar(talhaoAtualizado);
     } catch (e) {
       print('❌ Erro ao atualizar talhão: $e');
       return null;
+    }
+  }
+
+  // Chama a Edge Function 'geocodificar-talhao' (que usa a API do
+  // OpenWeather para converter a cidade em latitude/longitude e já
+  // salva isso no banco) e retorna o talhão atualizado com as
+  // coordenadas novas. Se a geocodificação falhar, não quebra o
+  // fluxo — apenas retorna o talhão como estava antes.
+  Future<TalhaoModel?> _geocodificarEBuscar(TalhaoModel talhao) async {
+    try {
+      print('🌍 Geocodificando talhão ${talhao.id} (${talhao.cidade})...');
+
+      final result = await _client.functions.invoke(
+        'geocodificar-talhao',
+        body: {'talhao_id': talhao.id},
+      );
+
+      if (result.status != 200) {
+        print('⚠️ Geocodificação retornou status ${result.status}: ${result.data}');
+        return talhao;
+      }
+
+      print('✅ Geocodificação concluída: ${result.data}');
+
+      // Busca o talhão de novo para trazer lat/lon já atualizados
+      return await getById(talhao.id) ?? talhao;
+    } catch (e) {
+      print('⚠️ Não foi possível geocodificar o talhão (seguindo sem coordenadas): $e');
+      return talhao;
     }
   }
 

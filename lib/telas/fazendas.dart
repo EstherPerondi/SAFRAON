@@ -1,9 +1,10 @@
 // lib/screens/fazendas.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../telas/fazenda.dart';  // ← CORRIGIDO: caminho correto
+import '../telas/fazenda.dart';  
 import '../providers/fazenda_provider.dart';
 import '../models/fazenda_model.dart';
+import '../services/lookup_service.dart';
 import '../variaveis.dart';
 
 class FazendasPage extends StatefulWidget {
@@ -14,9 +15,14 @@ class FazendasPage extends StatefulWidget {
 }
 
 class _FazendasPageState extends State<FazendasPage> {
+  List<LookupItem> _estados = [];
+
   @override
   void initState() {
     super.initState();
+    LookupService().getEstados().then((lista) {
+      if (mounted) setState(() => _estados = lista);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -224,20 +230,6 @@ class _FazendasPageState extends State<FazendasPage> {
                         color: Colors.black87,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, size: 14, color: VerdeClaro),
-                        const SizedBox(width: 4),
-                        Text(
-                          fazenda.area,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -331,6 +323,7 @@ class _FazendasPageState extends State<FazendasPage> {
             ),
             child: _FazendaFormModal(
               fazenda: fazenda,
+              estados: _estados,
               onSave: (novaFazenda) async {
                 final provider = context.read<FazendaProvider>();
                 bool success;
@@ -393,10 +386,12 @@ class _FazendasPageState extends State<FazendasPage> {
 // ============================================
 class _FazendaFormModal extends StatefulWidget {
   final FazendaModel? fazenda;
+  final List<LookupItem> estados;
   final Function(FazendaModel) onSave;
 
   const _FazendaFormModal({
     this.fazenda,
+    required this.estados,
     required this.onSave,
   });
 
@@ -407,7 +402,7 @@ class _FazendaFormModal extends StatefulWidget {
 class _FazendaFormModalState extends State<_FazendaFormModal> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
-  final _areaController = TextEditingController();
+  String? _estadoId;
   bool _isSaving = false;
 
   bool get _isEditing => widget.fazenda != null;
@@ -417,14 +412,13 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
     super.initState();
     if (widget.fazenda != null) {
       _nomeController.text = widget.fazenda!.nome;
-      _areaController.text = widget.fazenda!.area;
+      _estadoId = widget.fazenda!.estadoId;
     }
   }
 
   @override
   void dispose() {
     _nomeController.dispose();
-    _areaController.dispose();
     super.dispose();
   }
 
@@ -490,12 +484,7 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
                       hint: 'Ex: Fazenda Santa Clara',
                     ),
                     const SizedBox(height: 16),
-                    _buildFormField(
-                      label: 'Área',
-                      controller: _areaController,
-                      icon: Icons.crop,
-                      hint: 'Ex: 1.200 ha',
-                    ),
+                    _buildEstadoDropdown(),
                     const SizedBox(height: 24),
 
                     // Botão Salvar
@@ -537,6 +526,43 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEstadoDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _estadoId,
+        decoration: InputDecoration(
+          labelText: 'Estado',
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+          prefixIcon: Icon(Icons.map, color: VerdeClaro),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        items: widget.estados
+            .map((e) => DropdownMenuItem(value: e.id, child: Text(e.nome)))
+            .toList(),
+        onChanged: (value) => setState(() => _estadoId = value),
+        validator: (value) =>
+            value == null || value.isEmpty ? 'Selecione o estado' : null,
       ),
     );
   }
@@ -593,8 +619,8 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
       final novaFazenda = FazendaModel(
         id: widget.fazenda?.id ?? '',
         nome: _nomeController.text.trim(),
-        area: _areaController.text.trim(),
         userId: '', // Será preenchido pelo service
+        estadoId: _estadoId ?? '',
       );
 
       await widget.onSave(novaFazenda);
