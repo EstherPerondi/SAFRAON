@@ -12,6 +12,7 @@ class PrecipitacaoService {
           .from(_table)
           .select()
           .eq('talhao_id', talhaoId)
+          .eq('fonte', 'manual')
           .order('data', ascending: false);
 
       return response.map<PrecipitacaoModel>((json) {
@@ -37,6 +38,7 @@ class PrecipitacaoService {
             )
           ''')
           .eq('talhao.fazenda.usuario_id', SupabaseService().currentUserId)
+          .eq('fonte', 'manual')
           .order('data', ascending: false);
 
       return response.map<PrecipitacaoModel>((json) {

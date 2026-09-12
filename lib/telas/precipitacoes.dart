@@ -118,6 +118,10 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_talhaoId != null) ...[
+                      _buildResumoAcumulado(provider.precipitacoes),
+                      const SizedBox(height: 16),
+                    ],
                     if (provider.precipitacoes.isEmpty)
                       Expanded(
                         child: Center(
@@ -225,6 +229,96 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
         child: const Icon(Icons.add, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  double _somaUltimosDias(List<PrecipitacaoModel> lista, int dias) {
+    final desde = DateTime.now().subtract(Duration(days: dias - 1));
+    final desdeSoData = DateTime(desde.year, desde.month, desde.day);
+
+    return lista
+        .where((p) {
+          final data = DateTime(p.data.year, p.data.month, p.data.day);
+          return !data.isBefore(desdeSoData);
+        })
+        .fold<double>(0, (soma, p) => soma + p.quantidade);
+  }
+
+  Widget _buildResumoAcumulado(List<PrecipitacaoModel> lista) {
+    final soma7 = _somaUltimosDias(lista, 7);
+    final soma15 = _somaUltimosDias(lista, 15);
+    final soma30 = _somaUltimosDias(lista, 30);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: BegeClaro,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.history, color: VerdeClaro, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'Histórico de chuva',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: VerdeClaro,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildResumoItem('7 dias', soma7)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildResumoItem('15 dias', soma15)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildResumoItem('30 dias', soma30)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResumoItem(String label, double mm) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: VerdeClaro.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: VerdeClaro.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            mm.toStringAsFixed(0),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: VerdeEscuro),
+          ),
+          Text('mm', style: TextStyle(fontSize: 11, color: VerdeEscuro.withOpacity(0.7))),
+          const SizedBox(height: 2),
+          Text(
+            'últimos $label',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
