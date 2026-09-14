@@ -5,6 +5,7 @@ import '../telas/fazenda.dart';
 import '../providers/fazenda_provider.dart';
 import '../models/fazenda_model.dart';
 import '../services/lookup_service.dart';
+import '../widgets/novo_item_dialog.dart';
 import '../variaveis.dart';
 
 class FazendasPage extends StatefulWidget {
@@ -557,10 +558,30 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
-        items: widget.estados
-            .map((e) => DropdownMenuItem(value: e.id, child: Text(e.nome)))
-            .toList(),
-        onChanged: (value) => setState(() => _estadoId = value),
+        items: [
+          ...widget.estados
+              .map((e) => DropdownMenuItem(value: e.id, child: Text(e.nome))),
+          buildAdicionarNovoDropdownItem('+ Adicionar novo estado...'),
+        ],
+        onChanged: (value) async {
+          if (value == kAdicionarNovoValor) {
+            final novoEstado = await showNovoItemDialog(
+              context: context,
+              titulo: 'Novo Estado',
+              label: 'Nome do estado',
+              hint: 'Ex: Paraná',
+              onCriar: (nome, extras) => LookupService().createEstado(nome),
+            );
+            if (novoEstado != null) {
+              setState(() {
+                widget.estados.add(novoEstado);
+                _estadoId = novoEstado.id;
+              });
+            }
+            return;
+          }
+          setState(() => _estadoId = value);
+        },
         validator: (value) =>
             value == null || value.isEmpty ? 'Selecione o estado' : null,
       ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/colheita_provider.dart';
 import '../models/colheita_model.dart';
 import '../services/lookup_service.dart';
+import '../widgets/novo_item_dialog.dart';
 import '../variaveis.dart';
 
 class ColheitasPage extends StatefulWidget {
@@ -645,10 +646,30 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
-        items: widget.culturas
-            .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome)))
-            .toList(),
-        onChanged: (value) => setState(() => _culturaId = value),
+        items: [
+          ...widget.culturas
+              .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome))),
+          buildAdicionarNovoDropdownItem('+ Adicionar nova cultura...'),
+        ],
+        onChanged: (value) async {
+          if (value == kAdicionarNovoValor) {
+            final novaCultura = await showNovoItemDialog(
+              context: context,
+              titulo: 'Nova Cultura',
+              label: 'Nome da cultura',
+              hint: 'Ex: Soja',
+              onCriar: (nome, extras) => LookupService().createCultura(nome),
+            );
+            if (novaCultura != null) {
+              setState(() {
+                widget.culturas.add(novaCultura);
+                _culturaId = novaCultura.id;
+              });
+            }
+            return;
+          }
+          setState(() => _culturaId = value);
+        },
         validator: (value) =>
             value == null || value.isEmpty ? 'Selecione a cultura' : null,
       ),

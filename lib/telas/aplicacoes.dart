@@ -4,6 +4,7 @@ import '../providers/aplicacao_provider.dart';
 import '../providers/talhao_provider.dart';
 import '../models/aplicacao_model.dart';
 import '../services/lookup_service.dart';
+import '../widgets/novo_item_dialog.dart';
 import '../variaveis.dart';
 
 class AplicacoesPage extends StatefulWidget {
@@ -643,10 +644,52 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
-        items: widget.defensivos
-            .map((d) => DropdownMenuItem(value: d.id, child: Text(d.nome)))
-            .toList(),
-        onChanged: (value) => setState(() => _defensivoId = value),
+        items: [
+          ...widget.defensivos
+              .map((d) => DropdownMenuItem(value: d.id, child: Text(d.nome))),
+          buildAdicionarNovoDropdownItem('+ Adicionar novo defensivo...'),
+        ],
+        onChanged: (value) async {
+          if (value == kAdicionarNovoValor) {
+            final novoDefensivo = await showNovoItemDialog(
+              context: context,
+              titulo: 'Novo Defensivo',
+              label: 'Nome do defensivo',
+              hint: 'Ex: Glifosato',
+              camposExtras: const [
+                CampoExtra(
+                  chave: 'principioAtivo',
+                  label: 'Princípio ativo',
+                  hint: 'Ex: Glifosato 480 g/L',
+                ),
+                CampoExtra(
+                  chave: 'fabricante',
+                  label: 'Fabricante',
+                  hint: 'Ex: Bayer',
+                ),
+                CampoExtra(
+                  chave: 'utilidade',
+                  label: 'Utilidade',
+                  hint: 'Ex: Herbicida',
+                ),
+              ],
+              onCriar: (nome, extras) => LookupService().createDefensivo(
+                nome,
+                principioAtivo: extras['principioAtivo'],
+                fabricante: extras['fabricante'],
+                utilidade: extras['utilidade'],
+              ),
+            );
+            if (novoDefensivo != null) {
+              setState(() {
+                widget.defensivos.add(novoDefensivo);
+                _defensivoId = novoDefensivo.id;
+              });
+            }
+            return;
+          }
+          setState(() => _defensivoId = value);
+        },
         validator: (value) =>
             value == null || value.isEmpty ? 'Selecione o defensivo' : null,
       ),

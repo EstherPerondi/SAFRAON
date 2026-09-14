@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/manejo_provider.dart';
 import '../models/manejo_model.dart';
 import '../services/lookup_service.dart';
+import '../widgets/novo_item_dialog.dart';
 import '../variaveis.dart';
 
 class ManejosPage extends StatefulWidget {
@@ -625,10 +626,30 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
-        items: widget.tiposManejo
-            .map((t) => DropdownMenuItem(value: t.id, child: Text(t.nome)))
-            .toList(),
-        onChanged: (value) => setState(() => _tipoManejoId = value),
+        items: [
+          ...widget.tiposManejo
+              .map((t) => DropdownMenuItem(value: t.id, child: Text(t.nome))),
+          buildAdicionarNovoDropdownItem('+ Adicionar novo tipo de manejo...'),
+        ],
+        onChanged: (value) async {
+          if (value == kAdicionarNovoValor) {
+            final novoTipo = await showNovoItemDialog(
+              context: context,
+              titulo: 'Novo Tipo de Manejo',
+              label: 'Nome do tipo de manejo',
+              hint: 'Ex: Calagem',
+              onCriar: (nome, extras) => LookupService().createTipoManejo(nome),
+            );
+            if (novoTipo != null) {
+              setState(() {
+                widget.tiposManejo.add(novoTipo);
+                _tipoManejoId = novoTipo.id;
+              });
+            }
+            return;
+          }
+          setState(() => _tipoManejoId = value);
+        },
         validator: (value) =>
             value == null || value.isEmpty ? 'Selecione o tipo de manejo' : null,
       ),

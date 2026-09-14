@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/plantio_provider.dart';
 import '../models/plantio_model.dart';
 import '../services/lookup_service.dart';
+import '../widgets/novo_item_dialog.dart';
 import '../variaveis.dart';
 
 class PlantiosPage extends StatefulWidget {
@@ -682,10 +683,29 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
-        items: widget.culturas
-            .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome)))
-            .toList(),
-        onChanged: (value) {
+        items: [
+          ...widget.culturas
+              .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome))),
+          buildAdicionarNovoDropdownItem('+ Adicionar nova cultura...'),
+        ],
+        onChanged: (value) async {
+          if (value == kAdicionarNovoValor) {
+            final novaCultura = await showNovoItemDialog(
+              context: context,
+              titulo: 'Nova Cultura',
+              label: 'Nome da cultura',
+              hint: 'Ex: Soja',
+              onCriar: (nome, extras) => LookupService().createCultura(nome),
+            );
+            if (novaCultura != null) {
+              setState(() {
+                widget.culturas.add(novaCultura);
+                _culturaId = novaCultura.id;
+              });
+              _carregarVariedades(novaCultura.id);
+            }
+            return;
+          }
           setState(() => _culturaId = value);
           if (value != null) _carregarVariedades(value);
         },
@@ -724,12 +744,44 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
-        items: _variedades
-            .map((v) => DropdownMenuItem(value: v.id, child: Text(v.nome)))
-            .toList(),
+        items: [
+          ..._variedades
+              .map((v) => DropdownMenuItem(value: v.id, child: Text(v.nome))),
+          if (_culturaId != null)
+            buildAdicionarNovoDropdownItem('+ Adicionar nova variedade...'),
+        ],
         onChanged: _culturaId == null
             ? null
-            : (value) => setState(() => _variedadeId = value),
+            : (value) async {
+                if (value == kAdicionarNovoValor) {
+                  final novaVariedade = await showNovoItemDialog(
+                    context: context,
+                    titulo: 'Nova Variedade',
+                    label: 'Nome da variedade',
+                    hint: 'Ex: TMG 7062',
+                    camposExtras: const [
+                      CampoExtra(
+                        chave: 'fabricante',
+                        label: 'Fabricante',
+                        hint: 'Ex: TMG',
+                      ),
+                    ],
+                    onCriar: (nome, extras) => LookupService().createVariedade(
+                      nome,
+                      _culturaId!,
+                      fabricante: extras['fabricante'],
+                    ),
+                  );
+                  if (novaVariedade != null) {
+                    setState(() {
+                      _variedades.add(novaVariedade);
+                      _variedadeId = novaVariedade.id;
+                    });
+                  }
+                  return;
+                }
+                setState(() => _variedadeId = value);
+              },
         validator: (value) =>
             value == null || value.isEmpty ? 'Selecione a variedade' : null,
       ),
@@ -763,10 +815,40 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
-        items: widget.adubos
-            .map((a) => DropdownMenuItem(value: a.id, child: Text(a.nome)))
-            .toList(),
-        onChanged: (value) => setState(() => _aduboId = value),
+        items: [
+          ...widget.adubos
+              .map((a) => DropdownMenuItem(value: a.id, child: Text(a.nome))),
+          buildAdicionarNovoDropdownItem('+ Adicionar novo adubo...'),
+        ],
+        onChanged: (value) async {
+          if (value == kAdicionarNovoValor) {
+            final novoAdubo = await showNovoItemDialog(
+              context: context,
+              titulo: 'Novo Adubo',
+              label: 'Nome do adubo',
+              hint: 'Ex: NPK 04-30-10',
+              camposExtras: const [
+                CampoExtra(
+                  chave: 'fabricante',
+                  label: 'Fabricante',
+                  hint: 'Ex: Yara',
+                ),
+              ],
+              onCriar: (nome, extras) => LookupService().createAdubo(
+                nome,
+                fabricante: extras['fabricante'],
+              ),
+            );
+            if (novoAdubo != null) {
+              setState(() {
+                widget.adubos.add(novoAdubo);
+                _aduboId = novoAdubo.id;
+              });
+            }
+            return;
+          }
+          setState(() => _aduboId = value);
+        },
         validator: (value) =>
             value == null || value.isEmpty ? 'Selecione o adubo' : null,
       ),
@@ -800,10 +882,52 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.all(16),
         ),
-        items: widget.inoculantes
-            .map((i) => DropdownMenuItem(value: i.id, child: Text(i.nome)))
-            .toList(),
-        onChanged: (value) => setState(() => _inoculanteId = value),
+        items: [
+          ...widget.inoculantes
+              .map((i) => DropdownMenuItem(value: i.id, child: Text(i.nome))),
+          buildAdicionarNovoDropdownItem('+ Adicionar novo inoculante...'),
+        ],
+        onChanged: (value) async {
+          if (value == kAdicionarNovoValor) {
+            final novoInoculante = await showNovoItemDialog(
+              context: context,
+              titulo: 'Novo Inoculante',
+              label: 'Nome do inoculante',
+              hint: 'Ex: Bradyrhizobium',
+              camposExtras: const [
+                CampoExtra(
+                  chave: 'fabricante',
+                  label: 'Fabricante',
+                  hint: 'Ex: Simbiose',
+                ),
+                CampoExtra(
+                  chave: 'dosagemRecomendada',
+                  label: 'Dosagem recomendada',
+                  hint: 'Ex: 100',
+                  tipo: TipoCampoExtra.numero,
+                ),
+              ],
+              onCriar: (nome, extras) {
+                final dosagemTexto = extras['dosagemRecomendada'];
+                return LookupService().createInoculante(
+                  nome,
+                  fabricante: extras['fabricante'],
+                  dosagemRecomendada: dosagemTexto == null
+                      ? null
+                      : double.tryParse(dosagemTexto.replaceAll(',', '.')),
+                );
+              },
+            );
+            if (novoInoculante != null) {
+              setState(() {
+                widget.inoculantes.add(novoInoculante);
+                _inoculanteId = novoInoculante.id;
+              });
+            }
+            return;
+          }
+          setState(() => _inoculanteId = value);
+        },
       ),
     );
   }
