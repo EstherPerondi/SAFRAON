@@ -26,6 +26,16 @@ class _ColheitasPageState extends State<ColheitasPage> {
     super.initState();
     LookupService().getCulturas().then((lista) {
       if (mounted) setState(() => _culturas = lista);
+    }).catchError((e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar culturas: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments;

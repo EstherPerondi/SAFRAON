@@ -24,12 +24,42 @@ class _PlantiosPageState extends State<PlantiosPage> {
     super.initState();
     LookupService().getCulturas().then((lista) {
       if (mounted) setState(() => _culturas = lista);
+    }).catchError((e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar culturas: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     });
     LookupService().getAdubos().then((lista) {
       if (mounted) setState(() => _adubos = lista);
+    }).catchError((e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar adubos: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     });
     LookupService().getInoculantes().then((lista) {
       if (mounted) setState(() => _inoculantes = lista);
+    }).catchError((e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar inoculantes: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments;
@@ -525,16 +555,29 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
 
   Future<void> _carregarVariedades(String culturaId) async {
     setState(() => _carregandoVariedades = true);
-    final lista = await LookupService().getVariedades(culturaId: culturaId);
-    if (mounted) {
-      setState(() {
-        _variedades = lista;
-        _carregandoVariedades = false;
-        // Se a variedade selecionada não pertence mais à cultura escolhida, limpa.
-        if (_variedadeId != null && !lista.any((v) => v.id == _variedadeId)) {
-          _variedadeId = null;
-        }
-      });
+    try {
+      final lista = await LookupService().getVariedades(culturaId: culturaId);
+      if (mounted) {
+        setState(() {
+          _variedades = lista;
+          _carregandoVariedades = false;
+          // Se a variedade selecionada não pertence mais à cultura escolhida, limpa.
+          if (_variedadeId != null && !lista.any((v) => v.id == _variedadeId)) {
+            _variedadeId = null;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _carregandoVariedades = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar variedades: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
