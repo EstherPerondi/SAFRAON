@@ -4,7 +4,7 @@ import '../services/auth_service.dart';
 
 class PrincipalPage extends StatelessWidget {
   const PrincipalPage({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     final itens = [
@@ -23,17 +23,49 @@ class PrincipalPage extends StatelessWidget {
         final double cardWidth = desktop ? 250 : 110;
         final double spacing = desktop ? 50 : 60;
         final double padding = desktop ? 50 : 20;
-        
-        int cardsPerRow = (constraints.maxWidth - padding * 2 + spacing) ~/ (cardWidth + spacing);
+
+        int cardsPerRow =
+            (constraints.maxWidth - padding * 2 + spacing) ~/
+            (cardWidth + spacing);
         if (cardsPerRow < 1) cardsPerRow = 1;
-        
+
         return Scaffold(
           backgroundColor: Bege,
           appBar: AppBar(
-            title: const Text('SafraOn'),
-            backgroundColor: Bege,
-            elevation: 0,
-            foregroundColor: Colors.black87,
+            backgroundColor: VerdeEscuro,
+            iconTheme: IconThemeData(color: BegeClaro),
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 35,
+                  height: 35,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: BegeClaro, // cor da borda
+                      width: 2, // espessura
+                    ),
+                    shape: BoxShape.circle, // borda redonda
+                  ),
+                  child: ClipOval(
+                    child: Image(
+                      image: AssetImage('Imagens/logo.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'SafraOn',
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w600,
+                    color: BegeClaro,
+                  ),
+                ),
+              ],
+            ),
+            centerTitle: true,
             actions: [
               IconButton(
                 icon: const Icon(Icons.logout),
@@ -67,7 +99,7 @@ class PrincipalPage extends StatelessWidget {
                           titulo: item["titulo"]!,
                           imagem: item["icone"]!,
                           onTap: () {
-                            switch(item["titulo"]) {
+                            switch (item["titulo"]) {
                               case "Fazendas":
                                 Navigator.pushNamed(context, '/fazendas');
                                 break;
