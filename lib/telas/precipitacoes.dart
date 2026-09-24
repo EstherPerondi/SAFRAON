@@ -65,9 +65,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
       body: Consumer<PrecipitacaoProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading && provider.precipitacoes.isEmpty) {
-            return Center(
-              child: CircularProgressIndicator(color: VerdeEscuro),
-            );
+            return Center(child: CircularProgressIndicator(color: VerdeEscuro));
           }
 
           if (provider.error != null) {
@@ -167,8 +165,12 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                           child: ListView.builder(
                             itemCount: provider.precipitacoes.length,
                             itemBuilder: (context, index) {
-                              final precipitacao = provider.precipitacoes[index];
-                              return _buildPrecipitacaoCard(precipitacao, index);
+                              final precipitacao =
+                                  provider.precipitacoes[index];
+                              return _buildPrecipitacaoCard(
+                                precipitacao,
+                                index,
+                              );
                             },
                           ),
                         ),
@@ -308,9 +310,16 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
         children: [
           Text(
             mm.toStringAsFixed(0),
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: VerdeEscuro),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: VerdeEscuro,
+            ),
           ),
-          Text('mm', style: TextStyle(fontSize: 11, color: VerdeEscuro.withOpacity(0.7))),
+          Text(
+            'mm',
+            style: TextStyle(fontSize: 11, color: VerdeEscuro.withOpacity(0.7)),
+          ),
           const SizedBox(height: 2),
           Text(
             'últimos $label',
@@ -363,7 +372,11 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today, size: 14, color: VerdeClaro),
+                          Icon(
+                            Icons.calendar_today,
+                            size: 14,
+                            color: VerdeClaro,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             precipitacao.formattedDate,
@@ -379,58 +392,27 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: VerdeClaro,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(
-                      color: Bege,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            const Divider(height: 1, color: Colors.grey),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildInfoChip(Icons.source, precipitacao.fonte),
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        onPressed: () =>
+                            _showPrecipitacaoForm(context, precipitacao),
+                        color: VerdeClaro,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      const SizedBox(width: 15),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        onPressed: () => _deletePrecipitacao(precipitacao.id),
+                        color: Colors.red.shade400,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                     ],
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => _showPrecipitacaoForm(context, precipitacao),
-                      color: VerdeClaro,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    const SizedBox(width: 15),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () => _deletePrecipitacao(precipitacao.id),
-                      color: Colors.red.shade400,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -480,7 +462,10 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
     }
   }
 
-  void _showPrecipitacaoForm(BuildContext context, PrecipitacaoModel? precipitacao) {
+  void _showPrecipitacaoForm(
+    BuildContext context,
+    PrecipitacaoModel? precipitacao,
+  ) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -641,7 +626,9 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
                       controller: _quantidadeController,
                       icon: Icons.water_drop,
                       hint: 'Ex: 15.5',
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     _buildDateField(),
@@ -703,10 +690,7 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
         keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(
-            color: VerdeClaro,
-            fontWeight: FontWeight.w600,
-          ),
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
           hintText: hint,
           prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
@@ -724,7 +708,9 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
           if (label == 'Milímetros (mm)' && double.tryParse(value) == null) {
             return 'Digite um número válido';
           }
-          if (label == 'Milímetros (mm)' && double.tryParse(value) != null && double.parse(value) < 0) {
+          if (label == 'Milímetros (mm)' &&
+              double.tryParse(value) != null &&
+              double.parse(value) < 0) {
             return 'Digite um valor positivo';
           }
           return null;
@@ -768,8 +754,8 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
           child: Text(
             _selectedDate != null
                 ? '${_selectedDate!.day.toString().padLeft(2, '0')}/'
-                    '${_selectedDate!.month.toString().padLeft(2, '0')}/'
-                    '${_selectedDate!.year}'
+                      '${_selectedDate!.month.toString().padLeft(2, '0')}/'
+                      '${_selectedDate!.year}'
                 : 'Selecione uma data',
             style: TextStyle(
               fontSize: 16,

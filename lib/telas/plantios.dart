@@ -325,6 +325,24 @@ class _PlantiosPageState extends State<PlantiosPage> {
                           ),
                         ],
                       ),
+                      if (_talhaoId == null && plantio.localizacao != null)
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                plantio.localizacao!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -358,10 +376,11 @@ class _PlantiosPageState extends State<PlantiosPage> {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.science, plantio.variedade),
-                      _buildInfoChip(Icons.agriculture, plantio.adubo),
-                      _buildInfoChip(Icons.biotech, 'Inoculante: ${plantio.inoculante}'),
-                      _buildInfoChip(Icons.grain, plantio.sementes),
+                      _buildInfoChip(Icons.science, '${plantio.variedade}'),
+                      _buildInfoChip(Icons.agriculture, '${plantio.adubo}'),
+                      _buildInfoChip(Icons.scale, '${plantio.quantidadeAdubo}'),
+                      _buildInfoChip(Icons.biotech, '${plantio.inoculante}'),
+                      _buildInfoChip(Icons.grain, '${plantio.sementes}'),
                     ],
                   ),
                 ),
@@ -538,10 +557,10 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
   void initState() {
     super.initState();
     if (widget.plantio != null) {
-      _culturaId = widget.plantio!.culturaId;
-      _variedadeId = widget.plantio!.variedadeId;
-      _aduboId = widget.plantio!.aduboId;
-      _inoculanteId = widget.plantio!.inoculanteId;
+      _culturaId = _vazioParaNulo(widget.plantio!.culturaId);
+      _variedadeId = _vazioParaNulo(widget.plantio!.variedadeId);
+      _aduboId = _vazioParaNulo(widget.plantio!.aduboId);
+      _inoculanteId = _vazioParaNulo(widget.plantio!.inoculanteId);
       _sementesController.text =
           widget.plantio!.quantidadeSementesPorMetro.toString();
       _aduboQuantidadeController.text =
@@ -551,6 +570,15 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
     } else {
       _selectedDate = DateTime.now();
     }
+  }
+
+  String? _vazioParaNulo(String? id) => (id == null || id.isEmpty) ? null : id;
+
+  // Só usa o id como valor do dropdown se ele existir na lista de opções
+  // (evita campo em branco/erro enquanto a lista ainda está carregando).
+  String? _idValido(String? id, List<LookupItem> lista) {
+    if (id == null || id.isEmpty) return null;
+    return lista.any((item) => item.id == id) ? id : null;
   }
 
   Future<void> _carregarVariedades(String culturaId) async {
@@ -713,7 +741,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        value: _culturaId,
+        value: _idValido(_culturaId, widget.culturas),
         decoration: InputDecoration(
           labelText: 'Cultura',
           labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
@@ -772,7 +800,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        value: _variedadeId,
+        value: _idValido(_variedadeId, _variedades),
         decoration: InputDecoration(
           labelText: _carregandoVariedades
               ? 'Carregando variedades...'
@@ -845,7 +873,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        value: _aduboId,
+        value: _idValido(_aduboId, widget.adubos),
         decoration: InputDecoration(
           labelText: 'Adubo',
           labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
@@ -912,7 +940,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        value: _inoculanteId,
+        value: _idValido(_inoculanteId, widget.inoculantes),
         decoration: InputDecoration(
           labelText: 'Inoculante (opcional)',
           labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),

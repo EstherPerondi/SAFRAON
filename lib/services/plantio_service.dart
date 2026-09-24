@@ -10,7 +10,8 @@ class PlantioService {
     cultura ( plantacultivada ),
     variedade ( nomedavariedade ),
     adubo ( nomedoadubo ),
-    inoculante ( nomedoinoculante )
+    inoculante ( nomedoinoculante ),
+    talhao ( nome, fazenda ( nome ) )
   ''';
 
   Future<List<PlantioModel>> getByTalhaoId(String talhaoId) async {
@@ -41,8 +42,10 @@ class PlantioService {
             adubo ( nomedoadubo ),
             inoculante ( nomedoinoculante ),
             talhao!inner (
+              nome,
               fazenda_id,
               fazenda!inner (
+                nome,
                 usuario_id
               )
             )

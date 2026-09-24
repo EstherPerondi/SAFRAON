@@ -5,7 +5,11 @@ import 'supabase_service.dart';
 class AplicacaoService {
   final SupabaseClient _client = SupabaseService().client;
   final String _table = 'aplicacao';
-  static const _selectComNome = '*, defensivo ( nome )';
+  static const _selectComNome = '''
+    *,
+    defensivo ( nome, principioativo, fabricante, utilidade ),
+    talhao ( nome, fazenda ( nome ) )
+  ''';
 
   // Buscar aplicações de um talhão
   Future<List<AplicacaoModel>> getByTalhaoId(String talhaoId) async {
@@ -32,10 +36,12 @@ class AplicacaoService {
           .from(_table)
           .select('''
             *,
-            defensivo ( nome ),
+            defensivo ( nome, principioativo, fabricante, utilidade ),
             talhao!inner (
+              nome,
               fazenda_id,
               fazenda!inner (
+                nome,
                 usuario_id
               )
             )

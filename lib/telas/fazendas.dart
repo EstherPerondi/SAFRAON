@@ -231,6 +231,20 @@ class _FazendasPageState extends State<FazendasPage> {
                         color: Colors.black87,
                       ),
                     ),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                        const SizedBox(width: 4),
+                        Text(
+                          _estados.firstWhere((estado) => estado.id == fazenda.estadoId, orElse: () => LookupItem(id: '', nome: 'Desconhecido')).nome,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

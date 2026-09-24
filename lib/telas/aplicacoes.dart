@@ -259,7 +259,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    Icons.science,
+                    _getTipoIcon(aplicacao.defensivoUtilidade ?? ''),
                     color: VerdeEscuro,
                     size: 22,
                   ),
@@ -291,6 +291,24 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           ),
                         ],
                       ),
+                      if (_talhaoId == null && aplicacao.localizacao != null)
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                aplicacao.localizacao!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -324,7 +342,14 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildInfoChip(Icons.description, aplicacao.motivo),
+                      _buildInfoChip(
+                        Icons.water_drop_outlined,
+                        'Dose: ${aplicacao.dose}',
+                      ),
+                      _buildInfoChip(
+                        Icons.description,
+                        'Motivo: ${aplicacao.motivo.isNotEmpty ? aplicacao.motivo : 'Sem informação'}',
+                      ),
                     ],
                   ),
                 ),
@@ -383,6 +408,8 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
       ),
     );
   }
+
+  bool _temTexto(String? texto) => texto != null && texto.trim().isNotEmpty;
 
   IconData _getTipoIcon(String tipo) {
     if (tipo.toLowerCase().contains('fungicida')) {
