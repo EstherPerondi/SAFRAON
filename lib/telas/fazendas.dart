@@ -387,10 +387,18 @@ class _FazendasPageState extends State<FazendasPage> {
             TextButton(
               onPressed: () async {
                 final provider = context.read<FazendaProvider>();
+                final messenger = ScaffoldMessenger.of(context);
+                Navigator.pop(context);
                 final success = await provider.delete(id);
-
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(success
+                        ? 'Fazenda excluída com sucesso!'
+                        : (provider.error ?? 'Não foi possível excluir.')),
+                    backgroundColor: success ? Colors.green : Colors.red,
+                  ),
+                );
                 if (success && mounted) {
-                  Navigator.pop(context);
                   await provider.loadUserFazendas();
                 }
               },

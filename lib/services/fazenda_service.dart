@@ -2,6 +2,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/fazenda_model.dart';
 import 'supabase_service.dart';
+import 'delete_helper.dart';
 
 class FazendaService {
   final SupabaseClient _client = SupabaseService().client;
@@ -161,24 +162,25 @@ class FazendaService {
 
   // Deletar fazenda
   Future<bool> delete(String id) async {
-    try {
-      if (id.isEmpty) {
-        throw Exception('ID da fazenda não informado');
-      }
-
-      print('🗑️ Deletando fazenda: $id');
-
-      await _client
-          .from(_table)
-          .delete()
-          .eq('id', id);
-
-      print('✅ Fazenda deletada com sucesso!');
-      return true;
-    } catch (e) {
-      print('❌ Erro ao deletar fazenda: $e');
-      return false;
+    if (id.isEmpty) {
+      throw Exception('ID da fazenda não informado');
     }
+
+    print('🗑️ Deletando fazenda: $id');
+
+    // Cascata feita no app: talhões da fazenda e seus registros vinculados
+    final talhoes = await _client.from('talhao').select('id').eq('fazenda_id', id);
+    final talhaoIds = talhoes.map((t) => t['id'].toString()).toList();
+
+    if (talhaoIds.isNotEmpty) {
+      await deletarFilhosDosTalhoes(_client, talhaoIds);
+      await _client.from('talhao').delete().eq('fazenda_id', id);
+    }
+
+    await deletarPorId(_client, _table, id, nomeItem: 'fazenda');
+
+    print('✅ Fazenda deletada com sucesso!');
+    return true;
   }
 
   // Verificar se existe fazenda com mesmo nome

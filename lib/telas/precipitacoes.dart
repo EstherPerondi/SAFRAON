@@ -530,9 +530,19 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
-                context.read<PrecipitacaoProvider>().delete(id);
+              onPressed: () async {
+                final provider = context.read<PrecipitacaoProvider>();
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(context);
+                final ok = await provider.delete(id);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(ok
+                        ? 'Registro excluído com sucesso!'
+                        : (provider.error ?? 'Não foi possível excluir.')),
+                    backgroundColor: ok ? Colors.green : Colors.red,
+                  ),
+                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Excluir'),

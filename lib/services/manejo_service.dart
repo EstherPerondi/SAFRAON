@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/manejo_model.dart';
 import 'supabase_service.dart';
+import 'delete_helper.dart';
 
 class ManejoService {
   final SupabaseClient _client = SupabaseService().client;
@@ -88,12 +89,7 @@ class ManejoService {
   }
 
   Future<bool> delete(String id) async {
-    try {
-      await _client.from(_table).delete().eq('id', id);
-      return true;
-    } catch (e) {
-      print('Erro ao deletar manejo: $e');
-      return false;
-    }
+    await deletarPorId(_client, _table, id, nomeItem: 'manejo');
+    return true;
   }
 }

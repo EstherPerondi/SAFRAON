@@ -430,10 +430,18 @@ class _TalhoesPageState extends State<TalhoesPage> {
             TextButton(
               onPressed: () async {
                 final provider = context.read<TalhaoProvider>();
+                final messenger = ScaffoldMessenger.of(context);
+                Navigator.pop(context);
                 final success = await provider.delete(id);
-
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(success
+                        ? 'Talhão excluído com sucesso!'
+                        : (provider.error ?? 'Não foi possível excluir.')),
+                    backgroundColor: success ? Colors.green : Colors.red,
+                  ),
+                );
                 if (success && mounted) {
-                  Navigator.pop(context);
                   await _loadData();
                 }
               },

@@ -126,15 +126,16 @@ class FazendaProvider extends ChangeNotifier {
 
   // Deletar fazenda
   Future<bool> delete(String id) async {
-    if (_isLoading) return false;
-
     _isLoading = true;
     _error = null;
     _successMessage = null;
     notifyListeners();
 
     try {
-      final fazendaNome = _fazendas.firstWhere((f) => f.id == id).nome;
+      final fazendaNome = _fazendas
+          .where((f) => f.id == id)
+          .map((f) => f.nome)
+          .firstOrNull ?? '';
       
       final success = await _service.delete(id);
       
@@ -153,7 +154,7 @@ class FazendaProvider extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _error = e.toString();
+      _error = e.toString().replaceFirst('Exception: ', '');
       print('❌ Erro ao deletar fazenda: $e');
       _isLoading = false;
       notifyListeners();

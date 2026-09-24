@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/precipitacao_model.dart';
 import 'supabase_service.dart';
+import 'delete_helper.dart';
 
 class PrecipitacaoService {
   final SupabaseClient _client = SupabaseService().client;
@@ -88,12 +89,7 @@ class PrecipitacaoService {
   }
 
   Future<bool> delete(String id) async {
-    try {
-      await _client.from(_table).delete().eq('id', id);
-      return true;
-    } catch (e) {
-      print('Erro ao deletar precipitação: $e');
-      return false;
-    }
+    await deletarPorId(_client, _table, id, nomeItem: 'registro de precipitação');
+    return true;
   }
 }

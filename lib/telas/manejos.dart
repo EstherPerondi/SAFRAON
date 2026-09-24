@@ -460,9 +460,19 @@ class _ManejosPageState extends State<ManejosPage> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
-                context.read<ManejoProvider>().delete(id);
+              onPressed: () async {
+                final provider = context.read<ManejoProvider>();
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(context);
+                final ok = await provider.delete(id);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(ok
+                        ? 'Manejo excluído com sucesso!'
+                        : (provider.error ?? 'Não foi possível excluir.')),
+                    backgroundColor: ok ? Colors.green : Colors.red,
+                  ),
+                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Excluir'),

@@ -478,9 +478,19 @@ class _ColheitasPageState extends State<ColheitasPage> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
-                context.read<ColheitaProvider>().delete(id);
+              onPressed: () async {
+                final provider = context.read<ColheitaProvider>();
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(context);
+                final ok = await provider.delete(id);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(ok
+                        ? 'Colheita excluída com sucesso!'
+                        : (provider.error ?? 'Não foi possível excluir.')),
+                    backgroundColor: ok ? Colors.green : Colors.red,
+                  ),
+                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Excluir'),

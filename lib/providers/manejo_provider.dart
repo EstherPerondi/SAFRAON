@@ -93,6 +93,7 @@ class ManejoProvider extends ChangeNotifier {
 
   Future<bool> delete(String id) async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
@@ -107,7 +108,7 @@ class ManejoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = e.toString().replaceFirst('Exception: ', '');
       _isLoading = false;
       notifyListeners();
       return false;

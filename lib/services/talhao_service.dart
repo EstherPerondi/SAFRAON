@@ -2,6 +2,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/talhao_model.dart';
 import 'supabase_service.dart';
+import 'delete_helper.dart';
 
 class TalhaoService {
   final SupabaseClient _client = SupabaseService().client;
@@ -192,20 +193,17 @@ class TalhaoService {
 
   // Deletar talhão
   Future<bool> delete(String id) async {
-    try {
-      if (id.isEmpty) {
-        throw Exception('ID do talhão não informado');
-      }
-
-      print('🗑️ Deletando talhão: $id');
-
-      await _client.from(_table).delete().eq('id', id);
-
-      print('✅ Talhão deletado com sucesso!');
-      return true;
-    } catch (e) {
-      print('❌ Erro ao deletar talhão: $e');
-      return false;
+    if (id.isEmpty) {
+      throw Exception('ID do talhão não informado');
     }
+
+    print('🗑️ Deletando talhão: $id');
+
+    // Remove os registros vinculados (aplicações, plantios, etc.)
+    await deletarFilhosDosTalhoes(_client, [id]);
+    await deletarPorId(_client, _table, id, nomeItem: 'talhão');
+
+    print('✅ Talhão deletado com sucesso!');
+    return true;
   }
 }

@@ -500,9 +500,19 @@ class _PlantiosPageState extends State<PlantiosPage> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
-                context.read<PlantioProvider>().delete(id);
+              onPressed: () async {
+                final provider = context.read<PlantioProvider>();
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(context);
+                final ok = await provider.delete(id);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(ok
+                        ? 'Plantio excluído com sucesso!'
+                        : (provider.error ?? 'Não foi possível excluir.')),
+                    backgroundColor: ok ? Colors.green : Colors.red,
+                  ),
+                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Excluir'),
