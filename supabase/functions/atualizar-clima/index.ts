@@ -8,6 +8,18 @@ const OPENWEATHER_API_KEY = Deno.env.get("OPENWEATHER_API_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+// Converte um instante (UTC) para a data (YYYY-MM-DD) correspondente no
+// horário de Brasília. Sem isso, entre ~21h e 23h59 (horário local) a data
+// em UTC já vira o dia seguinte e o registro é salvo com a data errada.
+function dataLocalISO(instante: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(instante);
+}
+
 Deno.serve(async (_req) => {
   try {
     // 1. Busca todos os talhões que já têm coordenadas cadastradas
@@ -44,7 +56,7 @@ Deno.serve(async (_req) => {
         const dia = await resp.json();
         if (!dia.main || !dia.weather) throw new Error("Resposta da API incompleta");
 
-        const dataISO = new Date(dia.dt * 1000).toISOString().slice(0, 10);
+        const dataISO = dataLocalISO(new Date(dia.dt * 1000));
         const weather = dia.weather?.[0];
 
         // 3. Garante que a condição climática existe (busca por codigo_api, senão cria)

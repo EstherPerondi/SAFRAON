@@ -161,12 +161,33 @@ class TalhaoService {
 
       print('✅ Geocodificação concluída: ${result.data}');
 
+      // Dispara a atualização do clima/previsão em segundo plano, sem
+      // aguardar (não bloqueia o cadastro). A atualização diária continua
+      // acontecendo sozinha via pg_cron; isso aqui só serve para o talhão
+      // recém-criado já aparecer com dados na hora, sem precisar esperar
+      // o próximo agendamento.
+      _atualizarClimaEmSegundoPlano();
+
       // Busca o talhão de novo para trazer lat/lon já atualizados
       return await getById(talhao.id) ?? talhao;
     } catch (e) {
       print('⚠️ Não foi possível geocodificar o talhão (seguindo sem coordenadas): $e');
       return talhao;
     }
+  }
+
+  // Dispara a atualização de clima e previsão sem aguardar o resultado
+  // (fire-and-forget). Erros aqui não devem quebrar o fluxo de
+  // cadastro/edição do talhão — por isso só logamos, sem lançar exceção.
+  void _atualizarClimaEmSegundoPlano() {
+    _client.functions.invoke('atualizar-clima').catchError((e) {
+      print('⚠️ Falha ao atualizar clima em segundo plano: $e');
+      return null;
+    });
+    _client.functions.invoke('atualizar-previsao').catchError((e) {
+      print('⚠️ Falha ao atualizar previsão em segundo plano: $e');
+      return null;
+    });
   }
 
   // Deletar talhão

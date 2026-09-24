@@ -424,6 +424,12 @@ entrypoint = "./functions/atualizar-clima/index.ts"
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/atualizar-clima/*.html" ]
 
+[functions.atualizar-previsao]
+enabled = true
+verify_jwt = false
+import_map = "./functions/atualizar-previsao/deno.json"
+entrypoint = "./functions/atualizar-previsao/index.ts"
+
 [functions.geocodificar-talhao]
 enabled = true
 verify_jwt = false

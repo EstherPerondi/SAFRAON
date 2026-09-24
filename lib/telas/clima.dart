@@ -16,7 +16,6 @@ class _ClimaPageState extends State<ClimaPage> {
   bool _carregando = true;
   MetricasDiaInfo? _metricas;
   ClimaDiaInfo? _climaHoje;
-  List<ClimaDiaInfo> _ultimos7Dias = [];
   List<PrevisaoDiaInfo> _previsao = [];
 
   String get _talhaoId => widget.talhaoData?['id'] ?? '';
@@ -37,7 +36,6 @@ class _ClimaPageState extends State<ClimaPage> {
     final resultados = await Future.wait([
       _service.getUltimasMetricas(_talhaoId),
       _service.getUltimoClima(_talhaoId),
-      _service.getPrecipitacaoUltimos7Dias(_talhaoId),
       _service.getPrevisao(_talhaoId),
     ]);
 
@@ -45,8 +43,7 @@ class _ClimaPageState extends State<ClimaPage> {
     setState(() {
       _metricas = resultados[0] as MetricasDiaInfo?;
       _climaHoje = resultados[1] as ClimaDiaInfo?;
-      _ultimos7Dias = resultados[2] as List<ClimaDiaInfo>;
-      _previsao = resultados[3] as List<PrevisaoDiaInfo>;
+      _previsao = resultados[2] as List<PrevisaoDiaInfo>;
       _carregando = false;
     });
   }
@@ -111,8 +108,6 @@ class _ClimaPageState extends State<ClimaPage> {
                       _buildTitle(nome, fazenda),
                       const SizedBox(height: 16),
                       _buildClimateMetrics(),
-                      const SizedBox(height: 24),
-                      _buildAccumulatedPrecipitation(),
                       const SizedBox(height: 24),
                       _buildWeatherForecast(),
                     ],
@@ -229,27 +224,13 @@ class _ClimaPageState extends State<ClimaPage> {
                   color: VerdeClaro,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
+              const SizedBox(width: 16),
               Expanded(
                 child: _buildMetricItem(
                   icon: Icons.air,
                   label: 'Vento',
                   value: _metricas?.velocidadeVento?.toStringAsFixed(1) ?? '--',
                   unit: 'm/s',
-                  color: VerdeClaro,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildMetricItem(
-                  icon: Icons.umbrella,
-                  label: 'Precipitação',
-                  value: _climaHoje?.precipitacao.toStringAsFixed(0) ?? '--',
-                  unit: 'mm',
                   color: VerdeClaro,
                 ),
               ),
@@ -311,145 +292,6 @@ class _ClimaPageState extends State<ClimaPage> {
   }
 
   static const _diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-  Widget _buildAccumulatedPrecipitation() {
-    final hoje = DateTime.now();
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: BegeClaro,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.graphic_eq, color: VerdeClaro, size: 25),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Precipitação acumulada',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: VerdeClaro),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(color: VerdeClaro, borderRadius: BorderRadius.circular(12)),
-                child: Text(
-                  'Últimos 7 dias',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: BegeClaro),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (_ultimos7Dias.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                'Sem registros de chuva nos últimos 7 dias.',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-              ),
-            )
-          else
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(7, (i) {
-                final dia = hoje.subtract(Duration(days: 6 - i));
-                final registro = _ultimos7Dias.where((c) =>
-                    c.data.year == dia.year && c.data.month == dia.month && c.data.day == dia.day);
-                final mm = registro.isNotEmpty ? registro.first.precipitacao : 0.0;
-                final isToday = i == 6;
-                return _buildBarChartItem(
-                  day: _diasSemana[dia.weekday % 7],
-                  mm: mm,
-                  isToday: isToday,
-                );
-              }),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBarChartItem({required String day, required double mm, bool isToday = false}) {
-    const double maxHeight = 100;
-    double height = (mm / 20) * maxHeight;
-    if (height < 5) height = 5;
-    if (height > maxHeight) height = maxHeight;
-
-    return Column(
-      children: [
-        SizedBox(
-          height: maxHeight,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                width: 28,
-                height: height,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      isToday ? VerdeEscuro : VerdeEscuro,
-                      isToday ? VerdeClaro : Colors.lightGreen.shade600,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: mm > 0
-                    ? Center(
-                        child: Text(
-                          mm.toStringAsFixed(0),
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isToday ? BegeClaro : Bege,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          decoration: BoxDecoration(
-            color: isToday ? VerdeEscuro : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            day,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-              color: isToday ? BegeClaro : Colors.grey.shade700,
-            ),
-          ),
-        ),
-        if (isToday)
-          Container(width: 4, height: 2, margin: const EdgeInsets.only(top: 2), color: VerdeEscuro),
-      ],
-    );
-  }
 
   Widget _buildWeatherForecast() {
     return Container(

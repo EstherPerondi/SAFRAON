@@ -6,6 +6,30 @@ const OPENWEATHER_API_KEY = Deno.env.get("OPENWEATHER_API_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+// Converte um instante (UTC) para a data (YYYY-MM-DD) no horário de
+// Brasília. O forecast da OpenWeather vem em blocos de 3h em UTC; sem essa
+// conversão, os blocos das ~21h-23h59 locais "vazam" para o dia seguinte
+// (ou o contrário), agrupando a previsão no dia errado.
+function dataLocalISO(instante: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(instante);
+}
+
+// Hora (0-23) do instante, já no horário de Brasília.
+function horaLocal(instante: Date): number {
+  return Number(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      hour12: false,
+    }).format(instante),
+  );
+}
+
 Deno.serve(async (_req) => {
   try {
     // 1. Busca todos os talhões que já têm coordenadas cadastradas
@@ -23,8 +47,8 @@ Deno.serve(async (_req) => {
       );
     }
 
-    // Hoje (para não gravar previsão de um dia que já passou)
-    const hojeISO = new Date().toISOString().slice(0, 10);
+    // Hoje (para não gravar previsão de um dia que já passou), no horário local
+    const hojeISO = dataLocalISO(new Date());
 
     const resultados = [];
 
@@ -49,7 +73,8 @@ Deno.serve(async (_req) => {
         // deno-lint-ignore no-explicit-any
         const porDia = new Map<string, any[]>();
         for (const entrada of lista) {
-          const data = entrada.dt_txt.slice(0, 10); // "YYYY-MM-DD"
+          const instante = new Date(entrada.dt * 1000);
+          const data = dataLocalISO(instante); // "YYYY-MM-DD" no horário local
           if (data < hojeISO) continue; // ignora qualquer coisa no passado
           if (!porDia.has(data)) porDia.set(data, []);
           porDia.get(data)!.push(entrada);
@@ -64,10 +89,10 @@ Deno.serve(async (_req) => {
           const temperatura_min = Math.min(...temps);
           const temperatura_max = Math.max(...temps);
 
-          // Usa a condição do horário mais próximo do meio-dia como representativa do dia
+          // Usa a condição do horário mais próximo do meio-dia (local) como representativa do dia
           const entradaDoMeioDia = entradas.reduce((melhor: any, atual: any) => {
-            const horaAtual = Number(atual.dt_txt.slice(11, 13));
-            const horaMelhor = Number(melhor.dt_txt.slice(11, 13));
+            const horaAtual = horaLocal(new Date(atual.dt * 1000));
+            const horaMelhor = horaLocal(new Date(melhor.dt * 1000));
             return Math.abs(horaAtual - 12) < Math.abs(horaMelhor - 12) ? atual : melhor;
           }, entradas[0]);
           const weather = entradaDoMeioDia.weather?.[0];
