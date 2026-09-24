@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/precipitacao_provider.dart';
 import '../models/precipitacao_model.dart';
+import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
 
 class PrecipitacoesPage extends StatefulWidget {
@@ -388,6 +389,24 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                           ),
                         ],
                       ),
+                      if (_talhaoId == null && precipitacao.localizacao != null)
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                precipitacao.localizacao!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -485,11 +504,9 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
               talhaoId: _talhaoId,
               onSave: (novaPrecipitacao) {
                 final provider = context.read<PrecipitacaoProvider>();
-                if (precipitacao == null) {
-                  provider.create(novaPrecipitacao);
-                } else {
-                  provider.update(novaPrecipitacao);
-                }
+                return precipitacao == null
+                    ? provider.create(novaPrecipitacao)
+                    : provider.update(novaPrecipitacao);
               },
             ),
           ),
@@ -533,7 +550,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
 class _PrecipitacaoFormModal extends StatefulWidget {
   final PrecipitacaoModel? precipitacao;
   final String? talhaoId;
-  final Function(PrecipitacaoModel) onSave;
+  final Future<bool> Function(PrecipitacaoModel) onSave;
 
   const _PrecipitacaoFormModal({
     this.precipitacao,
@@ -547,6 +564,9 @@ class _PrecipitacaoFormModal extends StatefulWidget {
 
 class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
   final _formKey = GlobalKey<FormState>();
+  String? _talhaoSelecionadoId;
+  bool _salvando = false;
+  String? _erroSalvar;
   final _quantidadeController = TextEditingController();
   DateTime? _selectedDate;
 
@@ -555,6 +575,7 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
   @override
   void initState() {
     super.initState();
+    _talhaoSelecionadoId = widget.talhaoId ?? widget.precipitacao?.talhaoId;
     if (widget.precipitacao != null) {
       _quantidadeController.text = widget.precipitacao!.quantidade.toString();
       _selectedDate = widget.precipitacao!.data;
@@ -621,6 +642,16 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Só pede fazenda/talhão quando a tela foi aberta pelo menu
+                    // principal. Dentro de um talhão, o talhão já é conhecido.
+                    if (widget.talhaoId == null) ...[
+                      SeletorFazendaTalhao(
+                          talhaoIdFixo: widget.talhaoId,
+                          talhaoIdInicial: widget.precipitacao?.talhaoId,
+                          onChanged: (id) => _talhaoSelecionadoId = id,
+                          ),
+                      const SizedBox(height: 16),
+                    ],
                     _buildFormField(
                       label: 'Milímetros (mm)',
                       controller: _quantidadeController,
@@ -632,11 +663,19 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
                     ),
                     const SizedBox(height: 16),
                     _buildDateField(),
+                    if (_erroSalvar != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          _erroSalvar!,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _savePrecipitacao,
+                        onPressed: _salvando ? null : _savePrecipitacao,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -782,20 +821,44 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
     }
   }
 
-  void _savePrecipitacao() {
-    if (_formKey.currentState!.validate() && _selectedDate != null) {
-      final novaPrecipitacao = PrecipitacaoModel(
+  Future<void> _savePrecipitacao() async {
+    if (_salvando) return;
+    if (!_formKey.currentState!.validate() || _selectedDate == null) return;
+
+    final talhaoId = _talhaoSelecionadoId;
+    if (talhaoId == null || talhaoId.isEmpty) {
+      setState(() => _erroSalvar = 'Selecione a fazenda e o talhão.');
+      return;
+    }
+
+    setState(() {
+      _salvando = true;
+      _erroSalvar = null;
+    });
+
+    final novaPrecipitacao = PrecipitacaoModel(
         id: widget.precipitacao?.id ?? '',
-        talhaoId: widget.talhaoId ?? widget.precipitacao?.talhaoId ?? '',
-        quantidade: double.parse(_quantidadeController.text),
+        talhaoId: talhaoId,
+        quantidade: double.parse(_quantidadeController.text.replaceAll(',', '.')),
         data: _selectedDate!,
         fonte: 'manual',
-      );
+    );
 
-      widget.onSave(novaPrecipitacao);
-      Navigator.pop(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
+    bool salvou = false;
+    try {
+      salvou = await widget.onSave(novaPrecipitacao);
+    } catch (_) {
+      salvou = false;
+    }
+
+    if (!mounted) return;
+
+    if (salvou) {
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
@@ -806,6 +869,12 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
           duration: const Duration(seconds: 2),
         ),
       );
+    } else {
+      setState(() {
+        _salvando = false;
+        _erroSalvar =
+            'Não foi possível salvar. Verifique sua conexão e tente novamente.';
+      });
     }
   }
 }

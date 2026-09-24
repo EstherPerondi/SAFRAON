@@ -5,7 +5,11 @@ import 'supabase_service.dart';
 class ManejoService {
   final SupabaseClient _client = SupabaseService().client;
   final String _table = 'manejo';
-  static const _selectComNome = '*, tipo_manejo ( tipo_de_manejo )';
+  static const _selectComNome = '''
+    *,
+    tipo_manejo ( tipo_de_manejo ),
+    talhao ( nome, fazenda ( nome ) )
+  ''';
 
   Future<List<ManejoModel>> getByTalhaoId(String talhaoId) async {
     try {
@@ -32,8 +36,10 @@ class ManejoService {
             *,
             tipo_manejo ( tipo_de_manejo ),
             talhao!inner (
+              nome,
               fazenda_id,
               fazenda!inner (
+                nome,
                 usuario_id
               )
             )

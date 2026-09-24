@@ -7,6 +7,8 @@
 class PrecipitacaoModel {
   final String id;
   final String talhaoId;
+  final String? talhaoNome; // vem de um join com a tabela 'talhao'
+  final String? fazendaNome; // vem de um join talhao -> fazenda
   final double quantidade; // coluna: precipitacao_dia
   final DateTime data;
   final String fonte;
@@ -16,6 +18,8 @@ class PrecipitacaoModel {
   PrecipitacaoModel({
     required this.id,
     required this.talhaoId,
+    this.talhaoNome,
+    this.fazendaNome,
     required this.quantidade,
     required this.data,
     this.fonte = 'manual',
@@ -23,11 +27,24 @@ class PrecipitacaoModel {
     this.updatedAt,
   });
 
+  String? get localizacao {
+    final talhao = talhaoNome?.trim() ?? '';
+    final fazenda = fazendaNome?.trim() ?? '';
+    if (talhao.isNotEmpty && fazenda.isNotEmpty) return '$fazenda • $talhao';
+    if (talhao.isNotEmpty) return talhao;
+    return null;
+  }
+
   // Converter JSON para objeto
   factory PrecipitacaoModel.fromJson(Map<String, dynamic> json) {
+    final talhao = json['talhao'];
+    final fazenda = talhao is Map ? talhao['fazenda'] : null;
+
     return PrecipitacaoModel(
       id: json['id']?.toString() ?? '',
       talhaoId: json['talhao_id']?.toString() ?? '',
+      talhaoNome: talhao is Map ? talhao['nome']?.toString() : null,
+      fazendaNome: fazenda is Map ? fazenda['nome']?.toString() : null,
       quantidade: (json['precipitacao_dia'] ?? 0).toDouble(),
       data: json['data'] != null
           ? DateTime.parse(json['data'])
@@ -61,6 +78,8 @@ class PrecipitacaoModel {
   PrecipitacaoModel copyWith({
     String? id,
     String? talhaoId,
+    String? talhaoNome,
+    String? fazendaNome,
     double? quantidade,
     DateTime? data,
     String? fonte,
@@ -70,6 +89,8 @@ class PrecipitacaoModel {
     return PrecipitacaoModel(
       id: id ?? this.id,
       talhaoId: talhaoId ?? this.talhaoId,
+      talhaoNome: talhaoNome ?? this.talhaoNome,
+      fazendaNome: fazendaNome ?? this.fazendaNome,
       quantidade: quantidade ?? this.quantidade,
       data: data ?? this.data,
       fonte: fonte ?? this.fonte,

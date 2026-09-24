@@ -5,7 +5,11 @@ import 'supabase_service.dart';
 class ColheitaService {
   final SupabaseClient _client = SupabaseService().client;
   final String _table = 'colheita';
-  static const _selectComNome = '*, cultura (plantacultivada)';
+  static const _selectComNome = '''
+    *,
+    cultura ( plantacultivada ),
+    talhao ( nome, fazenda ( nome ) )
+  ''';
 
   Future<List<ColheitaModel>> getByTalhaoId(String talhaoId) async {
     try {
@@ -32,8 +36,10 @@ class ColheitaService {
             *,
             cultura ( plantacultivada ),
             talhao!inner (
+              nome,
               fazenda_id,
               fazenda!inner (
+                nome,
                 usuario_id
               )
             )

@@ -5,12 +5,16 @@ import 'supabase_service.dart';
 class PrecipitacaoService {
   final SupabaseClient _client = SupabaseService().client;
   final String _table = 'clima_dia';
+  static const _selectComNome = '''
+    *,
+    talhao ( nome, fazenda ( nome ) )
+  ''';
 
   Future<List<PrecipitacaoModel>> getByTalhaoId(String talhaoId) async {
     try {
       final response = await _client
           .from(_table)
-          .select()
+          .select(_selectComNome)
           .eq('talhao_id', talhaoId)
           .eq('fonte', 'manual')
           .order('data', ascending: false);
@@ -31,8 +35,10 @@ class PrecipitacaoService {
           .select('''
             *,
             talhao!inner (
+              nome,
               fazenda_id,
               fazenda!inner (
+                nome,
                 usuario_id
               )
             )
@@ -55,7 +61,7 @@ class PrecipitacaoService {
       final response = await _client
           .from(_table)
           .insert(precipitacao.toJson())
-          .select()
+          .select(_selectComNome)
           .single();
 
       return PrecipitacaoModel.fromJson(response);
@@ -71,7 +77,7 @@ class PrecipitacaoService {
           .from(_table)
           .update(precipitacao.toJson())
           .eq('id', precipitacao.id)
-          .select()
+          .select(_selectComNome)
           .single();
 
       return PrecipitacaoModel.fromJson(response);

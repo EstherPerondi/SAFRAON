@@ -5,6 +5,7 @@ import '../providers/talhao_provider.dart';
 import '../models/aplicacao_model.dart';
 import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
+import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
 
 class AplicacoesPage extends StatefulWidget {
@@ -446,11 +447,9 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
               defensivos: _defensivos,
               onSave: (novaAplicacao) {
                 final provider = context.read<AplicacaoProvider>();
-                if (aplicacao == null) {
-                  provider.create(novaAplicacao);
-                } else {
-                  provider.update(novaAplicacao);
-                }
+                return aplicacao == null
+                    ? provider.create(novaAplicacao)
+                    : provider.update(novaAplicacao);
               },
             ),
           ),
@@ -493,7 +492,7 @@ class _AplicacaoFormModal extends StatefulWidget {
   final AplicacaoModel? aplicacao;
   final String? talhaoId;
   final List<LookupItem> defensivos;
-  final Function(AplicacaoModel) onSave;
+  final Future<bool> Function(AplicacaoModel) onSave;
 
   const _AplicacaoFormModal({
     this.aplicacao,
@@ -508,6 +507,9 @@ class _AplicacaoFormModal extends StatefulWidget {
 
 class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
   final _formKey = GlobalKey<FormState>();
+  String? _talhaoSelecionadoId;
+  bool _salvando = false;
+  String? _erroSalvar;
   final _motivoController = TextEditingController();
   final _doseController = TextEditingController();
   String? _defensivoId;
@@ -518,6 +520,7 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
   @override
   void initState() {
     super.initState();
+    _talhaoSelecionadoId = widget.talhaoId ?? widget.aplicacao?.talhaoId;
     if (widget.aplicacao != null) {
       _defensivoId = widget.aplicacao!.defensivoId;
       _motivoController.text = widget.aplicacao!.motivo;
@@ -590,6 +593,16 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Só pede fazenda/talhão quando a tela foi aberta pelo menu
+                    // principal. Dentro de um talhão, o talhão já é conhecido.
+                    if (widget.talhaoId == null) ...[
+                      SeletorFazendaTalhao(
+                          talhaoIdFixo: widget.talhaoId,
+                          talhaoIdInicial: widget.aplicacao?.talhaoId,
+                          onChanged: (id) => _talhaoSelecionadoId = id,
+                          ),
+                      const SizedBox(height: 16),
+                    ],
                     _buildDefensivoDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
@@ -608,13 +621,21 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
                       hint: 'Ex: 2.5',
                       keyboardType: TextInputType.numberWithOptions(decimal: true),
                     ),
+                    if (_erroSalvar != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          _erroSalvar!,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      ),
                     const SizedBox(height: 24),
 
                     // Botão Salvar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveAplicacao,
+                        onPressed: _salvando ? null : _saveAplicacao,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -834,21 +855,45 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
     }
   }
 
-  void _saveAplicacao() {
-    if (_formKey.currentState!.validate() && _selectedDate != null) {
-      final novaAplicacao = AplicacaoModel(
+  Future<void> _saveAplicacao() async {
+    if (_salvando) return;
+    if (!_formKey.currentState!.validate() || _selectedDate == null) return;
+
+    final talhaoId = _talhaoSelecionadoId;
+    if (talhaoId == null || talhaoId.isEmpty) {
+      setState(() => _erroSalvar = 'Selecione a fazenda e o talhão.');
+      return;
+    }
+
+    setState(() {
+      _salvando = true;
+      _erroSalvar = null;
+    });
+
+    final novaAplicacao = AplicacaoModel(
         id: widget.aplicacao?.id ?? '',
-        talhaoId: widget.talhaoId ?? widget.aplicacao?.talhaoId ?? '',
+        talhaoId: talhaoId,
         defensivoId: _defensivoId!,
         data: _selectedDate!,
         motivo: _motivoController.text,
-        doseporhectare: double.parse(_doseController.text),
-      );
+        doseporhectare: double.parse(_doseController.text.replaceAll(',', '.')),
+    );
 
-      widget.onSave(novaAplicacao);
-      Navigator.pop(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
+    bool salvou = false;
+    try {
+      salvou = await widget.onSave(novaAplicacao);
+    } catch (_) {
+      salvou = false;
+    }
+
+    if (!mounted) return;
+
+    if (salvou) {
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
@@ -859,6 +904,12 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
           duration: const Duration(seconds: 2),
         ),
       );
+    } else {
+      setState(() {
+        _salvando = false;
+        _erroSalvar =
+            'Não foi possível salvar. Verifique sua conexão e tente novamente.';
+      });
     }
   }
 }

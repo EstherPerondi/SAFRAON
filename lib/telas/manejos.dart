@@ -4,6 +4,7 @@ import '../providers/manejo_provider.dart';
 import '../models/manejo_model.dart';
 import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
+import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
 
 class ManejosPage extends StatefulWidget {
@@ -291,6 +292,24 @@ class _ManejosPageState extends State<ManejosPage> {
                           ),
                         ],
                       ),
+                      if (_talhaoId == null && manejo.localizacao != null)
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                manejo.localizacao!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -417,11 +436,9 @@ class _ManejosPageState extends State<ManejosPage> {
               tiposManejo: _tiposManejo,
               onSave: (novoManejo) {
                 final provider = context.read<ManejoProvider>();
-                if (manejo == null) {
-                  provider.create(novoManejo);
-                } else {
-                  provider.update(novoManejo);
-                }
+                return manejo == null
+                    ? provider.create(novoManejo)
+                    : provider.update(novoManejo);
               },
             ),
           ),
@@ -464,7 +481,7 @@ class _ManejoFormModal extends StatefulWidget {
   final ManejoModel? manejo;
   final String? talhaoId;
   final List<LookupItem> tiposManejo;
-  final Function(ManejoModel) onSave;
+  final Future<bool> Function(ManejoModel) onSave;
 
   const _ManejoFormModal({
     this.manejo,
@@ -479,6 +496,9 @@ class _ManejoFormModal extends StatefulWidget {
 
 class _ManejoFormModalState extends State<_ManejoFormModal> {
   final _formKey = GlobalKey<FormState>();
+  String? _talhaoSelecionadoId;
+  bool _salvando = false;
+  String? _erroSalvar;
   final _motivoController = TextEditingController();
   String? _tipoManejoId;
   DateTime? _selectedDate;
@@ -488,6 +508,7 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
   @override
   void initState() {
     super.initState();
+    _talhaoSelecionadoId = widget.talhaoId ?? widget.manejo?.talhaoId;
     if (widget.manejo != null) {
       _tipoManejoId = widget.manejo!.tipoManejoId;
       _motivoController.text = widget.manejo!.motivo;
@@ -555,6 +576,16 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Só pede fazenda/talhão quando a tela foi aberta pelo menu
+                    // principal. Dentro de um talhão, o talhão já é conhecido.
+                    if (widget.talhaoId == null) ...[
+                      SeletorFazendaTalhao(
+                          talhaoIdFixo: widget.talhaoId,
+                          talhaoIdInicial: widget.manejo?.talhaoId,
+                          onChanged: (id) => _talhaoSelecionadoId = id,
+                          ),
+                      const SizedBox(height: 16),
+                    ],
                     _buildTipoManejoDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
@@ -565,11 +596,19 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
                       icon: Icons.description,
                       hint: 'Motivo do manejo',
                     ),
+                    if (_erroSalvar != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          _erroSalvar!,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveManejo,
+                        onPressed: _salvando ? null : _saveManejo,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -765,20 +804,44 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
     }
   }
 
-  void _saveManejo() {
-    if (_formKey.currentState!.validate() && _selectedDate != null) {
-      final novoManejo = ManejoModel(
+  Future<void> _saveManejo() async {
+    if (_salvando) return;
+    if (!_formKey.currentState!.validate() || _selectedDate == null) return;
+
+    final talhaoId = _talhaoSelecionadoId;
+    if (talhaoId == null || talhaoId.isEmpty) {
+      setState(() => _erroSalvar = 'Selecione a fazenda e o talhão.');
+      return;
+    }
+
+    setState(() {
+      _salvando = true;
+      _erroSalvar = null;
+    });
+
+    final novoManejo = ManejoModel(
         id: widget.manejo?.id ?? '',
-        talhaoId: widget.talhaoId ?? widget.manejo?.talhaoId ?? '',
+        talhaoId: talhaoId,
         tipoManejoId: _tipoManejoId!,
         data: _selectedDate!,
         descricao: _motivoController.text,
-      );
+    );
 
-      widget.onSave(novoManejo);
-      Navigator.pop(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
+    bool salvou = false;
+    try {
+      salvou = await widget.onSave(novoManejo);
+    } catch (_) {
+      salvou = false;
+    }
+
+    if (!mounted) return;
+
+    if (salvou) {
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
@@ -789,6 +852,12 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
           duration: const Duration(seconds: 2),
         ),
       );
+    } else {
+      setState(() {
+        _salvando = false;
+        _erroSalvar =
+            'Não foi possível salvar. Verifique sua conexão e tente novamente.';
+      });
     }
   }
 }

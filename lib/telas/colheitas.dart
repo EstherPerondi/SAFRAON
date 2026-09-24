@@ -4,6 +4,7 @@ import '../providers/colheita_provider.dart';
 import '../models/colheita_model.dart';
 import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
+import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
 
 class ColheitasPage extends StatefulWidget {
@@ -302,6 +303,24 @@ class _ColheitasPageState extends State<ColheitasPage> {
                           ),
                         ],
                       ),
+                      if (_talhaoId == null && colheita.localizacao != null)
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                colheita.localizacao!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -435,11 +454,9 @@ class _ColheitasPageState extends State<ColheitasPage> {
               culturas: _culturas,
               onSave: (novaColheita) {
                 final provider = context.read<ColheitaProvider>();
-                if (colheita == null) {
-                  provider.create(novaColheita);
-                } else {
-                  provider.update(novaColheita);
-                }
+                return colheita == null
+                    ? provider.create(novaColheita)
+                    : provider.update(novaColheita);
               },
             ),
           ),
@@ -482,7 +499,7 @@ class _ColheitaFormModal extends StatefulWidget {
   final ColheitaModel? colheita;
   final String? talhaoId;
   final List<LookupItem> culturas;
-  final Function(ColheitaModel) onSave;
+  final Future<bool> Function(ColheitaModel) onSave;
 
   const _ColheitaFormModal({
     this.colheita,
@@ -497,6 +514,9 @@ class _ColheitaFormModal extends StatefulWidget {
 
 class _ColheitaFormModalState extends State<_ColheitaFormModal> {
   final _formKey = GlobalKey<FormState>();
+  String? _talhaoSelecionadoId;
+  bool _salvando = false;
+  String? _erroSalvar;
   final _producaoController = TextEditingController();
   final _umidadeController = TextEditingController();
   String? _culturaId;
@@ -507,6 +527,7 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
   @override
   void initState() {
     super.initState();
+    _talhaoSelecionadoId = widget.talhaoId ?? widget.colheita?.talhaoId;
     if (widget.colheita != null) {
       _culturaId = widget.colheita!.culturaId;
       _producaoController.text = widget.colheita!.producao.toString();
@@ -576,6 +597,16 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Só pede fazenda/talhão quando a tela foi aberta pelo menu
+                    // principal. Dentro de um talhão, o talhão já é conhecido.
+                    if (widget.talhaoId == null) ...[
+                      SeletorFazendaTalhao(
+                          talhaoIdFixo: widget.talhaoId,
+                          talhaoIdInicial: widget.colheita?.talhaoId,
+                          onChanged: (id) => _talhaoSelecionadoId = id,
+                          ),
+                      const SizedBox(height: 16),
+                    ],
                     _buildCulturaDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
@@ -595,11 +626,19 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
                       hint: 'Ex: 14.5',
                       keyboardType: TextInputType.numberWithOptions(decimal: true),
                     ),
+                    if (_erroSalvar != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          _erroSalvar!,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveColheita,
+                        onPressed: _salvando ? null : _saveColheita,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -803,21 +842,45 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
     }
   }
 
-  void _saveColheita() {
-    if (_formKey.currentState!.validate() && _selectedDate != null) {
-      final novaColheita = ColheitaModel(
+  Future<void> _saveColheita() async {
+    if (_salvando) return;
+    if (!_formKey.currentState!.validate() || _selectedDate == null) return;
+
+    final talhaoId = _talhaoSelecionadoId;
+    if (talhaoId == null || talhaoId.isEmpty) {
+      setState(() => _erroSalvar = 'Selecione a fazenda e o talhão.');
+      return;
+    }
+
+    setState(() {
+      _salvando = true;
+      _erroSalvar = null;
+    });
+
+    final novaColheita = ColheitaModel(
         id: widget.colheita?.id ?? '',
-        talhaoId: widget.talhaoId ?? widget.colheita?.talhaoId ?? '',
+        talhaoId: talhaoId,
         culturaId: _culturaId!,
         data: _selectedDate!,
-        producao: double.parse(_producaoController.text),
-        umidade: double.parse(_umidadeController.text),
-      );
+        producao: double.parse(_producaoController.text.replaceAll(',', '.')),
+        umidade: double.parse(_umidadeController.text.replaceAll(',', '.')),
+    );
 
-      widget.onSave(novaColheita);
-      Navigator.pop(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
+    bool salvou = false;
+    try {
+      salvou = await widget.onSave(novaColheita);
+    } catch (_) {
+      salvou = false;
+    }
+
+    if (!mounted) return;
+
+    if (salvou) {
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
@@ -828,6 +891,12 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
           duration: const Duration(seconds: 2),
         ),
       );
+    } else {
+      setState(() {
+        _salvando = false;
+        _erroSalvar =
+            'Não foi possível salvar. Verifique sua conexão e tente novamente.';
+      });
     }
   }
 }

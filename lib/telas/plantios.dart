@@ -4,6 +4,7 @@ import '../providers/plantio_provider.dart';
 import '../models/plantio_model.dart';
 import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
+import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
 
 class PlantiosPage extends StatefulWidget {
@@ -475,11 +476,9 @@ class _PlantiosPageState extends State<PlantiosPage> {
               inoculantes: _inoculantes,
               onSave: (novoPlantio) {
                 final provider = context.read<PlantioProvider>();
-                if (plantio == null) {
-                  provider.create(novoPlantio);
-                } else {
-                  provider.update(novoPlantio);
-                }
+                return plantio == null
+                    ? provider.create(novoPlantio)
+                    : provider.update(novoPlantio);
               },
             ),
           ),
@@ -524,7 +523,7 @@ class _PlantioFormModal extends StatefulWidget {
   final List<LookupItem> culturas;
   final List<LookupItem> adubos;
   final List<LookupItem> inoculantes;
-  final Function(PlantioModel) onSave;
+  final Future<bool> Function(PlantioModel) onSave;
 
   const _PlantioFormModal({
     this.plantio,
@@ -541,6 +540,9 @@ class _PlantioFormModal extends StatefulWidget {
 
 class _PlantioFormModalState extends State<_PlantioFormModal> {
   final _formKey = GlobalKey<FormState>();
+  String? _talhaoSelecionadoId;
+  bool _salvando = false;
+  String? _erroSalvar;
   final _sementesController = TextEditingController();
   final _aduboQuantidadeController = TextEditingController();
   String? _culturaId;
@@ -556,6 +558,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
   @override
   void initState() {
     super.initState();
+    _talhaoSelecionadoId = widget.talhaoId ?? widget.plantio?.talhaoId;
     if (widget.plantio != null) {
       _culturaId = _vazioParaNulo(widget.plantio!.culturaId);
       _variedadeId = _vazioParaNulo(widget.plantio!.variedadeId);
@@ -668,6 +671,16 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Só pede fazenda/talhão quando a tela foi aberta pelo menu
+                    // principal. Dentro de um talhão, o talhão já é conhecido.
+                    if (widget.talhaoId == null) ...[
+                      SeletorFazendaTalhao(
+                          talhaoIdFixo: widget.talhaoId,
+                          talhaoIdInicial: widget.plantio?.talhaoId,
+                          onChanged: (id) => _talhaoSelecionadoId = id,
+                          ),
+                      const SizedBox(height: 16),
+                    ],
                     _buildCulturaDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
@@ -693,11 +706,19 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
                       hint: 'Ex: 300',
                       keyboardType: TextInputType.numberWithOptions(decimal: true),
                     ),
+                    if (_erroSalvar != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          _erroSalvar!,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _savePlantio,
+                        onPressed: _salvando ? null : _savePlantio,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -1114,24 +1135,48 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
     }
   }
 
-  void _savePlantio() {
-    if (_formKey.currentState!.validate() && _selectedDate != null) {
-      final novoPlantio = PlantioModel(
+  Future<void> _savePlantio() async {
+    if (_salvando) return;
+    if (!_formKey.currentState!.validate() || _selectedDate == null) return;
+
+    final talhaoId = _talhaoSelecionadoId;
+    if (talhaoId == null || talhaoId.isEmpty) {
+      setState(() => _erroSalvar = 'Selecione a fazenda e o talhão.');
+      return;
+    }
+
+    setState(() {
+      _salvando = true;
+      _erroSalvar = null;
+    });
+
+    final novoPlantio = PlantioModel(
         id: widget.plantio?.id ?? '',
-        talhaoId: widget.talhaoId ?? widget.plantio?.talhaoId ?? '',
+        talhaoId: talhaoId,
         culturaId: _culturaId!,
         variedadeId: _variedadeId!,
         aduboId: _aduboId!,
         inoculanteId: _inoculanteId,
         data: _selectedDate!,
-        quantidadeSementesPorMetro: double.parse(_sementesController.text),
-        quantidadeAduboPorAlqueire: double.parse(_aduboQuantidadeController.text),
-      );
+        quantidadeSementesPorMetro: double.parse(_sementesController.text.replaceAll(',', '.')),
+        quantidadeAduboPorAlqueire: double.parse(_aduboQuantidadeController.text.replaceAll(',', '.')),
+    );
 
-      widget.onSave(novoPlantio);
-      Navigator.pop(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
+    bool salvou = false;
+    try {
+      salvou = await widget.onSave(novoPlantio);
+    } catch (_) {
+      salvou = false;
+    }
+
+    if (!mounted) return;
+
+    if (salvou) {
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
@@ -1142,6 +1187,12 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
           duration: const Duration(seconds: 2),
         ),
       );
+    } else {
+      setState(() {
+        _salvando = false;
+        _erroSalvar =
+            'Não foi possível salvar. Verifique sua conexão e tente novamente.';
+      });
     }
   }
 }

@@ -34,7 +34,7 @@ class _FazendasPageState extends State<FazendasPage> {
     await provider.loadUserFazendas();
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Bege,
@@ -43,10 +43,14 @@ class _FazendasPageState extends State<FazendasPage> {
         builder: (context, provider, child) {
           // Mostrar mensagens de sucesso/erro
           if (provider.successMessage != null) {
+            // 1. Guarda a mensagem em uma variável local
+            final String mensagemSucesso = provider.successMessage!;
+
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(provider.successMessage!),
+                  // 2. Usa a variável local (sem o !)
+                  content: Text(mensagemSucesso),
                   backgroundColor: Colors.green,
                   duration: const Duration(seconds: 2),
                 ),
@@ -56,10 +60,14 @@ class _FazendasPageState extends State<FazendasPage> {
           }
 
           if (provider.error != null) {
+            // 1. Guarda a mensagem em uma variável local
+            final String mensagemErro = provider.error!;
+
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(provider.error!),
+                  // 2. Usa a variável local (sem o !)
+                  content: Text(mensagemErro),
                   backgroundColor: Colors.red,
                   duration: const Duration(seconds: 3),
                 ),
