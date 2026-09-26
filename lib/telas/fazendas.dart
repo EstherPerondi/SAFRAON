@@ -22,12 +22,17 @@ class _FazendasPageState extends State<FazendasPage> {
   void initState() {
     super.initState();
     LookupService().getEstados().then((lista) {
+      lista.sort(_porNome);
       if (mounted) setState(() => _estados = lista);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
   }
+
+  // Ordena por nome, ignorando maiúsculas/minúsculas.
+  int _porNome(LookupItem a, LookupItem b) =>
+      a.nome.toLowerCase().compareTo(b.nome.toLowerCase());
 
   Future<void> _loadData() async {
     final provider = context.read<FazendaProvider>();
@@ -605,6 +610,9 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
             if (novoEstado != null) {
               setState(() {
                 widget.estados.add(novoEstado);
+                widget.estados.sort(
+                  (a, b) => a.nome.toLowerCase().compareTo(b.nome.toLowerCase()),
+                );
                 _estadoId = novoEstado.id;
               });
             }
