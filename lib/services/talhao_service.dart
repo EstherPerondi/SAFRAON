@@ -11,8 +11,6 @@ import 'package:powersync/powersync.dart';
 
 import '../models/talhao_model.dart';
 import '../powersync/powersync_service.dart';
-import 'supabase_service.dart';
-import 'delete_helper.dart';
 
 class TalhaoService {
   PowerSyncDatabase get _db => PowerSyncService().db;
@@ -121,15 +119,5 @@ class TalhaoService {
       debugPrint('❌ Erro ao deletar talhão: $e');
       return false;
     }
-    }
-
-    print('🗑️ Deletando talhão: $id');
-
-    // Remove os registros vinculados (aplicações, plantios, etc.)
-    await deletarFilhosDosTalhoes(_client, [id]);
-    await deletarPorId(_client, _table, id, nomeItem: 'talhão');
-
-    print('✅ Talhão deletado com sucesso!');
-    return true;
   }
 }

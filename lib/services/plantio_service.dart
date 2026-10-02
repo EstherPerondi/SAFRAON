@@ -7,20 +7,9 @@ import '../models/plantio_model.dart';
 import '../powersync/db_helpers.dart';
 import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
-import 'delete_helper.dart';
 
 class PlantioService {
-  final SupabaseClient _client = SupabaseService().client;
   PowerSyncDatabase get _db => PowerSyncService().db;
-  final String _table = 'plantio';
-  static const _selectComNome = '''
-    *,
-    cultura ( plantacultivada ),
-    variedade ( nomedavariedade ),
-    adubo ( nomedoadubo ),
-    inoculante ( nomedoinoculante ),
-    talhao ( nome, fazenda ( nome ) )
-  ''';
 
   // Os joins que o Supabase fazia ("cultura ( plantacultivada )", ...)
   // viraram LEFT JOINs locais.
@@ -35,23 +24,6 @@ class PlantioService {
     LEFT JOIN variedade  v ON v.id = p.variedade_id
     LEFT JOIN adubo      a ON a.id = p.adubo_id
     LEFT JOIN inoculante i ON i.id = p.inoculante_id
-  ''';
-
-  // Remonta no formato aninhado que PlantioModel.fromJson espera.
-  PlantioModel _fromRow(Map<String, Object?> r) {
-    return PlantioModel.fromJson({
-      ...r,
-      'cultura': {'plantacultivada': r['cultura_nome']},
-      'variedade': {'nomedavariedade': r['variedade_nome']},
-      'adubo': {'nomedoadubo': r['adubo_nome']},
-      'inoculante': {'nomedoinoculante': r['inoculante_nome']},
-    });
-  }
-
-  Future<PlantioModel?> _getById(String id) async {
-    final rows = await _db.getAll('$_select WHERE p.id = ?', [id]);
-    return rows.isEmpty ? null : _fromRow(rows.first);
-  }
   ''';
 
   // Remonta no formato aninhado que PlantioModel.fromJson espera.

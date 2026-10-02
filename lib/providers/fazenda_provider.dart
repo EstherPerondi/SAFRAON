@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import '../models/fazenda_model.dart';
 import '../services/fazenda_service.dart';
-import '../services/supabase_service.dart';
 
 class FazendaProvider extends ChangeNotifier {
   final FazendaService _service = FazendaService();
@@ -30,11 +29,11 @@ class FazendaProvider extends ChangeNotifier {
 
     try {
       _fazendas = await _service.getAll();
-      print('✅ ${_fazendas.length} fazendas carregadas');
+      debugPrint('✅ ${_fazendas.length} fazendas carregadas');
       _successMessage = 'Fazendas carregadas com sucesso';
     } catch (e) {
       _error = e.toString();
-      print('❌ Erro ao carregar fazendas: $e');
+      debugPrint('❌ Erro ao carregar fazendas: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -78,7 +77,7 @@ class FazendaProvider extends ChangeNotifier {
       
     } catch (e) {
       _error = e.toString();
-      print('❌ Erro ao criar fazenda: $e');
+      debugPrint('❌ Erro ao criar fazenda: $e');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -117,7 +116,7 @@ class FazendaProvider extends ChangeNotifier {
       
     } catch (e) {
       _error = e.toString();
-      print('❌ Erro ao atualizar fazenda: $e');
+      debugPrint('❌ Erro ao atualizar fazenda: $e');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -155,7 +154,7 @@ class FazendaProvider extends ChangeNotifier {
       
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
-      print('❌ Erro ao deletar fazenda: $e');
+      debugPrint('❌ Erro ao deletar fazenda: $e');
       _isLoading = false;
       notifyListeners();
       return false;

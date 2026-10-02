@@ -7,18 +7,9 @@ import '../models/aplicacao_model.dart';
 import '../powersync/db_helpers.dart';
 import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
-import 'delete_helper.dart';
 
 class AplicacaoService {
-  final SupabaseClient _client = SupabaseService().client;
   PowerSyncDatabase get _db => PowerSyncService().db;
-  final String _table = 'aplicacao';
-  static const _selectComNome = '''
-    *,
-    defensivo ( nome, principioativo, fabricante, utilidade ),
-    talhao ( nome, fazenda ( nome ) )
-  ''';
-
   static const _select = '''
     SELECT a.*, d.nome AS defensivo_nome
     FROM aplicacao a

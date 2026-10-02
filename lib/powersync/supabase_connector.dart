@@ -11,9 +11,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/supabase_service.dart';
 
-/// URL da instância PowerSync. Passe na build, sem commitar:
+/// URL da instância PowerSync. Usa o valor padrão abaixo, mas pode ser
+/// sobrescrita na build:
 /// flutter run --dart-define=POWERSYNC_URL=https://SEU-ID.powersync.journeyapps.com
-const powersyncUrl = String.fromEnvironment('https://6abe720a3b1803753bce10f9.powersync.journeyapps.com');
+const powersyncUrl = String.fromEnvironment(
+  'POWERSYNC_URL',
+  defaultValue: 'https://6abe720a3b1803753bce10f9.powersync.journeyapps.com',
+);
 
 /// Erros do Postgres que NÃO adianta tentar de novo (dado inválido,
 /// violação de constraint, sem permissão). Se não descartássemos,

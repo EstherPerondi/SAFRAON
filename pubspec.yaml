@@ -82,6 +82,8 @@ flutter:
     - Imagens/ICONE_PLANTIO.png
     - Imagens/ICONE_TALHAO.png
 
+dependency_overrides:
+  sqlite3: ^3.7.0
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

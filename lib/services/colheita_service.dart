@@ -7,18 +7,9 @@ import '../models/colheita_model.dart';
 import '../powersync/db_helpers.dart';
 import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
-import 'delete_helper.dart';
 
 class ColheitaService {
-  final SupabaseClient _client = SupabaseService().client;
   PowerSyncDatabase get _db => PowerSyncService().db;
-  final String _table = 'colheita';
-  static const _selectComNome = '''
-    *,
-    cultura ( plantacultivada ),
-    talhao ( nome, fazenda ( nome ) )
-  ''';
-
   static const _select = '''
     SELECT h.*, c.plantacultivada AS cultura_nome
     FROM colheita h

@@ -13,16 +13,9 @@ import '../models/precipitacao_model.dart';
 import '../powersync/db_helpers.dart';
 import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
-import 'delete_helper.dart';
 
 class PrecipitacaoService {
-  final SupabaseClient _client = SupabaseService().client;
   PowerSyncDatabase get _db => PowerSyncService().db;
-  final String _table = 'clima_dia';
-  static const _selectComNome = '''
-    *,
-    talhao ( nome, fazenda ( nome ) )
-  ''';
 
   Future<PrecipitacaoModel?> _getById(String id) async {
     final rows = await _db.getAll('SELECT * FROM clima_dia WHERE id = ?', [id]);
@@ -41,6 +34,15 @@ class PrecipitacaoService {
     );
     return rows.isNotEmpty;
   }
+
+  Future<List<PrecipitacaoModel>> getByTalhaoId(String talhaoId) async {
+    try {
+      final rows = await _db.getAll(
+        "SELECT * FROM clima_dia WHERE fonte = 'manual' "
+        'AND talhao_id = ? ORDER BY data DESC',
+        [talhaoId],
+      );
+      return rows.map<PrecipitacaoModel>(PrecipitacaoModel.fromJson).toList();
     } catch (e) {
       debugPrint('Erro ao buscar precipitações: $e');
       return [];

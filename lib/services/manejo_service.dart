@@ -7,18 +7,9 @@ import '../models/manejo_model.dart';
 import '../powersync/db_helpers.dart';
 import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
-import 'delete_helper.dart';
 
 class ManejoService {
-  final SupabaseClient _client = SupabaseService().client;
   PowerSyncDatabase get _db => PowerSyncService().db;
-  final String _table = 'manejo';
-  static const _selectComNome = '''
-    *,
-    tipo_manejo ( tipo_de_manejo ),
-    talhao ( nome, fazenda ( nome ) )
-  ''';
-
   static const _select = '''
     SELECT m.*, t.tipo_de_manejo AS tipo_manejo_nome
     FROM manejo m

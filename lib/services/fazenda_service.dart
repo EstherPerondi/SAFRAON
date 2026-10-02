@@ -10,7 +10,6 @@ import 'package:powersync/powersync.dart';
 import '../models/fazenda_model.dart';
 import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
-import 'delete_helper.dart';
 
 class FazendaService {
   PowerSyncDatabase get _db => PowerSyncService().db;
@@ -128,23 +127,6 @@ class FazendaService {
       debugPrint('❌ Erro ao deletar fazenda: $e');
       return false;
     }
-    }
-
-    print('🗑️ Deletando fazenda: $id');
-
-    // Cascata feita no app: talhões da fazenda e seus registros vinculados
-    final talhoes = await _client.from('talhao').select('id').eq('fazenda_id', id);
-    final talhaoIds = talhoes.map((t) => t['id'].toString()).toList();
-
-    if (talhaoIds.isNotEmpty) {
-      await deletarFilhosDosTalhoes(_client, talhaoIds);
-      await _client.from('talhao').delete().eq('fazenda_id', id);
-    }
-
-    await deletarPorId(_client, _table, id, nomeItem: 'fazenda');
-
-    print('✅ Fazenda deletada com sucesso!');
-    return true;
   }
 
   Future<bool> existsWithName(String nome) async {
