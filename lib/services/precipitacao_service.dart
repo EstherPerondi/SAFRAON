@@ -1,95 +1,107 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+// lib/services/precipitacao_service.dart  (versão offline-first com PowerSync)
+// Mesma API pública de antes; agora lê e grava no SQLite local.
+//
+// Atenção: 'clima_dia' tem chave única (talhao_id, data) no servidor
+// (a Edge Function usa onConflict "talhao_id,data"). Se já existir um
+// registro do dia, o servidor recusaria o novo e o item sumiria após o
+// sync. Por isso checamos AQUI e recusamos (retorna null), igual ao
+// comportamento online de antes.
+import 'package:flutter/foundation.dart';
+import 'package:powersync/powersync.dart';
+
 import '../models/precipitacao_model.dart';
+import '../powersync/db_helpers.dart';
+import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
 import 'delete_helper.dart';
 
 class PrecipitacaoService {
   final SupabaseClient _client = SupabaseService().client;
+  PowerSyncDatabase get _db => PowerSyncService().db;
   final String _table = 'clima_dia';
   static const _selectComNome = '''
     *,
     talhao ( nome, fazenda ( nome ) )
   ''';
 
-  Future<List<PrecipitacaoModel>> getByTalhaoId(String talhaoId) async {
-    try {
-      final response = await _client
-          .from(_table)
-          .select(_selectComNome)
-          .eq('talhao_id', talhaoId)
-          .eq('fonte', 'manual')
-          .order('data', ascending: false);
+  Future<PrecipitacaoModel?> _getById(String id) async {
+    final rows = await _db.getAll('SELECT * FROM clima_dia WHERE id = ?', [id]);
+    return rows.isEmpty ? null : PrecipitacaoModel.fromJson(rows.first);
+  }
 
-      return response.map<PrecipitacaoModel>((json) {
-        return PrecipitacaoModel.fromJson(json);
-      }).toList();
+  Future<bool> _existeNoDia(
+    String talhaoId,
+    String data, {
+    String? ignorarId,
+  }) async {
+    final rows = await _db.getAll(
+      'SELECT id FROM clima_dia '
+      'WHERE talhao_id = ? AND substr(data, 1, 10) = ? AND id != ? LIMIT 1',
+      [talhaoId, data, ignorarId ?? ''],
+    );
+    return rows.isNotEmpty;
+  }
     } catch (e) {
-      print('Erro ao buscar precipitações: $e');
+      debugPrint('Erro ao buscar precipitações: $e');
       return [];
     }
   }
 
   Future<List<PrecipitacaoModel>> getAllForUser() async {
     try {
-      final response = await _client
-          .from(_table)
-          .select('''
-            *,
-            talhao!inner (
-              nome,
-              fazenda_id,
-              fazenda!inner (
-                nome,
-                usuario_id
-              )
-            )
-          ''')
-          .eq('talhao.fazenda.usuario_id', SupabaseService().currentUserId)
-          .eq('fonte', 'manual')
-          .order('data', ascending: false);
-
-      return response.map<PrecipitacaoModel>((json) {
-        return PrecipitacaoModel.fromJson(json);
-      }).toList();
+      final rows = await _db.getAll(
+        "SELECT * FROM clima_dia WHERE fonte = 'manual' "
+        'AND talhao_id IN ($talhoesDoUsuarioSql) ORDER BY data DESC',
+        [SupabaseService().currentUserId],
+      );
+      return rows.map<PrecipitacaoModel>(PrecipitacaoModel.fromJson).toList();
     } catch (e) {
-      print('Erro ao buscar precipitações: $e');
+      debugPrint('Erro ao buscar precipitações: $e');
       return [];
     }
   }
 
   Future<PrecipitacaoModel?> create(PrecipitacaoModel precipitacao) async {
     try {
-      final response = await _client
-          .from(_table)
-          .insert(precipitacao.toJson())
-          .select(_selectComNome)
-          .single();
-
-      return PrecipitacaoModel.fromJson(response);
+      final json = precipitacao.toJson();
+      if (await _existeNoDia(precipitacao.talhaoId, json['data'] as String)) {
+        debugPrint('Já existe registro de chuva para este talhão nesta data.');
+        return null;
+      }
+      final id = await insertRow(_db, 'clima_dia', json);
+      return _getById(id);
     } catch (e) {
-      print('Erro ao criar precipitação: $e');
+      debugPrint('Erro ao criar precipitação: $e');
       return null;
     }
   }
 
   Future<PrecipitacaoModel?> update(PrecipitacaoModel precipitacao) async {
     try {
-      final response = await _client
-          .from(_table)
-          .update(precipitacao.toJson())
-          .eq('id', precipitacao.id)
-          .select(_selectComNome)
-          .single();
-
-      return PrecipitacaoModel.fromJson(response);
+      final json = precipitacao.toJson();
+      if (await _existeNoDia(
+        precipitacao.talhaoId,
+        json['data'] as String,
+        ignorarId: precipitacao.id,
+      )) {
+        debugPrint('Já existe registro de chuva para este talhão nesta data.');
+        return null;
+      }
+      await updateRow(_db, 'clima_dia', precipitacao.id, json);
+      return _getById(precipitacao.id);
     } catch (e) {
-      print('Erro ao atualizar precipitação: $e');
+      debugPrint('Erro ao atualizar precipitação: $e');
       return null;
     }
   }
 
   Future<bool> delete(String id) async {
-    await deletarPorId(_client, _table, id, nomeItem: 'registro de precipitação');
-    return true;
+    try {
+      await _db.execute('DELETE FROM clima_dia WHERE id = ?', [id]);
+      return true;
+    } catch (e) {
+      debugPrint('Erro ao deletar precipitação: $e');
+      return false;
+    }
   }
 }

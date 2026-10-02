@@ -30,6 +30,9 @@ import 'telas/precipitacoes.dart';
 
 import 'variaveis.dart';
 
+// POWERSYNC (sincronização offline)
+import 'powersync/powersync_service.dart';
+
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +45,9 @@ void main() async {
   
   // Inicializar Supabase
   await SupabaseService().init();
+
+  // Inicializar PowerSync (banco local + sincronização)
+  await PowerSyncService().init();
   
   runApp(const MyApp());
 }
