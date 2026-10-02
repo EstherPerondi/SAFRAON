@@ -1,97 +1,87 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+// lib/services/aplicacao_service.dart  (versão offline-first com PowerSync)
+// Mesma API pública de antes; agora lê e grava no SQLite local.
+import 'package:flutter/foundation.dart';
+import 'package:powersync/powersync.dart';
+
 import '../models/aplicacao_model.dart';
+import '../powersync/db_helpers.dart';
+import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
 
 class AplicacaoService {
-  final SupabaseClient _client = SupabaseService().client;
-  final String _table = 'aplicacao';
-  static const _selectComNome = '*, defensivo ( nome )';
+  PowerSyncDatabase get _db => PowerSyncService().db;
 
-  // Buscar aplicações de um talhão
+  static const _select = '''
+    SELECT a.*, d.nome AS defensivo_nome
+    FROM aplicacao a
+    LEFT JOIN defensivo d ON d.id = a.defensivo_id
+  ''';
+
+  AplicacaoModel _fromRow(Map<String, Object?> r) {
+    return AplicacaoModel.fromJson({
+      ...r,
+      'defensivo': {'nome': r['defensivo_nome']},
+    });
+  }
+
+  Future<AplicacaoModel?> _getById(String id) async {
+    final rows = await _db.getAll('$_select WHERE a.id = ?', [id]);
+    return rows.isEmpty ? null : _fromRow(rows.first);
+  }
+
   Future<List<AplicacaoModel>> getByTalhaoId(String talhaoId) async {
     try {
-      final response = await _client
-          .from(_table)
-          .select(_selectComNome)
-          .eq('talhao_id', talhaoId)
-          .order('dataaplicacao', ascending: false);
-
-      return response.map<AplicacaoModel>((json) {
-        return AplicacaoModel.fromJson(json);
-      }).toList();
+      final rows = await _db.getAll(
+        '$_select WHERE a.talhao_id = ? ORDER BY a.dataaplicacao DESC',
+        [talhaoId],
+      );
+      return rows.map<AplicacaoModel>(_fromRow).toList();
     } catch (e) {
-      print('Erro ao buscar aplicações: $e');
+      debugPrint('Erro ao buscar aplicações: $e');
       return [];
     }
   }
 
-  // Buscar todas as aplicações do usuário
   Future<List<AplicacaoModel>> getAllForUser() async {
     try {
-      final response = await _client
-          .from(_table)
-          .select('''
-            *,
-            defensivo ( nome ),
-            talhao!inner (
-              fazenda_id,
-              fazenda!inner (
-                usuario_id
-              )
-            )
-          ''')
-          .eq('talhao.fazenda.usuario_id', SupabaseService().currentUserId)
-          .order('dataaplicacao', ascending: false);
-
-      return response.map<AplicacaoModel>((json) {
-        return AplicacaoModel.fromJson(json);
-      }).toList();
+      final rows = await _db.getAll(
+        '$_select WHERE a.talhao_id IN ($talhoesDoUsuarioSql) '
+        'ORDER BY a.dataaplicacao DESC',
+        [SupabaseService().currentUserId],
+      );
+      return rows.map<AplicacaoModel>(_fromRow).toList();
     } catch (e) {
-      print('Erro ao buscar aplicações: $e');
+      debugPrint('Erro ao buscar aplicações: $e');
       return [];
     }
   }
 
-  // Criar aplicação
   Future<AplicacaoModel?> create(AplicacaoModel aplicacao) async {
     try {
-      final response = await _client
-          .from(_table)
-          .insert(aplicacao.toJson())
-          .select(_selectComNome)
-          .single();
-
-      return AplicacaoModel.fromJson(response);
+      final id = await insertRow(_db, 'aplicacao', aplicacao.toJson());
+      return _getById(id);
     } catch (e) {
-      print('Erro ao criar aplicação: $e');
+      debugPrint('Erro ao criar aplicação: $e');
       return null;
     }
   }
 
-  // Atualizar aplicação
   Future<AplicacaoModel?> update(AplicacaoModel aplicacao) async {
     try {
-      final response = await _client
-          .from(_table)
-          .update(aplicacao.toJson())
-          .eq('id', aplicacao.id)
-          .select(_selectComNome)
-          .single();
-
-      return AplicacaoModel.fromJson(response);
+      await updateRow(_db, 'aplicacao', aplicacao.id, aplicacao.toJson());
+      return _getById(aplicacao.id);
     } catch (e) {
-      print('Erro ao atualizar aplicação: $e');
+      debugPrint('Erro ao atualizar aplicação: $e');
       return null;
     }
   }
 
-  // Deletar aplicação
   Future<bool> delete(String id) async {
     try {
-      await _client.from(_table).delete().eq('id', id);
+      await _db.execute('DELETE FROM aplicacao WHERE id = ?', [id]);
       return true;
     } catch (e) {
-      print('Erro ao deletar aplicação: $e');
+      debugPrint('Erro ao deletar aplicação: $e');
       return false;
     }
   }

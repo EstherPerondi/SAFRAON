@@ -1,92 +1,87 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+// lib/services/manejo_service.dart  (versão offline-first com PowerSync)
+// Mesma API pública de antes; agora lê e grava no SQLite local.
+import 'package:flutter/foundation.dart';
+import 'package:powersync/powersync.dart';
+
 import '../models/manejo_model.dart';
+import '../powersync/db_helpers.dart';
+import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
 
 class ManejoService {
-  final SupabaseClient _client = SupabaseService().client;
-  final String _table = 'manejo';
-  static const _selectComNome = '*, tipo_manejo ( tipo_de_manejo )';
+  PowerSyncDatabase get _db => PowerSyncService().db;
+
+  static const _select = '''
+    SELECT m.*, t.tipo_de_manejo AS tipo_manejo_nome
+    FROM manejo m
+    LEFT JOIN tipo_manejo t ON t.id = m.tipo_manejo_id
+  ''';
+
+  ManejoModel _fromRow(Map<String, Object?> r) {
+    return ManejoModel.fromJson({
+      ...r,
+      'tipo_manejo': {'tipo_de_manejo': r['tipo_manejo_nome']},
+    });
+  }
+
+  Future<ManejoModel?> _getById(String id) async {
+    final rows = await _db.getAll('$_select WHERE m.id = ?', [id]);
+    return rows.isEmpty ? null : _fromRow(rows.first);
+  }
 
   Future<List<ManejoModel>> getByTalhaoId(String talhaoId) async {
     try {
-      final response = await _client
-          .from(_table)
-          .select(_selectComNome)
-          .eq('talhao_id', talhaoId)
-          .order('datadomanejo', ascending: false);
-
-      return response.map<ManejoModel>((json) {
-        return ManejoModel.fromJson(json);
-      }).toList();
+      final rows = await _db.getAll(
+        '$_select WHERE m.talhao_id = ? ORDER BY m.datadomanejo DESC',
+        [talhaoId],
+      );
+      return rows.map<ManejoModel>(_fromRow).toList();
     } catch (e) {
-      print('Erro ao buscar manejos: $e');
+      debugPrint('Erro ao buscar manejos: $e');
       return [];
     }
   }
 
   Future<List<ManejoModel>> getAllForUser() async {
     try {
-      final response = await _client
-          .from(_table)
-          .select('''
-            *,
-            tipo_manejo ( tipo_de_manejo ),
-            talhao!inner (
-              fazenda_id,
-              fazenda!inner (
-                usuario_id
-              )
-            )
-          ''')
-          .eq('talhao.fazenda.usuario_id', SupabaseService().currentUserId)
-          .order('datadomanejo', ascending: false);
-
-      return response.map<ManejoModel>((json) {
-        return ManejoModel.fromJson(json);
-      }).toList();
+      final rows = await _db.getAll(
+        '$_select WHERE m.talhao_id IN ($talhoesDoUsuarioSql) '
+        'ORDER BY m.datadomanejo DESC',
+        [SupabaseService().currentUserId],
+      );
+      return rows.map<ManejoModel>(_fromRow).toList();
     } catch (e) {
-      print('Erro ao buscar manejos: $e');
+      debugPrint('Erro ao buscar manejos: $e');
       return [];
     }
   }
 
   Future<ManejoModel?> create(ManejoModel manejo) async {
     try {
-      final response = await _client
-          .from(_table)
-          .insert(manejo.toJson())
-          .select(_selectComNome)
-          .single();
-
-      return ManejoModel.fromJson(response);
+      final id = await insertRow(_db, 'manejo', manejo.toJson());
+      return _getById(id);
     } catch (e) {
-      print('Erro ao criar manejo: $e');
+      debugPrint('Erro ao criar manejo: $e');
       return null;
     }
   }
 
   Future<ManejoModel?> update(ManejoModel manejo) async {
     try {
-      final response = await _client
-          .from(_table)
-          .update(manejo.toJson())
-          .eq('id', manejo.id)
-          .select(_selectComNome)
-          .single();
-
-      return ManejoModel.fromJson(response);
+      await updateRow(_db, 'manejo', manejo.id, manejo.toJson());
+      return _getById(manejo.id);
     } catch (e) {
-      print('Erro ao atualizar manejo: $e');
+      debugPrint('Erro ao atualizar manejo: $e');
       return null;
     }
   }
 
   Future<bool> delete(String id) async {
     try {
-      await _client.from(_table).delete().eq('id', id);
+      await _db.execute('DELETE FROM manejo WHERE id = ?', [id]);
       return true;
     } catch (e) {
-      print('Erro ao deletar manejo: $e');
+      debugPrint('Erro ao deletar manejo: $e');
       return false;
     }
   }
