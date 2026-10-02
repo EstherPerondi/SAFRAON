@@ -92,28 +92,36 @@ class _ClimaPageState extends State<ClimaPage> {
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(color: Bege),
-        child: _carregando
-            ? const Center(child: CircularProgressIndicator())
-            : RefreshIndicator(
-                onRefresh: _carregarDados,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
-                      _buildTitle(nome, fazenda),
-                      const SizedBox(height: 16),
-                      _buildClimateMetrics(),
-                      const SizedBox(height: 24),
-                      _buildWeatherForecast(),
-                    ],
+      body: SizedBox.expand(
+        child: Container(
+          color: Bege,
+          child: _carregando
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                  onRefresh: _carregarDados,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 800),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: 8),
+                            _buildTitle(nome, fazenda),
+                            const SizedBox(height: 16),
+                            _buildClimateMetrics(),
+                            const SizedBox(height: 24),
+                            _buildWeatherForecast(),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+        ),
       ),
     );
   }
@@ -214,7 +222,7 @@ class _ClimaPageState extends State<ClimaPage> {
                   color: VerdeClaro,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildMetricItem(
                   icon: Icons.water_drop,
@@ -224,7 +232,7 @@ class _ClimaPageState extends State<ClimaPage> {
                   color: VerdeClaro,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildMetricItem(
                   icon: Icons.air,
@@ -256,34 +264,39 @@ class _ClimaPageState extends State<ClimaPage> {
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: color, size: 28),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color),
-              ),
-              const SizedBox(width: 2),
-              Text(
-                unit,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: color.withOpacity(0.7)),
-              ),
-            ],
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color),
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  unit,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: color.withOpacity(0.7)),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             label,
+            textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
           ),
         ],
@@ -315,9 +328,12 @@ class _ClimaPageState extends State<ClimaPage> {
             children: [
               Icon(Icons.calendar_month, color: VerdeClaro, size: 25),
               const SizedBox(width: 8),
-              Text(
-                'Previsão para os próximos dias',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: VerdeClaro),
+              Expanded(
+                child: Text(
+                  'Previsão para os próximos dias',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: VerdeClaro),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -328,19 +344,25 @@ class _ClimaPageState extends State<ClimaPage> {
               style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             )
           else
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _previsao.map((p) {
-                  return _buildForecastItem(
-                    day: _diasSemana[p.data.weekday % 7],
-                    tempMin: p.temperaturaMin,
-                    tempMax: p.temperaturaMax,
-                    icon: _iconeCondicao(p.condicaoNome),
-                    color: VerdeEscuro,
-                  );
-                }).toList(),
-              ),
+            // SOLUÇÃO: Usando Row com Expanded para preencher todo o espaço
+            Row(
+              children: _previsao.asMap().entries.map((entry) {
+                int index = entry.key;
+                PrevisaoDiaInfo p = entry.value;
+                
+                return Expanded( // Mudança principal: de Flexible para Expanded
+                  child: Padding(
+                    padding: EdgeInsets.only(right: index == _previsao.length - 1 ? 0 : 12),
+                    child: _buildForecastItem(
+                      day: _diasSemana[p.data.weekday % 7],
+                      tempMin: p.temperaturaMin,
+                      tempMax: p.temperaturaMax,
+                      icon: _iconeCondicao(p.condicaoNome),
+                      color: VerdeEscuro,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
         ],
       ),
@@ -355,8 +377,7 @@ class _ClimaPageState extends State<ClimaPage> {
     required Color color,
   }) {
     return Container(
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -364,15 +385,22 @@ class _ClimaPageState extends State<ClimaPage> {
       ),
       child: Column(
         children: [
-          Text(day, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade800)),
-          const SizedBox(height: 4),
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: 4),
           Text(
-            tempMin != null && tempMax != null
-                ? '${tempMin.toStringAsFixed(0)}°-${tempMax.toStringAsFixed(0)}°'
-                : '--',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color),
+            day, 
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey.shade800),
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              tempMin != null && tempMax != null
+                  ? '${tempMin.toStringAsFixed(0)}°-${tempMax.toStringAsFixed(0)}°'
+                  : '--',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: color),
+            ),
           ),
         ],
       ),
