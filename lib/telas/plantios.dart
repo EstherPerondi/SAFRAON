@@ -6,6 +6,7 @@ import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
 import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
+import '../widgets/rodape_com_fab.dart';
 
 class PlantiosPage extends StatefulWidget {
   const PlantiosPage({super.key});
@@ -215,7 +216,7 @@ class _PlantiosPageState extends State<PlantiosPage> {
                         ),
                       ),
 
-                    Container(
+                    RodapeComFab(child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -255,7 +256,7 @@ class _PlantiosPageState extends State<PlantiosPage> {
                           ),
                         ],
                       ),
-                    ),
+                    )),
                   ],
                 ),
               ),
@@ -772,6 +773,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _idValido(_culturaId, widget.culturas),
         decoration: InputDecoration(
           labelText: 'Cultura',
@@ -787,7 +789,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ),
         items: [
           ...widget.culturas
-              .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome))),
+              .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome, overflow: TextOverflow.ellipsis))),
           buildAdicionarNovoDropdownItem('+ Adicionar nova cultura...'),
         ],
         onChanged: (value) async {
@@ -831,6 +833,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _idValido(_variedadeId, _variedades),
         decoration: InputDecoration(
           labelText: _carregandoVariedades
@@ -848,7 +851,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ),
         items: [
           ..._variedades
-              .map((v) => DropdownMenuItem(value: v.id, child: Text(v.nome))),
+              .map((v) => DropdownMenuItem(value: v.id, child: Text(v.nome, overflow: TextOverflow.ellipsis))),
           if (_culturaId != null)
             buildAdicionarNovoDropdownItem('+ Adicionar nova variedade...'),
         ],
@@ -904,6 +907,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _idValido(_aduboId, widget.adubos),
         decoration: InputDecoration(
           labelText: 'Adubo',
@@ -919,7 +923,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ),
         items: [
           ...widget.adubos
-              .map((a) => DropdownMenuItem(value: a.id, child: Text(a.nome))),
+              .map((a) => DropdownMenuItem(value: a.id, child: Text(a.nome, overflow: TextOverflow.ellipsis))),
           buildAdicionarNovoDropdownItem('+ Adicionar novo adubo...'),
         ],
         onChanged: (value) async {
@@ -971,6 +975,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _idValido(_inoculanteId, widget.inoculantes),
         decoration: InputDecoration(
           labelText: 'Inoculante (opcional)',
@@ -986,7 +991,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         ),
         items: [
           ...widget.inoculantes
-              .map((i) => DropdownMenuItem(value: i.id, child: Text(i.nome))),
+              .map((i) => DropdownMenuItem(value: i.id, child: Text(i.nome, overflow: TextOverflow.ellipsis))),
           buildAdicionarNovoDropdownItem('+ Adicionar novo inoculante...'),
         ],
         onChanged: (value) async {

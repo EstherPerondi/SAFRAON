@@ -4,6 +4,7 @@ import '../providers/precipitacao_provider.dart';
 import '../models/precipitacao_model.dart';
 import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
+import '../widgets/rodape_com_fab.dart';
 
 class PrecipitacoesPage extends StatefulWidget {
   const PrecipitacoesPage({super.key});
@@ -177,7 +178,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                         ),
                       ),
 
-                    Container(
+                    RodapeComFab(child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -217,7 +218,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                           ),
                         ],
                       ),
-                    ),
+                    )),
                   ],
                 ),
               ),

@@ -173,13 +173,18 @@ class MenuCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: desktop ? 12 : 6),
-          Text(
-            titulo,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: desktop ? 22 : 18,
-              color: VerdeClaro,
-              fontWeight: FontWeight.w500,
+          // FittedBox reduz a fonte só se o título não couber na largura
+          // do card, evitando quebra no meio da palavra (ex: Precipitações).
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              titulo,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: desktop ? 22 : 18,
+                color: VerdeClaro,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

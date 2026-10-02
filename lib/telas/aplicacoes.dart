@@ -7,6 +7,7 @@ import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
 import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
+import '../widgets/rodape_com_fab.dart';
 
 class AplicacoesPage extends StatefulWidget {
   const AplicacoesPage({super.key});
@@ -181,7 +182,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                       ),
 
                     // Rodapé
-                    Container(
+                    RodapeComFab(child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -221,7 +222,7 @@ class _AplicacoesPageState extends State<AplicacoesPage> {
                           ),
                         ],
                       ),
-                    ),
+                    )),
                   ],
                 ),
               ),
@@ -689,6 +690,7 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _defensivoId,
         decoration: InputDecoration(
           labelText: 'Defensivo',
@@ -704,7 +706,7 @@ class _AplicacaoFormModalState extends State<_AplicacaoFormModal> {
         ),
         items: [
           ...widget.defensivos
-              .map((d) => DropdownMenuItem(value: d.id, child: Text(d.nome))),
+              .map((d) => DropdownMenuItem(value: d.id, child: Text(d.nome, overflow: TextOverflow.ellipsis))),
           buildAdicionarNovoDropdownItem('+ Adicionar novo defensivo...'),
         ],
         onChanged: (value) async {

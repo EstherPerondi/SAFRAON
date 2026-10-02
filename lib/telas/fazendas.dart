@@ -7,6 +7,7 @@ import '../models/fazenda_model.dart';
 import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
 import '../variaveis.dart';
+import '../widgets/rodape_com_fab.dart';
 
 class FazendasPage extends StatefulWidget {
   const FazendasPage({super.key});
@@ -289,7 +290,7 @@ class _FazendasPageState extends State<FazendasPage> {
   }
 
   Widget _buildFooter(FazendaProvider provider) {
-    return Container(
+    return RodapeComFab(child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: VerdeEscuro,
@@ -319,7 +320,7 @@ class _FazendasPageState extends State<FazendasPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   void _navigateToTalhoes(String fazendaId, String fazendaNome) {
@@ -580,6 +581,7 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _estadoId,
         decoration: InputDecoration(
           labelText: 'Estado',
@@ -595,7 +597,7 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
         ),
         items: [
           ...widget.estados
-              .map((e) => DropdownMenuItem(value: e.id, child: Text(e.nome))),
+              .map((e) => DropdownMenuItem(value: e.id, child: Text(e.nome, overflow: TextOverflow.ellipsis))),
           buildAdicionarNovoDropdownItem('+ Adicionar novo estado...'),
         ],
         onChanged: (value) async {

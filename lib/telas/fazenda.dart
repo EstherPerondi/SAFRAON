@@ -5,6 +5,7 @@ import '../providers/talhao_provider.dart';
 import '../models/talhao_model.dart';
 import 'talhao.dart';
 import '../variaveis.dart';
+import '../widgets/rodape_com_fab.dart';
 
 class FazendaPage extends StatefulWidget {
   final String fazendaId;
@@ -199,7 +200,7 @@ class _FazendaPageState extends State<FazendaPage> {
                   ),
                 ),
 
-              Container(
+              RodapeComFab(child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -239,7 +240,7 @@ class _FazendaPageState extends State<FazendaPage> {
                     ),
                   ],
                 ),
-              ),
+              )),
             ],
           ),
         ),

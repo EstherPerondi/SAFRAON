@@ -6,6 +6,7 @@ import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
 import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
+import '../widgets/rodape_com_fab.dart';
 
 class ColheitasPage extends StatefulWidget {
   const ColheitasPage({super.key});
@@ -191,7 +192,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
                         ),
                       ),
 
-                    Container(
+                    RodapeComFab(child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -231,7 +232,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
                           ),
                         ],
                       ),
-                    ),
+                    )),
                   ],
                 ),
               ),
@@ -692,6 +693,7 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _culturaId,
         decoration: InputDecoration(
           labelText: 'Cultura',
@@ -707,7 +709,7 @@ class _ColheitaFormModalState extends State<_ColheitaFormModal> {
         ),
         items: [
           ...widget.culturas
-              .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome))),
+              .map((c) => DropdownMenuItem(value: c.id, child: Text(c.nome, overflow: TextOverflow.ellipsis))),
           buildAdicionarNovoDropdownItem('+ Adicionar nova cultura...'),
         ],
         onChanged: (value) async {

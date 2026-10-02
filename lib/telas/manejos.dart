@@ -6,6 +6,7 @@ import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
 import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
+import '../widgets/rodape_com_fab.dart';
 
 class ManejosPage extends StatefulWidget {
   const ManejosPage({super.key});
@@ -181,7 +182,7 @@ class _ManejosPageState extends State<ManejosPage> {
                         ),
                       ),
 
-                    Container(
+                    RodapeComFab(child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -221,7 +222,7 @@ class _ManejosPageState extends State<ManejosPage> {
                           ),
                         ],
                       ),
-                    ),
+                    )),
                   ],
                 ),
               ),
@@ -662,6 +663,7 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _tipoManejoId,
         decoration: InputDecoration(
           labelText: 'Tipo de Manejo',
@@ -677,7 +679,7 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
         ),
         items: [
           ...widget.tiposManejo
-              .map((t) => DropdownMenuItem(value: t.id, child: Text(t.nome))),
+              .map((t) => DropdownMenuItem(value: t.id, child: Text(t.nome, overflow: TextOverflow.ellipsis))),
           buildAdicionarNovoDropdownItem('+ Adicionar novo tipo de manejo...'),
         ],
         onChanged: (value) async {

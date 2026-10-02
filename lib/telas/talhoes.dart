@@ -5,6 +5,7 @@ import '../providers/fazenda_provider.dart';
 import '../models/talhao_model.dart';
 import '../models/fazenda_model.dart';
 import '../variaveis.dart';
+import '../widgets/rodape_com_fab.dart';
 import 'talhao.dart';
 
 class TalhoesPage extends StatefulWidget {
@@ -207,7 +208,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                       ),
 
                     // Rodapé
-                    Container(
+                    RodapeComFab(child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -247,7 +248,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                           ),
                         ],
                       ),
-                    ),
+                    )),
                   ],
                 ),
               ),
@@ -583,7 +584,7 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
                         items: fazendas.map((fazenda) {
                           return DropdownMenuItem(
                             value: fazenda.id,
-                            child: Text(fazenda.nome),
+                            child: Text(fazenda.nome, overflow: TextOverflow.ellipsis),
                           );
                         }).toList(),
                         onChanged: (value) {
