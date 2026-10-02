@@ -1,6 +1,11 @@
-// lib/services/clima_service.dart
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'supabase_service.dart';
+// lib/services/clima_service.dart  (versão offline-first com PowerSync)
+// Mesma API pública de antes. Lê o clima do SQLite local; os dados chegam
+// do servidor (Edge Functions) pelo PowerSync, então o último clima
+// sincronizado continua visível sem internet.
+import 'package:flutter/foundation.dart';
+import 'package:powersync/powersync.dart';
+
+import '../powersync/powersync_service.dart';
 
 class ClimaDiaInfo {
   final DateTime data;
@@ -72,74 +77,83 @@ class PrevisaoDiaInfo {
 }
 
 class ClimaService {
-  final SupabaseClient _client = SupabaseService().client;
+  PowerSyncDatabase get _db => PowerSyncService().db;
+
+  // Data "YYYY-MM-DD" (formato usado na coluna "data").
+  String _dia(DateTime d) => d.toIso8601String().split('T').first;
 
   Future<MetricasDiaInfo?> getUltimasMetricas(String talhaoId) async {
     try {
-      final response = await _client
-          .from('metricas_dia')
-          .select()
-          .eq('talhao_id', talhaoId)
-          .order('data', ascending: false)
-          .limit(1)
-          .maybeSingle();
-      return response != null ? MetricasDiaInfo.fromJson(response) : null;
+      final rows = await _db.getAll(
+        'SELECT * FROM metricas_dia WHERE talhao_id = ? '
+        'ORDER BY data DESC LIMIT 1',
+        [talhaoId],
+      );
+      return rows.isEmpty ? null : MetricasDiaInfo.fromJson(rows.first);
     } catch (e) {
-      print('Erro ao buscar métricas do dia: $e');
+      debugPrint('Erro ao buscar métricas do dia: $e');
       return null;
     }
   }
 
   Future<ClimaDiaInfo?> getUltimoClima(String talhaoId) async {
     try {
-      final response = await _client
-          .from('clima_dia')
-          .select('*, condicao_climatica_previsao ( nome )')
-          .eq('talhao_id', talhaoId)
-          .order('data', ascending: false)
-          .limit(1)
-          .maybeSingle();
-      return response != null ? ClimaDiaInfo.fromJson(response) : null;
+      final rows = await _db.getAll(
+        'SELECT c.*, cc.nome AS condicao_nome FROM clima_dia c '
+        'LEFT JOIN condicao_climatica_previsao cc '
+        'ON cc.id = c.condicao_climatica_id '
+        'WHERE c.talhao_id = ? ORDER BY c.data DESC LIMIT 1',
+        [talhaoId],
+      );
+      if (rows.isEmpty) return null;
+      final r = rows.first;
+      return ClimaDiaInfo.fromJson({
+        ...r,
+        'condicao_climatica_previsao': {'nome': r['condicao_nome']},
+      });
     } catch (e) {
-      print('Erro ao buscar clima do dia: $e');
+      debugPrint('Erro ao buscar clima do dia: $e');
       return null;
     }
   }
 
-  Future<List<ClimaDiaInfo>> getPrecipitacaoUltimos7Dias(String talhaoId) async {
+  Future<List<ClimaDiaInfo>> getPrecipitacaoUltimos7Dias(
+    String talhaoId,
+  ) async {
     try {
-      final desde = DateTime.now().subtract(const Duration(days: 6));
-      final desdeStr = desde.toIso8601String().split('T').first;
-
-      final response = await _client
-          .from('clima_dia')
-          .select()
-          .eq('talhao_id', talhaoId)
-          .gte('data', desdeStr)
-          .order('data', ascending: true);
-
-      return response.map<ClimaDiaInfo>((j) => ClimaDiaInfo.fromJson(j)).toList();
+      final desde = _dia(DateTime.now().subtract(const Duration(days: 6)));
+      final rows = await _db.getAll(
+        'SELECT * FROM clima_dia WHERE talhao_id = ? AND data >= ? '
+        'ORDER BY data ASC',
+        [talhaoId, desde],
+      );
+      return rows.map<ClimaDiaInfo>(ClimaDiaInfo.fromJson).toList();
     } catch (e) {
-      print('Erro ao buscar precipitação dos últimos 7 dias: $e');
+      debugPrint('Erro ao buscar precipitação dos últimos 7 dias: $e');
       return [];
     }
   }
 
-  Future<List<PrevisaoDiaInfo>> getPrevisao(String talhaoId, {int dias = 5}) async {
+  Future<List<PrevisaoDiaInfo>> getPrevisao(
+    String talhaoId, {
+    int dias = 5,
+  }) async {
     try {
-      final hoje = DateTime.now().toIso8601String().split('T').first;
-
-      final response = await _client
-          .from('previsao_clima')
-          .select('*, condicao_climatica_previsao ( nome )')
-          .eq('talhao_id', talhaoId)
-          .gte('data', hoje)
-          .order('data', ascending: true)
-          .limit(dias);
-
-      return response.map<PrevisaoDiaInfo>((j) => PrevisaoDiaInfo.fromJson(j)).toList();
+      final rows = await _db.getAll(
+        'SELECT p.*, cc.nome AS condicao_nome FROM previsao_clima p '
+        'LEFT JOIN condicao_climatica_previsao cc '
+        'ON cc.id = p.condicao_climatica_id '
+        'WHERE p.talhao_id = ? AND p.data >= ? ORDER BY p.data ASC LIMIT ?',
+        [talhaoId, _dia(DateTime.now()), dias],
+      );
+      return rows.map<PrevisaoDiaInfo>((r) {
+        return PrevisaoDiaInfo.fromJson({
+          ...r,
+          'condicao_climatica_previsao': {'nome': r['condicao_nome']},
+        });
+      }).toList();
     } catch (e) {
-      print('Erro ao buscar previsão: $e');
+      debugPrint('Erro ao buscar previsão: $e');
       return [];
     }
   }

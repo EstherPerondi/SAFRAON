@@ -1,10 +1,16 @@
-// lib/services/lookup_service.dart
+// lib/services/lookup_service.dart  (versão offline-first com PowerSync)
 //
-// Serviço genérico para buscar as tabelas de "lookup" (listas de opção)
-// usadas nos dropdowns de Plantio, Manejo, Aplicação e Colheita:
-// cultura, variedade, adubo, inoculante, defensivo e tipo_manejo.
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'supabase_service.dart';
+// Mesma API pública de antes (getCulturas, getVariedades, createCultura...),
+// então as telas e dialogs não mudam. Agora tudo lê e grava no SQLite
+// local; o PowerSync baixa as listas do Supabase quando há rede e envia
+// os itens criados offline ("+ Adicionar novo...") quando a rede volta.
+//
+// Observação: as listas só aparecem offline DEPOIS que o app sincronizou
+// pelo menos uma vez com internet (primeiro login).
+import 'package:flutter/foundation.dart';
+import 'package:powersync/powersync.dart';
+
+import '../powersync/powersync_service.dart';
 
 class LookupItem {
   final String id;
@@ -30,35 +36,52 @@ class LookupItem {
 }
 
 class LookupService {
-  final SupabaseClient _client = SupabaseService().client;
+  PowerSyncDatabase get _db => PowerSyncService().db;
+
+  // Texto vazio vira null (o banco guarda NULL, não "").
+  String? _opt(String? v) {
+    final t = v?.trim();
+    return (t == null || t.isEmpty) ? null : t;
+  }
+
+  double? _num(dynamic v) => v == null ? null : double.tryParse(v.toString());
+
+  // ============================================
+  // LEITURA
+  // ============================================
 
   Future<List<LookupItem>> getCulturas() async {
     try {
-      final res = await _client
-          .from('cultura')
-          .select('id, plantacultivada')
-          .order('plantacultivada');
-      return res
+      final rows = await _db.getAll(
+        'SELECT id, plantacultivada FROM cultura '
+        'ORDER BY plantacultivada COLLATE NOCASE',
+      );
+      return rows
           .map<LookupItem>((j) => LookupItem(
                 id: j['id'].toString(),
                 nome: j['plantacultivada']?.toString() ?? '',
               ))
           .toList();
     } catch (e) {
-      print('Erro ao buscar culturas: $e');
+      debugPrint('Erro ao buscar culturas: $e');
       return [];
     }
   }
 
   Future<List<LookupItem>> getVariedades({String? culturaId}) async {
     try {
-      var query = _client
-          .from('variedade')
-          .select('id, nomedavariedade, cultura_id, fabricante');
-      final res = culturaId != null
-          ? await query.eq('cultura_id', culturaId).order('nomedavariedade')
-          : await query.order('nomedavariedade');
-      return res
+      final rows = culturaId != null
+          ? await _db.getAll(
+              'SELECT id, nomedavariedade, cultura_id, fabricante '
+              'FROM variedade WHERE cultura_id = ? '
+              'ORDER BY nomedavariedade COLLATE NOCASE',
+              [culturaId],
+            )
+          : await _db.getAll(
+              'SELECT id, nomedavariedade, cultura_id, fabricante '
+              'FROM variedade ORDER BY nomedavariedade COLLATE NOCASE',
+            );
+      return rows
           .map<LookupItem>((j) => LookupItem(
                 id: j['id'].toString(),
                 nome: j['nomedavariedade']?.toString() ?? '',
@@ -67,18 +90,18 @@ class LookupService {
               ))
           .toList();
     } catch (e) {
-      print('Erro ao buscar variedades: $e');
+      debugPrint('Erro ao buscar variedades: $e');
       return [];
     }
   }
 
   Future<List<LookupItem>> getAdubos() async {
     try {
-      final res = await _client
-          .from('adubo')
-          .select('id, nomedoadubo, fabricante')
-          .order('nomedoadubo');
-      return res
+      final rows = await _db.getAll(
+        'SELECT id, nomedoadubo, fabricante FROM adubo '
+        'ORDER BY nomedoadubo COLLATE NOCASE',
+      );
+      return rows
           .map<LookupItem>((j) => LookupItem(
                 id: j['id'].toString(),
                 nome: j['nomedoadubo']?.toString() ?? '',
@@ -86,40 +109,38 @@ class LookupService {
               ))
           .toList();
     } catch (e) {
-      print('Erro ao buscar adubos: $e');
+      debugPrint('Erro ao buscar adubos: $e');
       return [];
     }
   }
 
   Future<List<LookupItem>> getInoculantes() async {
     try {
-      final res = await _client
-          .from('inoculante')
-          .select('id, nomedoinoculante, dosagemrecomendada, fabricante')
-          .order('nomedoinoculante');
-      return res
+      final rows = await _db.getAll(
+        'SELECT id, nomedoinoculante, dosagemrecomendada, fabricante '
+        'FROM inoculante ORDER BY nomedoinoculante COLLATE NOCASE',
+      );
+      return rows
           .map<LookupItem>((j) => LookupItem(
                 id: j['id'].toString(),
                 nome: j['nomedoinoculante']?.toString() ?? '',
                 fabricante: j['fabricante']?.toString(),
-                dosagemRecomendada: j['dosagemrecomendada'] == null
-                    ? null
-                    : double.tryParse(j['dosagemrecomendada'].toString()),
+                dosagemRecomendada: _num(j['dosagemrecomendada']),
               ))
           .toList();
     } catch (e) {
-      print('Erro ao buscar inoculantes: $e');
+      debugPrint('Erro ao buscar inoculantes: $e');
       return [];
     }
   }
 
   Future<List<LookupItem>> getDefensivos() async {
     try {
-      final res = await _client
-          .from('defensivo')
-          .select('id, nome, principioativo, fabricante, utilidade')
-          .order('nome');
-      return res
+      final rows = await _db.getAll(
+        'SELECT id, nome, principioativo, fabricante, utilidade '
+        'FROM defensivo ORDER BY nome COLLATE NOCASE',
+      );
+      return rows
           .map<LookupItem>((j) => LookupItem(
                 id: j['id'].toString(),
                 nome: j['nome']?.toString() ?? '',
@@ -129,40 +150,42 @@ class LookupService {
               ))
           .toList();
     } catch (e) {
-      print('Erro ao buscar defensivos: $e');
+      debugPrint('Erro ao buscar defensivos: $e');
       return [];
     }
   }
 
   Future<List<LookupItem>> getEstados() async {
     try {
-      final res = await _client.from('estados').select('id, nome').order('nome');
-      return res
+      final rows = await _db.getAll(
+        'SELECT id, nome FROM estados ORDER BY nome COLLATE NOCASE',
+      );
+      return rows
           .map<LookupItem>((j) => LookupItem(
                 id: j['id'].toString(),
                 nome: j['nome']?.toString() ?? '',
               ))
           .toList();
     } catch (e) {
-      print('Erro ao buscar estados: $e');
+      debugPrint('Erro ao buscar estados: $e');
       return [];
     }
   }
 
   Future<List<LookupItem>> getTiposManejo() async {
     try {
-      final res = await _client
-          .from('tipo_manejo')
-          .select('id, tipo_de_manejo')
-          .order('tipo_de_manejo');
-      return res
+      final rows = await _db.getAll(
+        'SELECT id, tipo_de_manejo FROM tipo_manejo '
+        'ORDER BY tipo_de_manejo COLLATE NOCASE',
+      );
+      return rows
           .map<LookupItem>((j) => LookupItem(
                 id: j['id'].toString(),
                 nome: j['tipo_de_manejo']?.toString() ?? '',
               ))
           .toList();
     } catch (e) {
-      print('Erro ao buscar tipos de manejo: $e');
+      debugPrint('Erro ao buscar tipos de manejo: $e');
       return [];
     }
   }
@@ -170,23 +193,24 @@ class LookupService {
   // ============================================
   // CRIAÇÃO RÁPIDA DE ITENS ("+ Adicionar novo...")
   //
-  // Usados pelos dropdowns das telas de Fazendas, Plantios, Manejos,
-  // Aplicações e Colheitas para cadastrar um item de lookup sem sair
-  // do formulário. Cada método insere o registro e devolve o
-  // LookupItem já com o id gerado pelo banco.
+  // O id é gerado no aparelho (uuid()), então funciona sem internet.
+  // O item já aparece no dropdown na hora e sobe ao Supabase depois.
   // ============================================
+
+  Future<String> _inserir(String sql, List<Object?> args) async {
+    final res = await _db.execute(sql, args);
+    return res.first['id'] as String;
+  }
 
   Future<LookupItem> createCultura(String nome) async {
     try {
-      final res = await _client
-          .from('cultura')
-          .insert({'plantacultivada': nome})
-          .select('id, plantacultivada')
-          .single();
-      return LookupItem(
-        id: res['id'].toString(),
-        nome: res['plantacultivada']?.toString() ?? '',
+      final nomeLimpo = nome.trim();
+      final id = await _inserir(
+        'INSERT INTO cultura(id, plantacultivada) VALUES(uuid(), ?) '
+        'RETURNING id',
+        [nomeLimpo],
       );
+      return LookupItem(id: id, nome: nomeLimpo);
     } catch (e) {
       throw Exception('Erro ao criar cultura: $e');
     }
@@ -198,23 +222,18 @@ class LookupService {
     String? fabricante,
   }) async {
     try {
-      final dados = <String, dynamic>{
-        'nomedavariedade': nome,
-        'cultura_id': culturaId,
-      };
-      if (fabricante != null && fabricante.trim().isNotEmpty) {
-        dados['fabricante'] = fabricante.trim();
-      }
-      final res = await _client
-          .from('variedade')
-          .insert(dados)
-          .select('id, nomedavariedade, cultura_id, fabricante')
-          .single();
+      final nomeLimpo = nome.trim();
+      final fab = _opt(fabricante);
+      final id = await _inserir(
+        'INSERT INTO variedade(id, nomedavariedade, cultura_id, fabricante) '
+        'VALUES(uuid(), ?, ?, ?) RETURNING id',
+        [nomeLimpo, culturaId, fab],
+      );
       return LookupItem(
-        id: res['id'].toString(),
-        nome: res['nomedavariedade']?.toString() ?? '',
-        culturaId: res['cultura_id']?.toString(),
-        fabricante: res['fabricante']?.toString(),
+        id: id,
+        nome: nomeLimpo,
+        culturaId: culturaId,
+        fabricante: fab,
       );
     } catch (e) {
       throw Exception('Erro ao criar variedade: $e');
@@ -223,20 +242,14 @@ class LookupService {
 
   Future<LookupItem> createAdubo(String nome, {String? fabricante}) async {
     try {
-      final dados = <String, dynamic>{'nomedoadubo': nome};
-      if (fabricante != null && fabricante.trim().isNotEmpty) {
-        dados['fabricante'] = fabricante.trim();
-      }
-      final res = await _client
-          .from('adubo')
-          .insert(dados)
-          .select('id, nomedoadubo, fabricante')
-          .single();
-      return LookupItem(
-        id: res['id'].toString(),
-        nome: res['nomedoadubo']?.toString() ?? '',
-        fabricante: res['fabricante']?.toString(),
+      final nomeLimpo = nome.trim();
+      final fab = _opt(fabricante);
+      final id = await _inserir(
+        'INSERT INTO adubo(id, nomedoadubo, fabricante) '
+        'VALUES(uuid(), ?, ?) RETURNING id',
+        [nomeLimpo, fab],
       );
+      return LookupItem(id: id, nome: nomeLimpo, fabricante: fab);
     } catch (e) {
       throw Exception('Erro ao criar adubo: $e');
     }
@@ -248,25 +261,18 @@ class LookupService {
     double? dosagemRecomendada,
   }) async {
     try {
-      final dados = <String, dynamic>{'nomedoinoculante': nome};
-      if (fabricante != null && fabricante.trim().isNotEmpty) {
-        dados['fabricante'] = fabricante.trim();
-      }
-      if (dosagemRecomendada != null) {
-        dados['dosagemrecomendada'] = dosagemRecomendada;
-      }
-      final res = await _client
-          .from('inoculante')
-          .insert(dados)
-          .select('id, nomedoinoculante, dosagemrecomendada, fabricante')
-          .single();
+      final nomeLimpo = nome.trim();
+      final fab = _opt(fabricante);
+      final id = await _inserir(
+        'INSERT INTO inoculante(id, nomedoinoculante, fabricante, '
+        'dosagemrecomendada) VALUES(uuid(), ?, ?, ?) RETURNING id',
+        [nomeLimpo, fab, dosagemRecomendada],
+      );
       return LookupItem(
-        id: res['id'].toString(),
-        nome: res['nomedoinoculante']?.toString() ?? '',
-        fabricante: res['fabricante']?.toString(),
-        dosagemRecomendada: res['dosagemrecomendada'] == null
-            ? null
-            : double.tryParse(res['dosagemrecomendada'].toString()),
+        id: id,
+        nome: nomeLimpo,
+        fabricante: fab,
+        dosagemRecomendada: dosagemRecomendada,
       );
     } catch (e) {
       throw Exception('Erro ao criar inoculante: $e');
@@ -280,27 +286,21 @@ class LookupService {
     String? utilidade,
   }) async {
     try {
-      final dados = <String, dynamic>{'nome': nome};
-      if (principioAtivo != null && principioAtivo.trim().isNotEmpty) {
-        dados['principioativo'] = principioAtivo.trim();
-      }
-      if (fabricante != null && fabricante.trim().isNotEmpty) {
-        dados['fabricante'] = fabricante.trim();
-      }
-      if (utilidade != null && utilidade.trim().isNotEmpty) {
-        dados['utilidade'] = utilidade.trim();
-      }
-      final res = await _client
-          .from('defensivo')
-          .insert(dados)
-          .select('id, nome, principioativo, fabricante, utilidade')
-          .single();
+      final nomeLimpo = nome.trim();
+      final pa = _opt(principioAtivo);
+      final fab = _opt(fabricante);
+      final util = _opt(utilidade);
+      final id = await _inserir(
+        'INSERT INTO defensivo(id, nome, principioativo, fabricante, '
+        'utilidade) VALUES(uuid(), ?, ?, ?, ?) RETURNING id',
+        [nomeLimpo, pa, fab, util],
+      );
       return LookupItem(
-        id: res['id'].toString(),
-        nome: res['nome']?.toString() ?? '',
-        principioAtivo: res['principioativo']?.toString(),
-        fabricante: res['fabricante']?.toString(),
-        utilidade: res['utilidade']?.toString(),
+        id: id,
+        nome: nomeLimpo,
+        principioAtivo: pa,
+        fabricante: fab,
+        utilidade: util,
       );
     } catch (e) {
       throw Exception('Erro ao criar defensivo: $e');
@@ -309,15 +309,12 @@ class LookupService {
 
   Future<LookupItem> createEstado(String nome) async {
     try {
-      final res = await _client
-          .from('estados')
-          .insert({'nome': nome})
-          .select('id, nome')
-          .single();
-      return LookupItem(
-        id: res['id'].toString(),
-        nome: res['nome']?.toString() ?? '',
+      final nomeLimpo = nome.trim();
+      final id = await _inserir(
+        'INSERT INTO estados(id, nome) VALUES(uuid(), ?) RETURNING id',
+        [nomeLimpo],
       );
+      return LookupItem(id: id, nome: nomeLimpo);
     } catch (e) {
       throw Exception('Erro ao criar estado: $e');
     }
@@ -325,15 +322,13 @@ class LookupService {
 
   Future<LookupItem> createTipoManejo(String nome) async {
     try {
-      final res = await _client
-          .from('tipo_manejo')
-          .insert({'tipo_de_manejo': nome})
-          .select('id, tipo_de_manejo')
-          .single();
-      return LookupItem(
-        id: res['id'].toString(),
-        nome: res['tipo_de_manejo']?.toString() ?? '',
+      final nomeLimpo = nome.trim();
+      final id = await _inserir(
+        'INSERT INTO tipo_manejo(id, tipo_de_manejo) VALUES(uuid(), ?) '
+        'RETURNING id',
+        [nomeLimpo],
       );
+      return LookupItem(id: id, nome: nomeLimpo);
     } catch (e) {
       throw Exception('Erro ao criar tipo de manejo: $e');
     }

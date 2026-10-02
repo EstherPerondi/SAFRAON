@@ -1,77 +1,66 @@
-// lib/services/fazenda_service.dart
-import 'package:supabase_flutter/supabase_flutter.dart';
+// lib/services/fazenda_service.dart  (versão offline-first com PowerSync)
+//
+// Mesma API pública da versão anterior (getAll, getById, create, update,
+// delete, existsWithName), então FazendaProvider e as telas não mudam.
+// Leitura e escrita agora acontecem no SQLite local; o PowerSync cuida de
+// enviar/receber do Supabase quando houver rede.
+import 'package:flutter/foundation.dart';
+import 'package:powersync/powersync.dart';
+
 import '../models/fazenda_model.dart';
+import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
 import 'delete_helper.dart';
 
 class FazendaService {
-  final SupabaseClient _client = SupabaseService().client;
-  final String _table = 'fazenda';
-  static const _selectComEstado = '*, estados ( nome )';
+  PowerSyncDatabase get _db => PowerSyncService().db;
 
-  // Buscar todas as fazendas do usuário
+  // O join com "estados" agora é um LEFT JOIN local. O resultado é
+  // remontado no formato aninhado que FazendaModel.fromJson já espera.
+  static const _selectComEstado = '''
+    SELECT f.*, e.nome AS estado_nome
+    FROM fazenda f
+    LEFT JOIN estados e ON e.id = f.estado_id
+  ''';
+
+  FazendaModel _fromRow(Map<String, dynamic> row) {
+    return FazendaModel.fromJson({
+      ...row,
+      'estados': {'nome': row['estado_nome']},
+    });
+  }
+
   Future<List<FazendaModel>> getAll() async {
     try {
-      final userId = SupabaseService().currentUserId;
-      print('📊 Buscando fazendas para user: $userId');
-
-      final response = await _client
-          .from(_table)
-          .select(_selectComEstado)
-          .order('created_at', ascending: false);
-
-      print('✅ ${response.length} fazendas encontradas');
-
-      return response.map<FazendaModel>((json) {
-        return FazendaModel.fromJson(json);
-      }).toList();
+      // Linhas recém-criadas offline ainda não têm created_at (o servidor
+      // preenche depois); COALESCE mantém elas no topo da lista.
+      final rows = await _db.getAll('''
+        $_selectComEstado
+        ORDER BY COALESCE(f.created_at, '9999') DESC
+      ''');
+      return rows.map<FazendaModel>(_fromRow).toList();
     } catch (e) {
-      print('❌ Erro ao buscar fazendas: $e');
+      debugPrint('❌ Erro ao buscar fazendas: $e');
       return [];
     }
   }
 
-  // Buscar uma fazenda por ID
   Future<FazendaModel?> getById(String id) async {
     try {
-      final response = await _client
-          .from(_table)
-          .select(_selectComEstado)
-          .eq('id', id)
-          .single();
-
-      return FazendaModel.fromJson(response);
+      final rows = await _db.getAll('$_selectComEstado WHERE f.id = ?', [id]);
+      return rows.isEmpty ? null : _fromRow(rows.first);
     } catch (e) {
-      print('❌ Erro ao buscar fazenda: $e');
+      debugPrint('❌ Erro ao buscar fazenda: $e');
       return null;
     }
   }
 
-  // Criar nova fazenda - COM LOGS DETALHADOS
   Future<FazendaModel?> create(FazendaModel fazenda) async {
     try {
-      print('========================================');
-      print('🚀 INICIANDO CRIAÇÃO DE FAZENDA');
-      print('========================================');
-
-      // 1. VERIFICAR AUTENTICAÇÃO
-      final supabase = SupabaseService();
-      print('🔐 Verificando autenticação...');
-      print('🔐 Usuário logado: ${supabase.isAuthenticated}');
-      
-      // 2. OBTER USER ID
-      final userId = supabase.currentUserId;
-      print('🆔 User ID obtido: "$userId"');
-      
+      final userId = SupabaseService().currentUserId;
       if (userId.isEmpty) {
-        print('❌ ERRO: User ID está vazio!');
         throw Exception('Usuário não autenticado. Faça login primeiro.');
       }
-
-      // 3. VALIDAR DADOS
-      print('📝 Validando dados...');
-      print('📝 Nome: "${fazenda.nome}"');
-      
       if (fazenda.nome.trim().isEmpty) {
         throw Exception('Nome da fazenda não pode estar vazio');
       }
@@ -79,91 +68,66 @@ class FazendaService {
         throw Exception('Estado da fazenda não pode estar vazio');
       }
 
-      // 4. PREPARAR DADOS PARA ENVIO
-      final data = {
-        'nome': fazenda.nome.trim(),
-        'usuario_id': userId,
-        'estado_id': fazenda.estadoId,
-      };
-      
-      print('📤 Dados a serem enviados:');
-      print('  - nome: ${data['nome']}');
-      print('  - usuario_id: ${data['usuario_id']}');
-      print('  - estado_id: ${data['estado_id']}');
-
-      // 5. TENTAR INSERIR
-      print('📤 Enviando para Supabase...');
-      
-      final response = await _client
-          .from(_table)
-          .insert(data)
-          .select(_selectComEstado)
-          .single();
-
-      print('✅ SUCESSO! Fazenda criada:');
-      print('  - ID: ${response['id']}');
-      print('  - Nome: ${response['nome']}');
-      print('  - Resposta completa: $response');
-      print('========================================');
-
-      return FazendaModel.fromJson(response);
-      
-    } on PostgrestException catch (e) {
-      print('========================================');
-      print('❌ ERRO POSTGRESQL:');
-      print('  - Código: ${e.code}');
-      print('  - Mensagem: ${e.message}');
-      print('  - Detalhes: ${e.details}');
-      print('  - Dica: ${e.hint}');
-      print('========================================');
-      return null;
-      
+      // O id é gerado AQUI (uuid()), não pelo banco — é o que permite
+      // criar registros sem internet.
+      final res = await _db.execute(
+        'INSERT INTO fazenda(id, nome, usuario_id, estado_id) '
+        'VALUES(uuid(), ?, ?, ?) RETURNING id',
+        [fazenda.nome.trim(), userId, fazenda.estadoId],
+      );
+      return getById(res.first['id'] as String);
     } catch (e) {
-      print('========================================');
-      print('❌ ERRO GERAL:');
-      print('  - Tipo: ${e.runtimeType}');
-      print('  - Mensagem: $e');
-      print('========================================');
+      debugPrint('❌ Erro ao criar fazenda: $e');
       return null;
     }
   }
 
-  // Atualizar fazenda
   Future<FazendaModel?> update(FazendaModel fazenda) async {
     try {
-      if (fazenda.id.isEmpty) {
-        throw Exception('ID da fazenda não informado');
-      }
+      if (fazenda.id.isEmpty) throw Exception('ID da fazenda não informado');
 
-      final data = {
-        'nome': fazenda.nome.trim(),
-        'estado_id': fazenda.estadoId,
-      };
-
-      print('📤 Atualizando fazenda: ${fazenda.id}');
-      print('  - Nome: ${data['nome']}');
-      print('  - Estado: ${data['estado_id']}');
-
-      final response = await _client
-          .from(_table)
-          .update(data)
-          .eq('id', fazenda.id)
-          .select(_selectComEstado)
-          .single();
-
-      print('✅ Fazenda atualizada com sucesso!');
-
-      return FazendaModel.fromJson(response);
+      await _db.execute(
+        'UPDATE fazenda SET nome = ?, estado_id = ? WHERE id = ?',
+        [fazenda.nome.trim(), fazenda.estadoId, fazenda.id],
+      );
+      return getById(fazenda.id);
     } catch (e) {
-      print('❌ Erro ao atualizar fazenda: $e');
+      debugPrint('❌ Erro ao atualizar fazenda: $e');
       return null;
     }
   }
 
-  // Deletar fazenda
   Future<bool> delete(String id) async {
-    if (id.isEmpty) {
-      throw Exception('ID da fazenda não informado');
+    try {
+      if (id.isEmpty) throw Exception('ID da fazenda não informado');
+
+      // Localmente não existe ON DELETE CASCADE, então removemos os filhos
+      // na mesma transação para a UI não mostrar registros órfãos.
+      await _db.writeTransaction((tx) async {
+        const filhos = [
+          'plantio',
+          'aplicacao',
+          'manejo',
+          'colheita',
+          'clima_dia',
+          'metricas_dia',
+          'previsao_clima',
+        ];
+        for (final tabela in filhos) {
+          await tx.execute(
+            'DELETE FROM $tabela WHERE talhao_id IN '
+            '(SELECT id FROM talhao WHERE fazenda_id = ?)',
+            [id],
+          );
+        }
+        await tx.execute('DELETE FROM talhao WHERE fazenda_id = ?', [id]);
+        await tx.execute('DELETE FROM fazenda WHERE id = ?', [id]);
+      });
+      return true;
+    } catch (e) {
+      debugPrint('❌ Erro ao deletar fazenda: $e');
+      return false;
+    }
     }
 
     print('🗑️ Deletando fazenda: $id');
@@ -183,19 +147,16 @@ class FazendaService {
     return true;
   }
 
-  // Verificar se existe fazenda com mesmo nome
   Future<bool> existsWithName(String nome) async {
     try {
       final userId = SupabaseService().currentUserId;
-      final response = await _client
-          .from(_table)
-          .select('id')
-          .eq('nome', nome.trim())
-          .eq('usuario_id', userId);
-
-      return response.isNotEmpty;
+      final rows = await _db.getAll(
+        'SELECT id FROM fazenda WHERE nome = ? AND usuario_id = ? LIMIT 1',
+        [nome.trim(), userId],
+      );
+      return rows.isNotEmpty;
     } catch (e) {
-      print('❌ Erro ao verificar nome: $e');
+      debugPrint('❌ Erro ao verificar nome: $e');
       return false;
     }
   }
