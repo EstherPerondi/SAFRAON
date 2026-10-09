@@ -14,6 +14,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
 import 'schema.dart';
 import 'supabase_connector.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class PowerSyncService {
   static final PowerSyncService _instance = PowerSyncService._internal();
@@ -29,11 +30,10 @@ class PowerSyncService {
     if (_initialized) return;
     _initialized = true;
 
-    final dir = await getApplicationSupportDirectory();
-    db = PowerSyncDatabase(
-      schema: schema,
-      path: p.join(dir.path, 'safraon.db'),
-    );
+    final path = kIsWeb
+      ? 'safraon.db'
+      : p.join((await getApplicationSupportDirectory()).path, 'safraon.db');
+    db = PowerSyncDatabase(schema: schema, path: path);
     await db.initialize();
 
     final auth = SupabaseService().client.auth;

@@ -10,7 +10,9 @@ class RodapeComFab extends StatelessWidget {
   const RodapeComFab({super.key, required this.child});
 
   static const double _larguraReservada = 76;
-  static const double _breakpointCelular = 600;
+  // Conteúdo das listagens tem maxWidth 800; o FAB só fica fora dele
+  // quando sobram >= 76px de cada lado (800 + 2*76 = 952).
+  static const double _breakpointCelular = 960;
 
   @override
   Widget build(BuildContext context) {

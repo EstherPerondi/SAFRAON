@@ -390,6 +390,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
+              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _TalhaoFormModal(
