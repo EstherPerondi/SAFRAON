@@ -48,6 +48,10 @@ void main() async {
 
   // Inicializar PowerSync (banco local + sincronização)
   await PowerSyncService().init();
+
+  debugPrint('🚀 chamando runApp');
+  runApp(const MyApp());
+  debugPrint('🚀 runApp chamado');  
   
   runApp(const MyApp());
 }

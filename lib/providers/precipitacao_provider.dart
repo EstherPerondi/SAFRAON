@@ -5,10 +5,12 @@ import '../services/precipitacao_service.dart';
 class PrecipitacaoProvider extends ChangeNotifier {
   final PrecipitacaoService _service = PrecipitacaoService();
   List<PrecipitacaoModel> _precipitacoes = [];
+  Map<String, String> _nomesTalhoes = {};
   bool _isLoading = false;
   String? _error;
 
   List<PrecipitacaoModel> get precipitacoes => _precipitacoes;
+  Map<String, String> get nomesTalhoes => _nomesTalhoes;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -34,6 +36,7 @@ class PrecipitacaoProvider extends ChangeNotifier {
 
     try {
       _precipitacoes = await _service.getAllForUser();
+      _nomesTalhoes = await _service.getNomesTalhoes();
     } catch (e) {
       _error = e.toString();
     } finally {
