@@ -42,10 +42,10 @@ Deno.serve(async (_req) => {
     // 2. Para cada talhão, busca o clima do dia e grava no banco
     for (const talhao of talhoes) {
       try {
-       const url =
-        `https://api.openweathermap.org/data/2.5/weather` +
-        `?lat=${talhao.latitude}&lon=${talhao.longitude}` +
-        `&units=metric&lang=pt_br&appid=${OPENWEATHER_API_KEY}`;
+        const url =
+          `https://api.openweathermap.org/data/2.5/weather` +
+          `?lat=${talhao.latitude}&lon=${talhao.longitude}` +
+          `&units=metric&lang=pt_br&appid=${OPENWEATHER_API_KEY}`;
 
         const resp = await fetch(url);
         if (!resp.ok) {
@@ -54,7 +54,9 @@ Deno.serve(async (_req) => {
         }
 
         const dia = await resp.json();
-        if (!dia.main || !dia.weather) throw new Error("Resposta da API incompleta");
+        if (!dia.main || !dia.weather) {
+          throw new Error("Resposta da API incompleta");
+        }
 
         const dataISO = dataLocalISO(new Date(dia.dt * 1000));
         const weather = dia.weather?.[0];
@@ -82,23 +84,45 @@ Deno.serve(async (_req) => {
           condicaoId = novaCondicao.id;
         }
 
-        // 4. Upsert em clima_dia (não duplica se já rodou hoje pra esse talhão)
+        // 4. Grava em clima_dia.
+        // A tabela agora permite VÁRIOS registros manuais no mesmo dia, então
+        // não existe mais chave única (talhao_id, data) para o upsert usar.
+        // Em vez disso: procuramos o registro AUTOMÁTICO do dia (fonte =
+        // 'openweathermap') e atualizamos; se não houver, inserimos.
+        // Registros manuais nunca são tocados por esta função.
         const precipitacao = (dia.rain?.["1h"] ?? 0) + (dia.snow?.["1h"] ?? 0);
-        const { error: climaError } = await supabase
-          .from("clima_dia")
-          .upsert(
-            {
-              talhao_id: talhao.id,
-              condicao_climatica_id: condicaoId,
-              data: dataISO,
-              fonte: "openweathermap",
-              precipitacao_dia: precipitacao,
-            },
-            { onConflict: "talhao_id,data" },
-          );
-        if (climaError) throw climaError;
+        const registroClima = {
+          talhao_id: talhao.id,
+          condicao_climatica_id: condicaoId,
+          data: dataISO,
+          fonte: "openweathermap",
+          precipitacao_dia: precipitacao,
+        };
 
-        // 5. Upsert em metricas_dia
+        const { data: climaExistente, error: buscaClimaError } = await supabase
+          .from("clima_dia")
+          .select("id")
+          .eq("talhao_id", talhao.id)
+          .eq("data", dataISO)
+          .eq("fonte", "openweathermap")
+          .limit(1)
+          .maybeSingle();
+        if (buscaClimaError) throw buscaClimaError;
+
+        if (climaExistente) {
+          const { error: climaError } = await supabase
+            .from("clima_dia")
+            .update(registroClima)
+            .eq("id", climaExistente.id);
+          if (climaError) throw climaError;
+        } else {
+          const { error: climaError } = await supabase
+            .from("clima_dia")
+            .insert(registroClima);
+          if (climaError) throw climaError;
+        }
+
+        // 5. Upsert em metricas_dia (tabela diferente, mantém a regra de 1 por talhão/dia)
         const { error: metricasError } = await supabase
           .from("metricas_dia")
           .upsert(
@@ -115,7 +139,7 @@ Deno.serve(async (_req) => {
         if (metricasError) throw metricasError;
 
         resultados.push({ talhao_id: talhao.id, status: "ok" });
-      }  catch (err) {
+      } catch (err) {
         // Um talhão com erro não deve travar os outros
         const detalhe = err instanceof Error
           ? err.message

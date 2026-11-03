@@ -1,11 +1,9 @@
 // lib/services/precipitacao_service.dart  (versão offline-first com PowerSync)
 // Mesma API pública de antes; agora lê e grava no SQLite local.
 //
-// Atenção: 'clima_dia' tem chave única (talhao_id, data) no servidor
-// (a Edge Function usa onConflict "talhao_id,data"). Se já existir um
-// registro do dia, o servidor recusaria o novo e o item sumiria após o
-// sync. Por isso checamos AQUI e recusamos (retorna null), igual ao
-// comportamento online de antes.
+// Podem existir VÁRIOS registros manuais no mesmo dia para o mesmo talhão
+// (a chave única (talhao_id, data) foi removida do servidor; só os registros
+// automáticos da Edge Function continuam únicos por talhão/dia).
 import 'package:flutter/foundation.dart';
 import 'package:powersync/powersync.dart';
 
@@ -22,17 +20,20 @@ class PrecipitacaoService {
     return rows.isEmpty ? null : PrecipitacaoModel.fromJson(rows.first);
   }
 
-  Future<bool> _existeNoDia(
-    String talhaoId,
-    String data, {
-    String? ignorarId,
-  }) async {
-    final rows = await _db.getAll(
-      'SELECT id FROM clima_dia '
-      'WHERE talhao_id = ? AND substr(data, 1, 10) = ? AND id != ? LIMIT 1',
-      [talhaoId, data, ignorarId ?? ''],
-    );
-    return rows.isNotEmpty;
+  /// Mapa {id do talhão -> nome}, usado para rotular os registros na tela geral.
+  /// Se a consulta falhar (ex.: nome de coluna diferente), devolve mapa vazio
+  /// e a tela simplesmente não mostra o nome.
+  Future<Map<String, String>> getNomesTalhoes() async {
+    try {
+      final rows = await _db.getAll('SELECT id, nome FROM talhao');
+      return {
+        for (final r in rows)
+          r['id'].toString(): (r['nome'] ?? '').toString(),
+      };
+    } catch (e) {
+      debugPrint('Erro ao buscar nomes dos talhões: $e');
+      return {};
+    }
   }
 
   Future<List<PrecipitacaoModel>> getByTalhaoId(String talhaoId) async {
@@ -65,12 +66,7 @@ class PrecipitacaoService {
 
   Future<PrecipitacaoModel?> create(PrecipitacaoModel precipitacao) async {
     try {
-      final json = precipitacao.toJson();
-      if (await _existeNoDia(precipitacao.talhaoId, json['data'] as String)) {
-        debugPrint('Já existe registro de chuva para este talhão nesta data.');
-        return null;
-      }
-      final id = await insertRow(_db, 'clima_dia', json);
+      final id = await insertRow(_db, 'clima_dia', precipitacao.toJson());
       return _getById(id);
     } catch (e) {
       debugPrint('Erro ao criar precipitação: $e');
@@ -80,16 +76,12 @@ class PrecipitacaoService {
 
   Future<PrecipitacaoModel?> update(PrecipitacaoModel precipitacao) async {
     try {
-      final json = precipitacao.toJson();
-      if (await _existeNoDia(
-        precipitacao.talhaoId,
-        json['data'] as String,
-        ignorarId: precipitacao.id,
-      )) {
-        debugPrint('Já existe registro de chuva para este talhão nesta data.');
-        return null;
-      }
-      await updateRow(_db, 'clima_dia', precipitacao.id, json);
+      await updateRow(
+        _db,
+        'clima_dia',
+        precipitacao.id,
+        precipitacao.toJson(),
+      );
       return _getById(precipitacao.id);
     } catch (e) {
       debugPrint('Erro ao atualizar precipitação: $e');

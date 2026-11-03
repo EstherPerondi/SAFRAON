@@ -164,16 +164,12 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                               return provider.loadAll();
                             }
                           },
-                          child: ListView.builder(
-                            itemCount: provider.precipitacoes.length,
-                            itemBuilder: (context, index) {
-                              final precipitacao =
-                                  provider.precipitacoes[index];
-                              return _buildPrecipitacaoCard(
-                                precipitacao,
-                                index,
-                              );
-                            },
+                          child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: _buildListaAgrupadaPorDia(
+                              provider.precipitacoes,
+                              provider.nomesTalhoes,
+                            ),
                           ),
                         ),
                       ),
@@ -233,6 +229,118 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
         child: const Icon(Icons.add, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  // Agrupa os registros por talhão + dia e devolve, para cada grupo,
+  // um cabeçalho com a SOMA do dia seguido dos cards individuais.
+  List<Widget> _buildListaAgrupadaPorDia(
+    List<PrecipitacaoModel> lista,
+    Map<String, String> nomesTalhoes,
+  ) {
+    final grupos = <String, List<PrecipitacaoModel>>{};
+    for (final p in lista) {
+      final chave = '${p.talhaoId}|${p.data.year}-'
+          '${p.data.month.toString().padLeft(2, '0')}-'
+          '${p.data.day.toString().padLeft(2, '0')}';
+      grupos.putIfAbsent(chave, () => []).add(p);
+    }
+
+    final entradas = grupos.values.toList()
+      ..sort((a, b) {
+        final da = DateTime(a.first.data.year, a.first.data.month, a.first.data.day);
+        final db = DateTime(b.first.data.year, b.first.data.month, b.first.data.day);
+        final porData = db.compareTo(da); // mais recente primeiro
+        return porData != 0 ? porData : a.first.talhaoId.compareTo(b.first.talhaoId);
+      });
+
+    final widgets = <Widget>[];
+    for (final registros in entradas) {
+      final soma = registros.fold<double>(0, (s, p) => s + p.quantidade);
+      // O nome do talhão só aparece na tela geral (a do talhão já é específica).
+      final nome = _talhaoId == null
+          ? nomesTalhoes[registros.first.talhaoId]
+          : null;
+      widgets.add(
+        _buildCabecalhoDia(registros.first, soma, registros.length, nome),
+      );
+      for (var i = 0; i < registros.length; i++) {
+        widgets.add(_buildPrecipitacaoCard(registros[i], i));
+      }
+      widgets.add(const SizedBox(height: 8));
+    }
+    return widgets;
+  }
+
+  Widget _buildCabecalhoDia(
+    PrecipitacaoModel referencia,
+    double soma,
+    int qtd,
+    String? talhaoNome,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6, top: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: VerdeClaro.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: VerdeClaro.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.event, size: 18, color: VerdeEscuro),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (talhaoNome != null && talhaoNome.isNotEmpty)
+                    Text(
+                      talhaoNome,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: VerdeEscuro,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  Text(
+                    '${referencia.formattedDate}'
+                    '${qtd > 1 ? '  •  $qtd registros' : ''}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: talhaoNome != null && talhaoNome.isNotEmpty
+                          ? Colors.grey.shade700
+                          : VerdeEscuro,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              'Total do dia: ',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+              decoration: BoxDecoration(
+                color: VerdeEscuro,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                '${soma.toStringAsFixed(1)} mm',
+                style: TextStyle(
+                  color: Bege,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
