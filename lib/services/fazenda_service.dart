@@ -10,6 +10,7 @@ import 'package:powersync/powersync.dart';
 import '../models/fazenda_model.dart';
 import '../powersync/powersync_service.dart';
 import 'supabase_service.dart';
+import '../utils/ordenacao.dart';
 
 class FazendaService {
   PowerSyncDatabase get _db => PowerSyncService().db;
@@ -31,13 +32,12 @@ class FazendaService {
 
   Future<List<FazendaModel>> getAll() async {
     try {
-      // Linhas recém-criadas offline ainda não têm created_at (o servidor
-      // preenche depois); COALESCE mantém elas no topo da lista.
       final rows = await _db.getAll('''
         $_selectComEstado
-        ORDER BY COALESCE(f.created_at, '9999') DESC
       ''');
-      return rows.map<FazendaModel>(_fromRow).toList();
+      // Ordem alfabética pelo nome da fazenda
+      return rows.map<FazendaModel>(_fromRow).toList()
+        ..sort((a, b) => compararNomes(a.nome, b.nome));
     } catch (e) {
       debugPrint('❌ Erro ao buscar fazendas: $e');
       return [];

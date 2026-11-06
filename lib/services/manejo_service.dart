@@ -11,15 +11,23 @@ import 'supabase_service.dart';
 class ManejoService {
   PowerSyncDatabase get _db => PowerSyncService().db;
   static const _select = '''
-    SELECT m.*, t.tipo_de_manejo AS tipo_manejo_nome
+    SELECT m.*, t.tipo_de_manejo AS tipo_manejo_nome,
+           tl.nome AS talhao_nome,
+           fz.nome AS fazenda_nome
     FROM manejo m
     LEFT JOIN tipo_manejo t ON t.id = m.tipo_manejo_id
+    LEFT JOIN talhao  tl ON tl.id = m.talhao_id
+    LEFT JOIN fazenda fz ON fz.id = tl.fazenda_id
   ''';
 
   ManejoModel _fromRow(Map<String, Object?> r) {
     return ManejoModel.fromJson({
       ...r,
       'tipo_manejo': {'tipo_de_manejo': r['tipo_manejo_nome']},
+      'talhao': {
+        'nome': r['talhao_nome'],
+        'fazenda': {'nome': r['fazenda_nome']},
+      },
     });
   }
 

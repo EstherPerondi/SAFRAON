@@ -325,24 +325,6 @@ class _ColheitasPageState extends State<ColheitasPage> {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: VerdeClaro,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(
-                      color: Bege,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -366,7 +348,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
                     ],
                   ),
                 ),
-                Row(
+                Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
@@ -376,7 +358,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(height: 15),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
                       onPressed: () => _deleteColheita(colheita.id),
