@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/talhao_model.dart';
 import '../services/talhao_service.dart';
+import '../utils/ordenacao.dart';
 
 class TalhaoProvider extends ChangeNotifier {
   final TalhaoService _service = TalhaoService();
@@ -81,7 +82,8 @@ class TalhaoProvider extends ChangeNotifier {
         return false;
       }
       
-      _talhoes.insert(0, novoTalhao);
+      _talhoes.add(novoTalhao);
+      _talhoes.sort((a, b) => compararNomes(a.nome, b.nome));
       _successMessage = 'Talhão "${novoTalhao.nome}" criado com sucesso!';
       
       _isLoading = false;
@@ -119,6 +121,7 @@ class TalhaoProvider extends ChangeNotifier {
       final index = _talhoes.indexWhere((t) => t.id == talhao.id);
       if (index != -1) {
         _talhoes[index] = updatedTalhao;
+        _talhoes.sort((a, b) => compararNomes(a.nome, b.nome));
       }
       
       _successMessage = 'Talhão "${updatedTalhao.nome}" atualizado com sucesso!';

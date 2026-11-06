@@ -12,15 +12,23 @@ class ColheitaService {
   PowerSyncDatabase get _db => PowerSyncService().db;
 
   static const _select = '''
-    SELECT h.*, c.plantacultivada AS cultura_nome
+    SELECT h.*, c.plantacultivada AS cultura_nome,
+           tl.nome AS talhao_nome,
+           fz.nome AS fazenda_nome
     FROM colheita h
     LEFT JOIN cultura c ON c.id = h.cultura_id
+    LEFT JOIN talhao  tl ON tl.id = h.talhao_id
+    LEFT JOIN fazenda fz ON fz.id = tl.fazenda_id
   ''';
 
   ColheitaModel _fromRow(Map<String, Object?> r) {
     return ColheitaModel.fromJson({
       ...r,
       'cultura': {'plantacultivada': r['cultura_nome']},
+      'talhao': {
+        'nome': r['talhao_nome'],
+        'fazenda': {'nome': r['fazenda_nome']},
+      },
     });
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/fazenda_model.dart';
 import '../services/fazenda_service.dart';
 import '../services/supabase_service.dart';
+import '../utils/ordenacao.dart';
 
 class FazendaProvider extends ChangeNotifier {
   final FazendaService _service = FazendaService();
@@ -69,7 +70,8 @@ class FazendaProvider extends ChangeNotifier {
         return false;
       }
       
-      _fazendas.insert(0, novaFazenda);
+      _fazendas.add(novaFazenda);
+      _fazendas.sort((a, b) => compararNomes(a.nome, b.nome));
       _successMessage = 'Fazenda "${novaFazenda.nome}" criada com sucesso!';
       
       _isLoading = false;
@@ -107,6 +109,7 @@ class FazendaProvider extends ChangeNotifier {
       final index = _fazendas.indexWhere((f) => f.id == fazenda.id);
       if (index != -1) {
         _fazendas[index] = updatedFazenda;
+        _fazendas.sort((a, b) => compararNomes(a.nome, b.nome));
       }
       
       _successMessage = 'Fazenda "${updatedFazenda.nome}" atualizada com sucesso!';

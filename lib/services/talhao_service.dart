@@ -11,18 +11,21 @@ import 'package:powersync/powersync.dart';
 
 import '../models/talhao_model.dart';
 import '../powersync/powersync_service.dart';
+import '../utils/ordenacao.dart';
 
 class TalhaoService {
   PowerSyncDatabase get _db => PowerSyncService().db;
 
-  static const _ordem = "ORDER BY COALESCE(created_at, '9999') DESC";
+  // Ordem alfabética pelo nome do talhão (feita em Dart, ignora acentos)
+  List<TalhaoModel> _ordenar(List<TalhaoModel> lista) =>
+      lista..sort((a, b) => compararNomes(a.nome, b.nome));
 
   // O sync config já entrega só os talhões das fazendas do usuário,
   // então não precisa mais do join com fazenda.usuario_id.
   Future<List<TalhaoModel>> getAll() async {
     try {
-      final rows = await _db.getAll('SELECT * FROM talhao $_ordem');
-      return rows.map<TalhaoModel>(TalhaoModel.fromJson).toList();
+      final rows = await _db.getAll('SELECT * FROM talhao');
+      return _ordenar(rows.map<TalhaoModel>(TalhaoModel.fromJson).toList());
     } catch (e) {
       debugPrint('❌ Erro ao buscar talhões: $e');
       return [];
@@ -32,10 +35,10 @@ class TalhaoService {
   Future<List<TalhaoModel>> getByFazenda(String fazendaId) async {
     try {
       final rows = await _db.getAll(
-        'SELECT * FROM talhao WHERE fazenda_id = ? $_ordem',
+        'SELECT * FROM talhao WHERE fazenda_id = ?',
         [fazendaId],
       );
-      return rows.map<TalhaoModel>(TalhaoModel.fromJson).toList();
+      return _ordenar(rows.map<TalhaoModel>(TalhaoModel.fromJson).toList());
     } catch (e) {
       debugPrint('❌ Erro ao buscar talhões: $e');
       return [];

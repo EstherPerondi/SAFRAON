@@ -23,6 +23,67 @@ class _CadastroState extends State<Cadastro> {
 
   final _formKey = GlobalKey<FormState>();
 
+  // Regras da senha (as mesmas usadas no validator do campo)
+  static final RegExp _regexEspecial = RegExp(r'[!@#$%^&*(),.?\":{}|<>]');
+
+  bool get _temMinimo => _senha.text.length >= 6;
+  bool get _temMaiuscula => RegExp(r'[A-Z]').hasMatch(_senha.text);
+  bool get _temMinuscula => RegExp(r'[a-z]').hasMatch(_senha.text);
+  bool get _temNumero => RegExp(r'[0-9]').hasMatch(_senha.text);
+  bool get _temEspecial => _regexEspecial.hasMatch(_senha.text);
+
+  Widget _requisitoSenha(String texto, bool ok, double fontSize) {
+    final digitou = _senha.text.isNotEmpty;
+    final cor = ok ? VerdeClaro : (digitou ? Vermelho : Colors.grey[700]!);
+    return Padding(
+      padding: const EdgeInsets.only(top: 3),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              texto,
+              style: TextStyle(
+                fontSize: fontSize,
+                color: cor,
+                fontWeight: ok ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRequisitosSenha(double fontSize) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'A senha precisa ter:',
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              color: VerdeEscuro,
+            ),
+          ),
+          _requisitoSenha('Mínimo de 6 caracteres', _temMinimo, fontSize),
+          _requisitoSenha('Uma letra maiúscula (A-Z)', _temMaiuscula, fontSize),
+          _requisitoSenha('Uma letra minúscula (a-z)', _temMinuscula, fontSize),
+          _requisitoSenha('Um número (0-9)', _temNumero, fontSize),
+          _requisitoSenha(
+            'Um caractere especial (ex: ! @ # % & *)',
+            _temEspecial,
+            fontSize,
+          ),
+        ],
+      ),
+    );
+  }
+
   // Função de cadastro
   Future<void> _cadastrar() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -380,6 +441,7 @@ class _CadastroState extends State<Cadastro> {
           TextFormField(
             controller: _senha,
             obscureText: !_senhaVisivel,
+            onChanged: (_) => setState(() {}),
             style: TextStyle(fontSize: fieldFontSize),
             decoration: InputDecoration(
               labelText: 'Senha',
@@ -458,6 +520,7 @@ class _CadastroState extends State<Cadastro> {
               return null;
             },
           ),
+          _buildRequisitosSenha(fieldFontSize - 2),
           const SizedBox(height: 25),
 
           // Campo Confirmar Senha

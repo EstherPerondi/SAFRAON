@@ -10,7 +10,7 @@ class PrincipalPage extends StatelessWidget {
     final itens = [
       {"titulo": "Fazendas", "icone": "Imagens/ICONE_FAZENDAS.png"},
       {"titulo": "Talhões", "icone": "Imagens/ICONE_TALHAO.png"},
-      {"titulo": "Últimas\nAplicações", "icone": "Imagens/ICONE_DEFENSIVO.png"},
+      {"titulo": "Aplicações", "icone": "Imagens/ICONE_DEFENSIVO.png"},
       {"titulo": "Plantio", "icone": "Imagens/ICONE_PLANTIO.png"},
       {"titulo": "Manejos", "icone": "Imagens/ICONE_MANEJO.png"},
       {"titulo": "Colheitas", "icone": "Imagens/ICONE_COLHEITA.png"},
@@ -106,7 +106,7 @@ class PrincipalPage extends StatelessWidget {
                               case "Talhões":
                                 Navigator.pushNamed(context, '/talhoes');
                                 break;
-                              case "Últimas\nAplicações":
+                              case "Aplicações":
                                 Navigator.pushNamed(context, '/aplicacoes');
                                 break;
                               case "Plantio":

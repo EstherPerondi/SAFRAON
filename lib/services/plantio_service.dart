@@ -18,8 +18,12 @@ class PlantioService {
            c.plantacultivada AS cultura_nome,
            v.nomedavariedade AS variedade_nome,
            a.nomedoadubo     AS adubo_nome,
-           i.nomedoinoculante AS inoculante_nome
+           i.nomedoinoculante AS inoculante_nome,
+           t.nome            AS talhao_nome,
+           f.nome            AS fazenda_nome
     FROM plantio p
+    LEFT JOIN talhao     t ON t.id = p.talhao_id
+    LEFT JOIN fazenda    f ON f.id = t.fazenda_id
     LEFT JOIN cultura    c ON c.id = p.cultura_id
     LEFT JOIN variedade  v ON v.id = p.variedade_id
     LEFT JOIN adubo      a ON a.id = p.adubo_id
@@ -34,6 +38,10 @@ class PlantioService {
       'variedade': {'nomedavariedade': r['variedade_nome']},
       'adubo': {'nomedoadubo': r['adubo_nome']},
       'inoculante': {'nomedoinoculante': r['inoculante_nome']},
+      'talhao': {
+        'nome': r['talhao_nome'],
+        'fazenda': {'nome': r['fazenda_nome']},
+      },
     });
   }
 
