@@ -5,7 +5,6 @@ import '../providers/talhao_provider.dart';
 import '../models/talhao_model.dart';
 import 'talhao.dart';
 import '../variaveis.dart';
-import '../widgets/rodape_com_fab.dart';
 
 class FazendaPage extends StatefulWidget {
   final String fazendaId;
@@ -200,7 +199,7 @@ class _FazendaPageState extends State<FazendaPage> {
                   ),
                 ),
 
-              RodapeComFab(child: Container(
+              Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -240,7 +239,7 @@ class _FazendaPageState extends State<FazendaPage> {
                     ),
                   ],
                 ),
-              )),
+              ),
             ],
           ),
         ),
@@ -361,7 +360,6 @@ class _FazendaPageState extends State<FazendaPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
-              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _TalhaoFormModal(
@@ -404,18 +402,10 @@ class _FazendaPageState extends State<FazendaPage> {
             TextButton(
               onPressed: () async {
                 final provider = context.read<TalhaoProvider>();
-                final messenger = ScaffoldMessenger.of(context);
-                Navigator.pop(context);
                 final success = await provider.delete(id);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(success
-                        ? 'Talhão excluído com sucesso!'
-                        : (provider.error ?? 'Não foi possível excluir.')),
-                    backgroundColor: success ? Colors.green : Colors.red,
-                  ),
-                );
+
                 if (success && mounted) {
+                  Navigator.pop(context);
                   await provider.loadTalhoesByFazenda(widget.fazendaId);
                 }
               },

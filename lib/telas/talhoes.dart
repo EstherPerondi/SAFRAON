@@ -5,7 +5,6 @@ import '../providers/fazenda_provider.dart';
 import '../models/talhao_model.dart';
 import '../models/fazenda_model.dart';
 import '../variaveis.dart';
-import '../widgets/rodape_com_fab.dart';
 import 'talhao.dart';
 
 class TalhoesPage extends StatefulWidget {
@@ -208,7 +207,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                       ),
 
                     // Rodapé
-                    RodapeComFab(child: Container(
+                    Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -248,7 +247,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                           ),
                         ],
                       ),
-                    )),
+                    ),
                   ],
                 ),
               ),
@@ -390,7 +389,6 @@ class _TalhoesPageState extends State<TalhoesPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
-              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _TalhaoFormModal(
@@ -432,18 +430,10 @@ class _TalhoesPageState extends State<TalhoesPage> {
             TextButton(
               onPressed: () async {
                 final provider = context.read<TalhaoProvider>();
-                final messenger = ScaffoldMessenger.of(context);
-                Navigator.pop(context);
                 final success = await provider.delete(id);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(success
-                        ? 'Talhão excluído com sucesso!'
-                        : (provider.error ?? 'Não foi possível excluir.')),
-                    backgroundColor: success ? Colors.green : Colors.red,
-                  ),
-                );
+
                 if (success && mounted) {
+                  Navigator.pop(context);
                   await _loadData();
                 }
               },
@@ -585,7 +575,7 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
                         items: fazendas.map((fazenda) {
                           return DropdownMenuItem(
                             value: fazenda.id,
-                            child: Text(fazenda.nome, overflow: TextOverflow.ellipsis),
+                            child: Text(fazenda.nome),
                           );
                         }).toList(),
                         onChanged: (value) {

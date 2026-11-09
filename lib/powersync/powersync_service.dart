@@ -14,7 +14,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
 import 'schema.dart';
 import 'supabase_connector.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class PowerSyncService {
   static final PowerSyncService _instance = PowerSyncService._internal();
@@ -30,10 +29,17 @@ class PowerSyncService {
     if (_initialized) return;
     _initialized = true;
 
-    final path = kIsWeb
-      ? 'safraon.db'
-      : p.join((await getApplicationSupportDirectory()).path, 'safraon.db');
-    db = PowerSyncDatabase(schema: schema, path: path);
+    // No navegador (Netlify) não existe pasta de arquivos: o PowerSync usa
+    // IndexedDB/OPFS e o "path" é só o nome do banco. path_provider não
+    // funciona na web e derrubava o app antes do runApp.
+    final String dbPath;
+    if (kIsWeb) {
+      dbPath = 'safraon.db';
+    } else {
+      final dir = await getApplicationSupportDirectory();
+      dbPath = p.join(dir.path, 'safraon.db');
+    }
+    db = PowerSyncDatabase(schema: schema, path: dbPath);
     await db.initialize();
 
     final auth = SupabaseService().client.auth;

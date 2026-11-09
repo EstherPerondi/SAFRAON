@@ -12,7 +12,7 @@ class PlantioService {
   PowerSyncDatabase get _db => PowerSyncService().db;
 
   // Os joins que o Supabase fazia ("cultura ( plantacultivada )", ...)
-  // viraram LEFT JOINs locais.
+  // viram LEFT JOINs locais.
   static const _select = '''
     SELECT p.*,
            c.plantacultivada AS cultura_nome,

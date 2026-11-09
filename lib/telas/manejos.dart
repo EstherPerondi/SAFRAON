@@ -4,9 +4,7 @@ import '../providers/manejo_provider.dart';
 import '../models/manejo_model.dart';
 import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
-import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
-import '../widgets/rodape_com_fab.dart';
 
 class ManejosPage extends StatefulWidget {
   const ManejosPage({super.key});
@@ -182,7 +180,7 @@ class _ManejosPageState extends State<ManejosPage> {
                         ),
                       ),
 
-                    RodapeComFab(child: Container(
+                    Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -222,7 +220,7 @@ class _ManejosPageState extends State<ManejosPage> {
                           ),
                         ],
                       ),
-                    )),
+                    ),
                   ],
                 ),
               ),
@@ -293,24 +291,6 @@ class _ManejosPageState extends State<ManejosPage> {
                           ),
                         ],
                       ),
-                      if (_talhaoId == null && manejo.localizacao != null)
-                        Row(
-                          children: [
-                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                manejo.localizacao!,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[700],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
                     ],
                   ),
                 ),
@@ -411,7 +391,6 @@ class _ManejosPageState extends State<ManejosPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
-              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _ManejoFormModal(
@@ -420,9 +399,11 @@ class _ManejosPageState extends State<ManejosPage> {
               tiposManejo: _tiposManejo,
               onSave: (novoManejo) {
                 final provider = context.read<ManejoProvider>();
-                return manejo == null
-                    ? provider.create(novoManejo)
-                    : provider.update(novoManejo);
+                if (manejo == null) {
+                  provider.create(novoManejo);
+                } else {
+                  provider.update(novoManejo);
+                }
               },
             ),
           ),
@@ -444,19 +425,9 @@ class _ManejosPageState extends State<ManejosPage> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () async {
-                final provider = context.read<ManejoProvider>();
-                final messenger = ScaffoldMessenger.of(context);
+              onPressed: () {
+                context.read<ManejoProvider>().delete(id);
                 Navigator.pop(context);
-                final ok = await provider.delete(id);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(ok
-                        ? 'Manejo excluído com sucesso!'
-                        : (provider.error ?? 'Não foi possível excluir.')),
-                    backgroundColor: ok ? Colors.green : Colors.red,
-                  ),
-                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Excluir'),
@@ -475,7 +446,7 @@ class _ManejoFormModal extends StatefulWidget {
   final ManejoModel? manejo;
   final String? talhaoId;
   final List<LookupItem> tiposManejo;
-  final Future<bool> Function(ManejoModel) onSave;
+  final Function(ManejoModel) onSave;
 
   const _ManejoFormModal({
     this.manejo,
@@ -490,9 +461,6 @@ class _ManejoFormModal extends StatefulWidget {
 
 class _ManejoFormModalState extends State<_ManejoFormModal> {
   final _formKey = GlobalKey<FormState>();
-  String? _talhaoSelecionadoId;
-  bool _salvando = false;
-  String? _erroSalvar;
   final _motivoController = TextEditingController();
   String? _tipoManejoId;
   DateTime? _selectedDate;
@@ -502,7 +470,6 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
   @override
   void initState() {
     super.initState();
-    _talhaoSelecionadoId = widget.talhaoId ?? widget.manejo?.talhaoId;
     if (widget.manejo != null) {
       _tipoManejoId = widget.manejo!.tipoManejoId;
       _motivoController.text = widget.manejo!.motivo;
@@ -570,16 +537,6 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Só pede fazenda/talhão quando a tela foi aberta pelo menu
-                    // principal. Dentro de um talhão, o talhão já é conhecido.
-                    if (widget.talhaoId == null) ...[
-                      SeletorFazendaTalhao(
-                          talhaoIdFixo: widget.talhaoId,
-                          talhaoIdInicial: widget.manejo?.talhaoId,
-                          onChanged: (id) => _talhaoSelecionadoId = id,
-                          ),
-                      const SizedBox(height: 16),
-                    ],
                     _buildTipoManejoDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
@@ -590,19 +547,11 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
                       icon: Icons.description,
                       hint: 'Motivo do manejo',
                     ),
-                    if (_erroSalvar != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          _erroSalvar!,
-                          style: const TextStyle(color: Colors.red, fontSize: 13),
-                        ),
-                      ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _salvando ? null : _saveManejo,
+                        onPressed: _saveManejo,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -646,7 +595,6 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        isExpanded: true,
         value: _tipoManejoId,
         decoration: InputDecoration(
           labelText: 'Tipo de Manejo',
@@ -662,7 +610,7 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
         ),
         items: [
           ...widget.tiposManejo
-              .map((t) => DropdownMenuItem(value: t.id, child: Text(t.nome, overflow: TextOverflow.ellipsis))),
+              .map((t) => DropdownMenuItem(value: t.id, child: Text(t.nome))),
           buildAdicionarNovoDropdownItem('+ Adicionar novo tipo de manejo...'),
         ],
         onChanged: (value) async {
@@ -799,44 +747,20 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
     }
   }
 
-  Future<void> _saveManejo() async {
-    if (_salvando) return;
-    if (!_formKey.currentState!.validate() || _selectedDate == null) return;
-
-    final talhaoId = _talhaoSelecionadoId;
-    if (talhaoId == null || talhaoId.isEmpty) {
-      setState(() => _erroSalvar = 'Selecione a fazenda e o talhão.');
-      return;
-    }
-
-    setState(() {
-      _salvando = true;
-      _erroSalvar = null;
-    });
-
-    final novoManejo = ManejoModel(
+  void _saveManejo() {
+    if (_formKey.currentState!.validate() && _selectedDate != null) {
+      final novoManejo = ManejoModel(
         id: widget.manejo?.id ?? '',
-        talhaoId: talhaoId,
+        talhaoId: widget.talhaoId ?? widget.manejo?.talhaoId ?? '',
         tipoManejoId: _tipoManejoId!,
         data: _selectedDate!,
         descricao: _motivoController.text,
-    );
+      );
 
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
+      widget.onSave(novoManejo);
+      Navigator.pop(context);
 
-    bool salvou = false;
-    try {
-      salvou = await widget.onSave(novoManejo);
-    } catch (_) {
-      salvou = false;
-    }
-
-    if (!mounted) return;
-
-    if (salvou) {
-      navigator.pop();
-      messenger.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
@@ -847,12 +771,6 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
           duration: const Duration(seconds: 2),
         ),
       );
-    } else {
-      setState(() {
-        _salvando = false;
-        _erroSalvar =
-            'Não foi possível salvar. Verifique sua conexão e tente novamente.';
-      });
     }
   }
 }

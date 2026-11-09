@@ -312,12 +312,9 @@ class _CadastroState extends State<Cadastro> {
             ],
           ),
 
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              'Cadastro',
-              style: tituloDaPg,
-            ),
+          Text(
+            'Cadastro',
+            style: tituloDaPg,
           ),
           const SizedBox(height: 50),
 

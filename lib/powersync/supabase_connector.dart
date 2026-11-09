@@ -11,8 +11,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/supabase_service.dart';
 
-/// URL da instância PowerSync. Usa o valor padrão abaixo, mas pode ser
-/// sobrescrita na build:
+/// URL da instância PowerSync. Passe na build, sem commitar:
 /// flutter run --dart-define=POWERSYNC_URL=https://SEU-ID.powersync.journeyapps.com
 const powersyncUrl = String.fromEnvironment(
   'POWERSYNC_URL',

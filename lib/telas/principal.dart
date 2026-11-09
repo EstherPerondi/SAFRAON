@@ -19,37 +19,15 @@ class PrincipalPage extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double w = constraints.maxWidth;
-        final bool tablet = w >= 600 && w < 1024;
-        final bool desktop = w >= 1024;
+        final bool desktop = constraints.maxWidth >= 800;
+        final double cardWidth = desktop ? 250 : 110;
+        final double spacing = desktop ? 50 : 60;
+        final double padding = desktop ? 50 : 20;
 
-        late final double cardWidth;
-        late final double spacing;
-        late final double runSpacing;
-        late final double padding;
-        if (desktop) {
-          cardWidth = 250;
-          spacing = 50;
-          runSpacing = 110;
-          padding = 50;
-        } else if (tablet) {
-          // Tablet: 4 cards por linha, ocupando a largura disponível
-          padding = 32;
-          spacing = 32;
-          runSpacing = 56;
-          cardWidth = ((w - padding * 2 - spacing * 3) / 4)
-              .floorToDouble()
-              .clamp(120.0, 190.0)
-              .toDouble();
-        } else {
-          cardWidth = 110;
-          spacing = 60;
-          runSpacing = 80;
-          padding = 20;
-        }
-        // O ícone ocupa quase toda a largura do card (menos no desktop)
-        final double iconeTamanho =
-            desktop ? 170 : (tablet ? cardWidth - 10 : 100);
+        int cardsPerRow =
+            (constraints.maxWidth - padding * 2 + spacing) ~/
+            (cardWidth + spacing);
+        if (cardsPerRow < 1) cardsPerRow = 1;
 
         return Scaffold(
           backgroundColor: Bege,
@@ -112,7 +90,7 @@ class PrincipalPage extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: Wrap(
                     spacing: spacing,
-                    runSpacing: runSpacing,
+                    runSpacing: desktop ? 110 : 80,
                     alignment: WrapAlignment.center,
                     children: itens.map((item) {
                       return SizedBox(
@@ -146,8 +124,6 @@ class PrincipalPage extends StatelessWidget {
                             }
                           },
                           desktop: desktop,
-                          tablet: tablet,
-                          iconeTamanho: iconeTamanho,
                         ),
                       );
                     }).toList(),
@@ -167,8 +143,6 @@ class MenuCard extends StatelessWidget {
   final String imagem;
   final VoidCallback onTap;
   final bool desktop;
-  final bool tablet;
-  final double iconeTamanho;
 
   const MenuCard({
     super.key,
@@ -176,8 +150,6 @@ class MenuCard extends StatelessWidget {
     required this.imagem,
     required this.onTap,
     required this.desktop,
-    this.tablet = false,
-    this.iconeTamanho = 100,
   });
 
   @override
@@ -189,8 +161,8 @@ class MenuCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: iconeTamanho,
-            height: iconeTamanho,
+            width: desktop ? 170 : 100,
+            height: desktop ? 170 : 100,
             decoration: BoxDecoration(
               color: VerdeEscuro,
               borderRadius: BorderRadius.circular(18),
@@ -200,19 +172,14 @@ class MenuCard extends StatelessWidget {
               child: Image.asset(imagem, fit: BoxFit.contain),
             ),
           ),
-          SizedBox(height: desktop ? 12 : (tablet ? 10 : 6)),
-          // FittedBox reduz a fonte só se o título não couber na largura
-          // do card, evitando quebra no meio da palavra (ex: Precipitações).
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              titulo,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: desktop ? 22 : (tablet ? 20 : 18),
-                color: VerdeClaro,
-                fontWeight: FontWeight.w500,
-              ),
+          SizedBox(height: desktop ? 12 : 6),
+          Text(
+            titulo,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: desktop ? 22 : 18,
+              color: VerdeClaro,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

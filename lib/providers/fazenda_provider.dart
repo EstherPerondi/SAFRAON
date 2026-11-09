@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/fazenda_model.dart';
 import '../services/fazenda_service.dart';
+import '../services/supabase_service.dart';
 import '../utils/ordenacao.dart';
 
 class FazendaProvider extends ChangeNotifier {
@@ -30,11 +31,11 @@ class FazendaProvider extends ChangeNotifier {
 
     try {
       _fazendas = await _service.getAll();
-      debugPrint('✅ ${_fazendas.length} fazendas carregadas');
+      print('✅ ${_fazendas.length} fazendas carregadas');
       _successMessage = 'Fazendas carregadas com sucesso';
     } catch (e) {
       _error = e.toString();
-      debugPrint('❌ Erro ao carregar fazendas: $e');
+      print('❌ Erro ao carregar fazendas: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -79,7 +80,7 @@ class FazendaProvider extends ChangeNotifier {
       
     } catch (e) {
       _error = e.toString();
-      debugPrint('❌ Erro ao criar fazenda: $e');
+      print('❌ Erro ao criar fazenda: $e');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -119,7 +120,7 @@ class FazendaProvider extends ChangeNotifier {
       
     } catch (e) {
       _error = e.toString();
-      debugPrint('❌ Erro ao atualizar fazenda: $e');
+      print('❌ Erro ao atualizar fazenda: $e');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -128,16 +129,15 @@ class FazendaProvider extends ChangeNotifier {
 
   // Deletar fazenda
   Future<bool> delete(String id) async {
+    if (_isLoading) return false;
+
     _isLoading = true;
     _error = null;
     _successMessage = null;
     notifyListeners();
 
     try {
-      final fazendaNome = _fazendas
-          .where((f) => f.id == id)
-          .map((f) => f.nome)
-          .firstOrNull ?? '';
+      final fazendaNome = _fazendas.firstWhere((f) => f.id == id).nome;
       
       final success = await _service.delete(id);
       
@@ -156,8 +156,8 @@ class FazendaProvider extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
-      debugPrint('❌ Erro ao deletar fazenda: $e');
+      _error = e.toString();
+      print('❌ Erro ao deletar fazenda: $e');
       _isLoading = false;
       notifyListeners();
       return false;

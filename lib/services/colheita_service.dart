@@ -10,6 +10,7 @@ import 'supabase_service.dart';
 
 class ColheitaService {
   PowerSyncDatabase get _db => PowerSyncService().db;
+
   static const _select = '''
     SELECT h.*, c.plantacultivada AS cultura_nome,
            tl.nome AS talhao_nome,

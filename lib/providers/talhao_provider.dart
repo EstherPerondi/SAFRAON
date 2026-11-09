@@ -141,16 +141,15 @@ class TalhaoProvider extends ChangeNotifier {
 
   // Deletar talhão
   Future<bool> delete(String id) async {
+    if (_isLoading) return false;
+
     _isLoading = true;
     _error = null;
     _successMessage = null;
     notifyListeners();
 
     try {
-      final talhaoNome = _talhoes
-          .where((t) => t.id == id)
-          .map((t) => t.nome)
-          .firstOrNull ?? '';
+      final talhaoNome = _talhoes.firstWhere((t) => t.id == id).nome;
       
       final success = await _service.delete(id);
       
@@ -169,7 +168,7 @@ class TalhaoProvider extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = e.toString();
       print('❌ Erro ao deletar talhão: $e');
       _isLoading = false;
       notifyListeners();

@@ -98,7 +98,6 @@ class AplicacaoProvider extends ChangeNotifier {
   // Deletar aplicação
   Future<bool> delete(String id) async {
     _isLoading = true;
-    _error = null;
     notifyListeners();
 
     try {
@@ -113,7 +112,7 @@ class AplicacaoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = e.toString();
       _isLoading = false;
       notifyListeners();
       return false;

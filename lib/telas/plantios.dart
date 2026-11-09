@@ -4,9 +4,12 @@ import '../providers/plantio_provider.dart';
 import '../models/plantio_model.dart';
 import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
-import '../widgets/seletor_local.dart';
 import '../variaveis.dart';
-import '../widgets/rodape_com_fab.dart';
+import '../models/fazenda_model.dart';
+import '../models/talhao_model.dart';
+import '../services/fazenda_service.dart';
+import '../services/talhao_service.dart';
+import '../services/supabase_service.dart';
 
 class PlantiosPage extends StatefulWidget {
   const PlantiosPage({super.key});
@@ -223,8 +226,7 @@ class _PlantiosPageState extends State<PlantiosPage> {
                         ),
                       ),
 
-                    RodapeComFab(
-                      child: Container(
+                    Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
@@ -265,7 +267,6 @@ class _PlantiosPageState extends State<PlantiosPage> {
                           ],
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -389,7 +390,7 @@ class _PlantiosPageState extends State<PlantiosPage> {
                       _buildInfoChip(Icons.science, '${plantio.variedade}'),
                       _buildInfoChip(Icons.agriculture, '${plantio.adubo}'),
                       _buildInfoChip(Icons.scale, '${plantio.quantidadeAdubo}'),
-                      _buildInfoChip(Icons.biotech, '${plantio.inoculante}'),
+                      _buildInfoChip(Icons.biotech, 'Inoculante: ${plantio.inoculante}'),
                       _buildInfoChip(Icons.grain, '${plantio.sementes}'),
                     ],
                   ),
@@ -698,8 +699,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
                     // Só pede fazenda/talhão quando a tela foi aberta pelo menu
                     // principal. Dentro de um talhão, o talhão já é conhecido.
                     if (widget.talhaoId == null) ...[
-                      SeletorFazendaTalhao(
-                        talhaoIdFixo: widget.talhaoId,
+                      _FazendaTalhaoCampos(
                         talhaoIdInicial: widget.plantio?.talhaoId,
                         onChanged: (id) => _talhaoSelecionadoId = id,
                       ),
@@ -1246,5 +1246,155 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
             'Não foi possível salvar. Verifique sua conexão e tente novamente.';
       });
     }
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// Campos Fazenda + Talhão do formulário (só aparecem quando a tela é aberta
+// pelo menu principal; dentro de um talhão, o talhão já é conhecido).
+// ---------------------------------------------------------------------------
+class _FazendaTalhaoCampos extends StatefulWidget {
+  final String? talhaoIdInicial;
+  final ValueChanged<String?> onChanged;
+
+  const _FazendaTalhaoCampos({this.talhaoIdInicial, required this.onChanged});
+
+  @override
+  State<_FazendaTalhaoCampos> createState() => _FazendaTalhaoCamposState();
+}
+
+class _FazendaTalhaoCamposState extends State<_FazendaTalhaoCampos> {
+  List<FazendaModel> _fazendas = [];
+  List<TalhaoModel> _talhoes = [];
+  String? _fazendaId;
+  String? _talhaoId;
+  bool _carregando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregar();
+  }
+
+  Future<void> _carregar() async {
+    try {
+      final todas = await FazendaService().getAll();
+      final userId = SupabaseService().currentUserId;
+      final fazendas = userId.isEmpty
+          ? todas
+          : todas.where((f) => f.userId == userId).toList();
+
+      String? fazendaId;
+      String? talhaoId;
+      List<TalhaoModel> talhoes = [];
+      final inicial = widget.talhaoIdInicial;
+
+      if (inicial != null && inicial.isNotEmpty) {
+        final t = await TalhaoService().getById(inicial);
+        if (t != null) {
+          fazendaId = t.fazendaId;
+          talhaoId = t.id;
+          talhoes = await TalhaoService().getByFazenda(t.fazendaId);
+        }
+      } else if (fazendas.length == 1) {
+        fazendaId = fazendas.first.id;
+        talhoes = await TalhaoService().getByFazenda(fazendaId);
+        if (talhoes.length == 1) talhaoId = talhoes.first.id;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _fazendas = fazendas;
+        _talhoes = talhoes;
+        _fazendaId = fazendaId;
+        _talhaoId = talhaoId;
+        _carregando = false;
+      });
+      widget.onChanged(talhaoId);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _carregando = false);
+    }
+  }
+
+  Future<void> _trocarFazenda(String? fazendaId) async {
+    setState(() {
+      _fazendaId = fazendaId;
+      _talhaoId = null;
+      _talhoes = [];
+    });
+    widget.onChanged(null);
+    if (fazendaId == null) return;
+
+    final talhoes = await TalhaoService().getByFazenda(fazendaId);
+    if (!mounted || _fazendaId != fazendaId) return;
+    setState(() {
+      _talhoes = talhoes;
+      if (talhoes.length == 1) _talhaoId = talhoes.first.id;
+    });
+    widget.onChanged(_talhaoId);
+  }
+
+  InputDecoration _deco(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+      prefixIcon: Icon(icon, color: VerdeClaro),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: VerdeClaro, width: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_carregando) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: LinearProgressIndicator(),
+      );
+    }
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          isExpanded: true,
+          value: _fazendaId,
+          decoration: _deco('Fazenda', Icons.landscape),
+          items: [
+            for (final f in _fazendas)
+              DropdownMenuItem(
+                value: f.id,
+                child: Text(f.nome, overflow: TextOverflow.ellipsis),
+              ),
+          ],
+          onChanged: _trocarFazenda,
+          validator: (v) => v == null ? 'Selecione a fazenda' : null,
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<String>(
+          key: ValueKey('talhao-$_fazendaId-${_talhoes.length}'),
+          isExpanded: true,
+          value: _talhaoId,
+          decoration: _deco('Talhão', Icons.grid_view),
+          items: [
+            for (final t in _talhoes)
+              DropdownMenuItem(
+                value: t.id,
+                child: Text(t.nome, overflow: TextOverflow.ellipsis),
+              ),
+          ],
+          onChanged: _fazendaId == null
+              ? null
+              : (v) {
+                  setState(() => _talhaoId = v);
+                  widget.onChanged(v);
+                },
+          validator: (v) => v == null ? 'Selecione o talhão' : null,
+        ),
+      ],
+    );
   }
 }

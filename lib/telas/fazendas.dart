@@ -7,7 +7,6 @@ import '../models/fazenda_model.dart';
 import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
 import '../variaveis.dart';
-import '../widgets/rodape_com_fab.dart';
 
 class FazendasPage extends StatefulWidget {
   const FazendasPage({super.key});
@@ -40,7 +39,7 @@ class _FazendasPageState extends State<FazendasPage> {
     await provider.loadUserFazendas();
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Bege,
@@ -49,14 +48,10 @@ class _FazendasPageState extends State<FazendasPage> {
         builder: (context, provider, child) {
           // Mostrar mensagens de sucesso/erro
           if (provider.successMessage != null) {
-            // 1. Guarda a mensagem em uma variável local
-            final String mensagemSucesso = provider.successMessage!;
-
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  // 2. Usa a variável local (sem o !)
-                  content: Text(mensagemSucesso),
+                  content: Text(provider.successMessage!),
                   backgroundColor: Colors.green,
                   duration: const Duration(seconds: 2),
                 ),
@@ -66,14 +61,10 @@ class _FazendasPageState extends State<FazendasPage> {
           }
 
           if (provider.error != null) {
-            // 1. Guarda a mensagem em uma variável local
-            final String mensagemErro = provider.error!;
-
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  // 2. Usa a variável local (sem o !)
-                  content: Text(mensagemErro),
+                  content: Text(provider.error!),
                   backgroundColor: Colors.red,
                   duration: const Duration(seconds: 3),
                 ),
@@ -245,20 +236,6 @@ class _FazendasPageState extends State<FazendasPage> {
                         color: Colors.black87,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, size: 14, color: VerdeClaro),
-                        const SizedBox(width: 4),
-                        Text(
-                          _estados.firstWhere((estado) => estado.id == fazenda.estadoId, orElse: () => LookupItem(id: '', nome: 'Desconhecido')).nome,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -290,7 +267,7 @@ class _FazendasPageState extends State<FazendasPage> {
   }
 
   Widget _buildFooter(FazendaProvider provider) {
-    return RodapeComFab(child: Container(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: VerdeEscuro,
@@ -320,7 +297,7 @@ class _FazendasPageState extends State<FazendasPage> {
           ),
         ],
       ),
-    ));
+    );
   }
 
   void _navigateToTalhoes(String fazendaId, String fazendaNome) {
@@ -348,7 +325,6 @@ class _FazendasPageState extends State<FazendasPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
-              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _FazendaFormModal(
@@ -394,18 +370,10 @@ class _FazendasPageState extends State<FazendasPage> {
             TextButton(
               onPressed: () async {
                 final provider = context.read<FazendaProvider>();
-                final messenger = ScaffoldMessenger.of(context);
-                Navigator.pop(context);
                 final success = await provider.delete(id);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(success
-                        ? 'Fazenda excluída com sucesso!'
-                        : (provider.error ?? 'Não foi possível excluir.')),
-                    backgroundColor: success ? Colors.green : Colors.red,
-                  ),
-                );
+
                 if (success && mounted) {
+                  Navigator.pop(context);
                   await provider.loadUserFazendas();
                 }
               },
@@ -582,7 +550,6 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        isExpanded: true,
         value: _estadoId,
         decoration: InputDecoration(
           labelText: 'Estado',
@@ -598,7 +565,7 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
         ),
         items: [
           ...widget.estados
-              .map((e) => DropdownMenuItem(value: e.id, child: Text(e.nome, overflow: TextOverflow.ellipsis))),
+              .map((e) => DropdownMenuItem(value: e.id, child: Text(e.nome))),
           buildAdicionarNovoDropdownItem('+ Adicionar novo estado...'),
         ],
         onChanged: (value) async {
