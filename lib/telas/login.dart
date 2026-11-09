@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../variaveis.dart';
 import 'cadastro.dart';
+import 'recuperar_senha.dart';
 import 'principal.dart';
 
 class LoginPage extends StatefulWidget {
@@ -232,10 +233,12 @@ class _LoginPageState extends State<LoginPage> {
                         // Esqueceu a senha
                         TextButton(
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Funcionalidade em desenvolvimento'),
-                                duration: Duration(seconds: 2),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RecuperarSenhaPage(
+                                  emailInicial: _emailController.text,
+                                ),
                               ),
                             );
                           },

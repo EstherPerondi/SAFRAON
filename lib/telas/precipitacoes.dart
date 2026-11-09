@@ -342,7 +342,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getQuantidadeIcon(precipitacao.quantidade),
+                    Icons.water_drop,
                     color: VerdeEscuro,
                     size: 22,
                   ),
@@ -456,18 +456,6 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
         ],
       ),
     );
-  }
-
-  IconData _getQuantidadeIcon(double quantidade) {
-    if (quantidade < 5) {
-      return Icons.grain;
-    } else if (quantidade < 15) {
-      return Icons.water_drop;
-    } else if (quantidade < 25) {
-      return Icons.umbrella;
-    } else {
-      return Icons.thunderstorm;
-    }
   }
 
   void _showPrecipitacaoForm(
