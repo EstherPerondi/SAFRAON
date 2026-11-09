@@ -179,48 +179,6 @@ class _ManejosPageState extends State<ManejosPage> {
                           ),
                         ),
                       ),
-
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VerdeEscuro,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total de Manejos',
-                            style: TextStyle(
-                              color: Bege,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Bege,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              '${provider.manejos.length}',
-                              style: TextStyle(
-                                color: VerdeEscuro,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -234,7 +192,7 @@ class _ManejosPageState extends State<ManejosPage> {
         foregroundColor: Bege,
         child: const Icon(Icons.add, size: 30),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
     );
   }
 
@@ -291,6 +249,24 @@ class _ManejosPageState extends State<ManejosPage> {
                           ),
                         ],
                       ),
+                      if (_talhaoId == null && manejo.localizacao != null)
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                manejo.localizacao!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),

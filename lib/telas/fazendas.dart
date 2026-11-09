@@ -49,13 +49,6 @@ class _FazendasPageState extends State<FazendasPage> {
           // Mostrar mensagens de sucesso/erro
           if (provider.successMessage != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(provider.successMessage!),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
               provider.resetMessages();
             });
           }
@@ -165,7 +158,6 @@ class _FazendasPageState extends State<FazendasPage> {
                     ),
                   ),
                 ),
-              _buildFooter(provider),
             ],
           ),
         ),
@@ -262,40 +254,6 @@ class _FazendasPageState extends State<FazendasPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFooter(FazendaProvider provider) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: VerdeEscuro,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Total de Fazendas',
-            style: TextStyle(color: Bege, fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
-            decoration: BoxDecoration(
-              color: Bege,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              '${provider.fazendas.length}',
-              style: TextStyle(
-                color: VerdeEscuro,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

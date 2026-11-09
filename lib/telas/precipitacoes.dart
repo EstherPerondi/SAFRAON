@@ -167,48 +167,6 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                           },
                         ),
                       ),
-
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VerdeEscuro,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total de Precipitações',
-                            style: TextStyle(
-                              color: Bege,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Bege,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              '${provider.precipitacoes.length}',
-                              style: TextStyle(
-                                color: VerdeEscuro,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -222,10 +180,9 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
         foregroundColor: Bege,
         child: const Icon(Icons.add, size: 30),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
     );
   }
-
 
   double _somaUltimosDias(List<PrecipitacaoModel> lista, int dias) {
     final desde = DateTime.now().subtract(Duration(days: dias - 1));
@@ -384,7 +341,11 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                       if (_talhaoId == null && precipitacao.localizacao != null)
                         Row(
                           children: [
-                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                            Icon(
+                              Icons.location_on,
+                              size: 14,
+                              color: VerdeClaro,
+                            ),
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
@@ -530,9 +491,11 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                 final ok = await provider.delete(id);
                 messenger.showSnackBar(
                   SnackBar(
-                    content: Text(ok
-                        ? 'Registro excluído com sucesso!'
-                        : (provider.error ?? 'Não foi possível excluir.')),
+                    content: Text(
+                      ok
+                          ? 'Registro excluído com sucesso!'
+                          : (provider.error ?? 'Não foi possível excluir.'),
+                    ),
                     backgroundColor: ok ? Colors.green : Colors.red,
                   ),
                 );
@@ -649,9 +612,9 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
                     // principal. Dentro de um talhão, o talhão já é conhecido.
                     if (widget.talhaoId == null) ...[
                       _FazendaTalhaoCampos(
-                          talhaoIdInicial: widget.precipitacao?.talhaoId,
-                          onChanged: (id) => _talhaoSelecionadoId = id,
-                          ),
+                        talhaoIdInicial: widget.precipitacao?.talhaoId,
+                        onChanged: (id) => _talhaoSelecionadoId = id,
+                      ),
                       const SizedBox(height: 16),
                     ],
                     _buildFormField(
@@ -670,7 +633,10 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
                         padding: const EdgeInsets.only(top: 12),
                         child: Text(
                           _erroSalvar!,
-                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     const SizedBox(height: 24),
@@ -839,11 +805,11 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
     });
 
     final novaPrecipitacao = PrecipitacaoModel(
-        id: widget.precipitacao?.id ?? '',
-        talhaoId: talhaoId,
-        quantidade: double.parse(_quantidadeController.text.replaceAll(',', '.')),
-        data: _selectedDate!,
-        fonte: 'manual',
+      id: widget.precipitacao?.id ?? '',
+      talhaoId: talhaoId,
+      quantidade: double.parse(_quantidadeController.text.replaceAll(',', '.')),
+      data: _selectedDate!,
+      fonte: 'manual',
     );
 
     final messenger = ScaffoldMessenger.of(context);
@@ -880,7 +846,6 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
     }
   }
 }
-
 
 // ---------------------------------------------------------------------------
 // Campos Fazenda + Talhão do formulário (só aparecem quando a tela é aberta

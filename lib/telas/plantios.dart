@@ -225,48 +225,6 @@ class _PlantiosPageState extends State<PlantiosPage> {
                           ),
                         ),
                       ),
-
-                    Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: VerdeEscuro,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total de Plantios',
-                              style: TextStyle(
-                                color: Bege,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Bege,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                '${provider.plantios.length}',
-                                style: TextStyle(
-                                  color: VerdeEscuro,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -356,19 +314,17 @@ class _PlantiosPageState extends State<PlantiosPage> {
                                 ),
                               ),
                               const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  plantio.localizacao!,
-                                  maxLines: 2,
-                                  softWrap: true,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[700],
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              Flexible(
+                              child: Text(
+                                plantio.localizacao!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
                                 ),
+                                overflow: TextOverflow.ellipsis,
                               ),
+                            ),
                             ],
                           ),
                         ),

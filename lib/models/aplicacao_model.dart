@@ -1,6 +1,8 @@
 class AplicacaoModel {
   final String id;
   final String talhaoId;
+  final String? talhaoNome; // join com 'talhao'
+  final String? fazendaNome; // join talhao -> fazenda
   final String defensivoId;
   final String? defensivoNome; // vem de um join com a tabela 'defensivo'
   final double doseporhectare;
@@ -12,6 +14,8 @@ class AplicacaoModel {
   AplicacaoModel({
     required this.id,
     required this.talhaoId,
+    this.talhaoNome,
+    this.fazendaNome,
     required this.defensivoId,
     this.defensivoNome,
     required this.doseporhectare,
@@ -24,10 +28,25 @@ class AplicacaoModel {
   // Alias de exibição usado nas telas
   String get defensivos => defensivoNome ?? 'Não informado';
 
+
+  /// "Fazenda • Talhão" (ou só o talhão, se a fazenda não veio no join).
+  String? get localizacao {
+    final talhao = talhaoNome?.trim() ?? '';
+    final fazenda = fazendaNome?.trim() ?? '';
+    if (talhao.isNotEmpty && fazenda.isNotEmpty) return '$fazenda • $talhao';
+    if (talhao.isNotEmpty) return talhao;
+    return null;
+  }
+
   factory AplicacaoModel.fromJson(Map<String, dynamic> json) {
+    final talhao = json['talhao'];
+    final fazenda = talhao is Map ? talhao['fazenda'] : null;
+
     return AplicacaoModel(
       id: json['id'].toString(),
       talhaoId: json['talhao_id'].toString(),
+      talhaoNome: talhao is Map ? talhao['nome']?.toString() : null,
+      fazendaNome: fazenda is Map ? fazenda['nome']?.toString() : null,
       defensivoId: json['defensivo_id']?.toString() ?? '',
       defensivoNome: json['defensivo'] is Map
           ? json['defensivo']['nome']?.toString()

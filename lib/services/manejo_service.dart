@@ -10,7 +10,6 @@ import 'supabase_service.dart';
 
 class ManejoService {
   PowerSyncDatabase get _db => PowerSyncService().db;
-
   static const _select = '''
     SELECT m.*, t.tipo_de_manejo AS tipo_manejo_nome,
            tl.nome AS talhao_nome,

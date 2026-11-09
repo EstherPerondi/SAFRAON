@@ -189,48 +189,6 @@ class _ColheitasPageState extends State<ColheitasPage> {
                           ),
                         ),
                       ),
-
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VerdeEscuro,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total de Colheitas',
-                            style: TextStyle(
-                              color: Bege,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Bege,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              '${provider.colheitas.length}',
-                              style: TextStyle(
-                                color: VerdeEscuro,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -302,6 +260,28 @@ class _ColheitasPageState extends State<ColheitasPage> {
                           ),
                         ],
                       ),
+                      if (_talhaoId == null && colheita.localizacao != null)
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 14,
+                              color: VerdeClaro,
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                colheita.localizacao!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
