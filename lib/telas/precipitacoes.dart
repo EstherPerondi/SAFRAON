@@ -342,7 +342,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getQuantidadeIcon(precipitacao.quantidade),
+                    Icons.water_drop,
                     color: VerdeEscuro,
                     size: 22,
                   ),
@@ -479,7 +479,10 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
     }
   }
 
-  void _showPrecipitacaoForm(BuildContext context, PrecipitacaoModel? precipitacao) {
+  void _showPrecipitacaoForm(
+    BuildContext context,
+    PrecipitacaoModel? precipitacao,
+  ) {
     showDialog(
       context: context,
       barrierDismissible: true,

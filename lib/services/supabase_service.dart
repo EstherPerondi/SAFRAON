@@ -1,6 +1,11 @@
 // lib/services/supabase_service.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// true enquanto o usuário está no fluxo "esqueci minha senha"
+/// (código validado ou link do email aberto). O AuthGate usa isso para
+/// mostrar a tela de nova senha em vez da tela principal.
+final ValueNotifier<bool> recuperandoSenha = ValueNotifier<bool>(false);
+
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
   factory SupabaseService() => _instance;
@@ -22,7 +27,17 @@ class SupabaseService {
       anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxcmVseG5paXRyZmhkY3Bidnd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MDYyNjksImV4cCI6MjEwMTI4MjI2OX0.ZNltZGSP_OZtjH7EE3cJqKXqoh9p7A5PP8sN5dM9hyc',
     );
     _client = Supabase.instance.client;
-    print('✅ Supabase inicializado');
+    // Link de recuperação aberto no navegador (fluxo implícito)
+    if (kIsWeb && Uri.base.fragment.contains('type=recovery')) {
+      recuperandoSenha.value = true;
+    }
+    // Link de recuperação (PKCE) ou código validado: evento passwordRecovery
+    _client.auth.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.passwordRecovery) {
+        recuperandoSenha.value = true;
+      }
+    });
+    debugPrint('✅ Supabase inicializado');
   }
 
   // Verificar autenticação
