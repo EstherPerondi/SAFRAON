@@ -15,9 +15,29 @@ import 'supabase_service.dart';
 class PrecipitacaoService {
   PowerSyncDatabase get _db => PowerSyncService().db;
 
+  // Traz também o nome do talhão e da fazenda (para mostrar a localização)
+  static const _select = '''
+    SELECT c.*,
+           tl.nome AS talhao_nome,
+           fz.nome AS fazenda_nome
+    FROM clima_dia c
+    LEFT JOIN talhao  tl ON tl.id = c.talhao_id
+    LEFT JOIN fazenda fz ON fz.id = tl.fazenda_id
+  ''';
+
+  PrecipitacaoModel _fromRow(Map<String, Object?> r) {
+    return PrecipitacaoModel.fromJson({
+      ...r,
+      'talhao': {
+        'nome': r['talhao_nome'],
+        'fazenda': {'nome': r['fazenda_nome']},
+      },
+    });
+  }
+
   Future<PrecipitacaoModel?> _getById(String id) async {
-    final rows = await _db.getAll('SELECT * FROM clima_dia WHERE id = ?', [id]);
-    return rows.isEmpty ? null : PrecipitacaoModel.fromJson(rows.first);
+    final rows = await _db.getAll('$_select WHERE c.id = ?', [id]);
+    return rows.isEmpty ? null : _fromRow(rows.first);
   }
 
   /// Mapa {id do talhão -> nome}, usado para rotular os registros na tela geral.
@@ -39,11 +59,11 @@ class PrecipitacaoService {
   Future<List<PrecipitacaoModel>> getByTalhaoId(String talhaoId) async {
     try {
       final rows = await _db.getAll(
-        "SELECT * FROM clima_dia WHERE talhao_id = ? AND fonte = 'manual' "
-        'ORDER BY data DESC',
+        "$_select WHERE c.fonte = 'manual' "
+        'AND c.talhao_id = ? ORDER BY c.data DESC',
         [talhaoId],
       );
-      return rows.map<PrecipitacaoModel>(PrecipitacaoModel.fromJson).toList();
+      return rows.map<PrecipitacaoModel>(_fromRow).toList();
     } catch (e) {
       debugPrint('Erro ao buscar precipitações: $e');
       return [];
@@ -53,11 +73,11 @@ class PrecipitacaoService {
   Future<List<PrecipitacaoModel>> getAllForUser() async {
     try {
       final rows = await _db.getAll(
-        "SELECT * FROM clima_dia WHERE fonte = 'manual' "
-        'AND talhao_id IN ($talhoesDoUsuarioSql) ORDER BY data DESC',
+        "$_select WHERE c.fonte = 'manual' "
+        'AND c.talhao_id IN ($talhoesDoUsuarioSql) ORDER BY c.data DESC',
         [SupabaseService().currentUserId],
       );
-      return rows.map<PrecipitacaoModel>(PrecipitacaoModel.fromJson).toList();
+      return rows.map<PrecipitacaoModel>(_fromRow).toList();
     } catch (e) {
       debugPrint('Erro ao buscar precipitações: $e');
       return [];

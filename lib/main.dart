@@ -17,6 +17,7 @@ import 'providers/precipitacao_provider.dart';
 // TELAS
 import 'telas/login.dart';
 import 'telas/cadastro.dart';
+import 'telas/redefinir_senha.dart';
 import 'telas/principal.dart';
 import 'telas/fazendas.dart';
 import 'telas/fazenda.dart';
@@ -51,9 +52,7 @@ void main() async {
 
   debugPrint('🚀 chamando runApp');
   runApp(const MyApp());
-  debugPrint('🚀 runApp chamado');  
-  
-  runApp(const MyApp());
+  debugPrint('🚀 runApp chamado');
 }
 
 // Decide, ao abrir o app, se mostra o Login ou a tela Principal,
@@ -63,20 +62,29 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<AuthState>(
-      stream: SupabaseService().client.auth.onAuthStateChange,
-      initialData: AuthState(
-        AuthChangeEvent.initialSession,
-        SupabaseService().client.auth.currentSession,
-      ),
-      builder: (context, snapshot) {
-        final session = snapshot.data?.session ??
-            SupabaseService().client.auth.currentSession;
+    // Em "esqueci minha senha" o usuário tem sessão temporária de recuperação:
+    // em vez da tela principal, mostramos a tela de nova senha.
+    return ValueListenableBuilder<bool>(
+      valueListenable: recuperandoSenha,
+      builder: (context, recuperando, _) {
+        return StreamBuilder<AuthState>(
+          stream: SupabaseService().client.auth.onAuthStateChange,
+          initialData: AuthState(
+            AuthChangeEvent.initialSession,
+            SupabaseService().client.auth.currentSession,
+          ),
+          builder: (context, snapshot) {
+            final session = snapshot.data?.session ??
+                SupabaseService().client.auth.currentSession;
 
-        if (session != null) {
-          return const PrincipalPage();
-        }
-        return const LoginPage();
+            if (session != null) {
+              return recuperando
+                  ? const RedefinirSenhaPage()
+                  : const PrincipalPage();
+            }
+            return const LoginPage();
+          },
+        );
       },
     );
   }

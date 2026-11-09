@@ -1,4 +1,5 @@
 // lib/services/supabase_service.dart
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// true enquanto o usuário está no fluxo "esqueci minha senha"
@@ -13,12 +14,7 @@ class SupabaseService {
 
   late final SupabaseClient _client;
   
-  SupabaseClient get client {
-    if (_client == null) {
-      throw Exception('Supabase não inicializado!');
-    }
-    return _client;
-  }
+  SupabaseClient get client => _client;
 
   // Inicialização
   Future<void> init() async {
@@ -43,9 +39,9 @@ class SupabaseService {
   // Verificar autenticação
   bool get isAuthenticated {
     final user = _client.auth.currentUser;
-    print('🔐 Verificando autenticação: ${user != null}');
+    debugPrint('🔐 Verificando autenticação: ${user != null}');
     if (user != null) {
-      print('👤 Usuário: ${user.email} (${user.id})');
+      debugPrint('👤 Usuário: ${user.email} (${user.id})');
     }
     return user != null;
   }
@@ -60,13 +56,13 @@ class SupabaseService {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
-        print('⚠️ Nenhum usuário autenticado');
+        debugPrint('⚠️ Nenhum usuário autenticado');
         return '';
       }
-      print('✅ User ID obtido: ${user.id}');
+      debugPrint('✅ User ID obtido: ${user.id}');
       return user.id;
     } catch (e) {
-      print('❌ Erro ao obter user ID: $e');
+      debugPrint('❌ Erro ao obter user ID: $e');
       return '';
     }
   }
@@ -84,10 +80,10 @@ class SupabaseService {
         email: email,
         password: password,
       );
-      print('✅ Login realizado: ${response.user?.email}');
+      debugPrint('✅ Login realizado: ${response.user?.email}');
       return response;
     } catch (e) {
-      print('❌ Erro no login: $e');
+      debugPrint('❌ Erro no login: $e');
       rethrow;
     }
   }
@@ -99,10 +95,10 @@ class SupabaseService {
         email: email,
         password: password,
       );
-      print('✅ Usuário registrado: ${response.user?.email}');
+      debugPrint('✅ Usuário registrado: ${response.user?.email}');
       return response;
     } catch (e) {
-      print('❌ Erro no registro: $e');
+      debugPrint('❌ Erro no registro: $e');
       rethrow;
     }
   }
@@ -111,9 +107,9 @@ class SupabaseService {
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
-      print('✅ Logout realizado');
+      debugPrint('✅ Logout realizado');
     } catch (e) {
-      print('❌ Erro no logout: $e');
+      debugPrint('❌ Erro no logout: $e');
       rethrow;
     }
   }

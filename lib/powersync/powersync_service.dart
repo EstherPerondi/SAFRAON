@@ -29,11 +29,17 @@ class PowerSyncService {
     if (_initialized) return;
     _initialized = true;
 
-    final dir = await getApplicationSupportDirectory();
-    db = PowerSyncDatabase(
-      schema: schema,
-      path: p.join(dir.path, 'safraon.db'),
-    );
+    // No navegador (Netlify) não existe pasta de arquivos: o PowerSync usa
+    // IndexedDB/OPFS e o "path" é só o nome do banco. path_provider não
+    // funciona na web e derrubava o app antes do runApp.
+    final String dbPath;
+    if (kIsWeb) {
+      dbPath = 'safraon.db';
+    } else {
+      final dir = await getApplicationSupportDirectory();
+      dbPath = p.join(dir.path, 'safraon.db');
+    }
+    db = PowerSyncDatabase(schema: schema, path: dbPath);
     await db.initialize();
 
     final auth = SupabaseService().client.auth;

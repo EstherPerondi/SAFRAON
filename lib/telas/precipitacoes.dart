@@ -3,6 +3,11 @@ import 'package:provider/provider.dart';
 import '../providers/precipitacao_provider.dart';
 import '../models/precipitacao_model.dart';
 import '../variaveis.dart';
+import '../models/fazenda_model.dart';
+import '../models/talhao_model.dart';
+import '../services/fazenda_service.dart';
+import '../services/talhao_service.dart';
+import '../services/supabase_service.dart';
 
 class PrecipitacoesPage extends StatefulWidget {
   const PrecipitacoesPage({super.key});
@@ -65,9 +70,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
       body: Consumer<PrecipitacaoProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading && provider.precipitacoes.isEmpty) {
-            return Center(
-              child: CircularProgressIndicator(color: VerdeEscuro),
-            );
+            return Center(child: CircularProgressIndicator(color: VerdeEscuro));
           }
 
           if (provider.error != null) {
@@ -162,13 +165,6 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                             final precipitacao = provider.precipitacoes[index];
                             return _buildPrecipitacaoCard(precipitacao, index);
                           },
-                          child: ListView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            children: _buildListaAgrupadaPorDia(
-                              provider.precipitacoes,
-                              provider.nomesTalhoes,
-                            ),
-                          ),
                         ),
                       ),
 
@@ -307,9 +303,16 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
         children: [
           Text(
             mm.toStringAsFixed(0),
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: VerdeEscuro),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: VerdeEscuro,
+            ),
           ),
-          Text('mm', style: TextStyle(fontSize: 11, color: VerdeEscuro.withOpacity(0.7))),
+          Text(
+            'mm',
+            style: TextStyle(fontSize: 11, color: VerdeEscuro.withOpacity(0.7)),
+          ),
           const SizedBox(height: 2),
           Text(
             'últimos $label',
@@ -342,7 +345,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    Icons.water_drop,
+                    _getQuantidadeIcon(precipitacao.quantidade),
                     color: VerdeEscuro,
                     size: 22,
                   ),
@@ -362,7 +365,11 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today, size: 14, color: VerdeClaro),
+                          Icon(
+                            Icons.calendar_today,
+                            size: 14,
+                            color: VerdeClaro,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             precipitacao.formattedDate,
@@ -374,62 +381,49 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                           ),
                         ],
                       ),
+                      if (_talhaoId == null && precipitacao.localizacao != null)
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                precipitacao.localizacao!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: VerdeClaro,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(
-                      color: Bege,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            const Divider(height: 1, color: Colors.grey),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildInfoChip(Icons.source, precipitacao.fonte),
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        onPressed: () =>
+                            _showPrecipitacaoForm(context, precipitacao),
+                        color: VerdeClaro,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      const SizedBox(width: 15),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        onPressed: () => _deletePrecipitacao(precipitacao.id),
+                        color: Colors.red.shade400,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
                     ],
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => _showPrecipitacaoForm(context, precipitacao),
-                      color: VerdeClaro,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    const SizedBox(width: 15),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () => _deletePrecipitacao(precipitacao.id),
-                      color: Colors.red.shade400,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -495,6 +489,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
+              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _PrecipitacaoFormModal(
@@ -502,11 +497,9 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
               talhaoId: _talhaoId,
               onSave: (novaPrecipitacao) {
                 final provider = context.read<PrecipitacaoProvider>();
-                if (precipitacao == null) {
-                  provider.create(novaPrecipitacao);
-                } else {
-                  provider.update(novaPrecipitacao);
-                }
+                return precipitacao == null
+                    ? provider.create(novaPrecipitacao)
+                    : provider.update(novaPrecipitacao);
               },
             ),
           ),
@@ -530,9 +523,19 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
-                context.read<PrecipitacaoProvider>().delete(id);
+              onPressed: () async {
+                final provider = context.read<PrecipitacaoProvider>();
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(context);
+                final ok = await provider.delete(id);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(ok
+                        ? 'Registro excluído com sucesso!'
+                        : (provider.error ?? 'Não foi possível excluir.')),
+                    backgroundColor: ok ? Colors.green : Colors.red,
+                  ),
+                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Excluir'),
@@ -550,7 +553,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
 class _PrecipitacaoFormModal extends StatefulWidget {
   final PrecipitacaoModel? precipitacao;
   final String? talhaoId;
-  final Function(PrecipitacaoModel) onSave;
+  final Future<bool> Function(PrecipitacaoModel) onSave;
 
   const _PrecipitacaoFormModal({
     this.precipitacao,
@@ -564,6 +567,9 @@ class _PrecipitacaoFormModal extends StatefulWidget {
 
 class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
   final _formKey = GlobalKey<FormState>();
+  String? _talhaoSelecionadoId;
+  bool _salvando = false;
+  String? _erroSalvar;
   final _quantidadeController = TextEditingController();
   DateTime? _selectedDate;
 
@@ -572,6 +578,7 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
   @override
   void initState() {
     super.initState();
+    _talhaoSelecionadoId = widget.talhaoId ?? widget.precipitacao?.talhaoId;
     if (widget.precipitacao != null) {
       _quantidadeController.text = widget.precipitacao!.quantidade.toString();
       _selectedDate = widget.precipitacao!.data;
@@ -638,20 +645,39 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Só pede fazenda/talhão quando a tela foi aberta pelo menu
+                    // principal. Dentro de um talhão, o talhão já é conhecido.
+                    if (widget.talhaoId == null) ...[
+                      _FazendaTalhaoCampos(
+                          talhaoIdInicial: widget.precipitacao?.talhaoId,
+                          onChanged: (id) => _talhaoSelecionadoId = id,
+                          ),
+                      const SizedBox(height: 16),
+                    ],
                     _buildFormField(
                       label: 'Milímetros (mm)',
                       controller: _quantidadeController,
                       icon: Icons.water_drop,
                       hint: 'Ex: 15.5',
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     _buildDateField(),
+                    if (_erroSalvar != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          _erroSalvar!,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _savePrecipitacao,
+                        onPressed: _salvando ? null : _savePrecipitacao,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: VerdeEscuro,
                           foregroundColor: Bege,
@@ -705,10 +731,7 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
         keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(
-            color: VerdeClaro,
-            fontWeight: FontWeight.w600,
-          ),
+          labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
           hintText: hint,
           prefixIcon: Icon(icon, color: VerdeClaro),
           border: OutlineInputBorder(
@@ -726,7 +749,9 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
           if (label == 'Milímetros (mm)' && double.tryParse(value) == null) {
             return 'Digite um número válido';
           }
-          if (label == 'Milímetros (mm)' && double.tryParse(value) != null && double.parse(value) < 0) {
+          if (label == 'Milímetros (mm)' &&
+              double.tryParse(value) != null &&
+              double.parse(value) < 0) {
             return 'Digite um valor positivo';
           }
           return null;
@@ -770,8 +795,8 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
           child: Text(
             _selectedDate != null
                 ? '${_selectedDate!.day.toString().padLeft(2, '0')}/'
-                    '${_selectedDate!.month.toString().padLeft(2, '0')}/'
-                    '${_selectedDate!.year}'
+                      '${_selectedDate!.month.toString().padLeft(2, '0')}/'
+                      '${_selectedDate!.year}'
                 : 'Selecione uma data',
             style: TextStyle(
               fontSize: 16,
@@ -798,20 +823,44 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
     }
   }
 
-  void _savePrecipitacao() {
-    if (_formKey.currentState!.validate() && _selectedDate != null) {
-      final novaPrecipitacao = PrecipitacaoModel(
+  Future<void> _savePrecipitacao() async {
+    if (_salvando) return;
+    if (!_formKey.currentState!.validate() || _selectedDate == null) return;
+
+    final talhaoId = _talhaoSelecionadoId;
+    if (talhaoId == null || talhaoId.isEmpty) {
+      setState(() => _erroSalvar = 'Selecione a fazenda e o talhão.');
+      return;
+    }
+
+    setState(() {
+      _salvando = true;
+      _erroSalvar = null;
+    });
+
+    final novaPrecipitacao = PrecipitacaoModel(
         id: widget.precipitacao?.id ?? '',
-        talhaoId: widget.talhaoId ?? widget.precipitacao?.talhaoId ?? '',
-        quantidade: double.parse(_quantidadeController.text),
+        talhaoId: talhaoId,
+        quantidade: double.parse(_quantidadeController.text.replaceAll(',', '.')),
         data: _selectedDate!,
         fonte: 'manual',
-      );
+    );
 
-      widget.onSave(novaPrecipitacao);
-      Navigator.pop(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
+    bool salvou = false;
+    try {
+      salvou = await widget.onSave(novaPrecipitacao);
+    } catch (_) {
+      salvou = false;
+    }
+
+    if (!mounted) return;
+
+    if (salvou) {
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             _isEditing
@@ -822,6 +871,162 @@ class _PrecipitacaoFormModalState extends State<_PrecipitacaoFormModal> {
           duration: const Duration(seconds: 2),
         ),
       );
+    } else {
+      setState(() {
+        _salvando = false;
+        _erroSalvar =
+            'Não foi possível salvar. Verifique sua conexão e tente novamente.';
+      });
     }
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// Campos Fazenda + Talhão do formulário (só aparecem quando a tela é aberta
+// pelo menu principal; dentro de um talhão, o talhão já é conhecido).
+// ---------------------------------------------------------------------------
+class _FazendaTalhaoCampos extends StatefulWidget {
+  final String? talhaoIdInicial;
+  final ValueChanged<String?> onChanged;
+
+  const _FazendaTalhaoCampos({this.talhaoIdInicial, required this.onChanged});
+
+  @override
+  State<_FazendaTalhaoCampos> createState() => _FazendaTalhaoCamposState();
+}
+
+class _FazendaTalhaoCamposState extends State<_FazendaTalhaoCampos> {
+  List<FazendaModel> _fazendas = [];
+  List<TalhaoModel> _talhoes = [];
+  String? _fazendaId;
+  String? _talhaoId;
+  bool _carregando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregar();
+  }
+
+  Future<void> _carregar() async {
+    try {
+      final todas = await FazendaService().getAll();
+      final userId = SupabaseService().currentUserId;
+      final fazendas = userId.isEmpty
+          ? todas
+          : todas.where((f) => f.userId == userId).toList();
+
+      String? fazendaId;
+      String? talhaoId;
+      List<TalhaoModel> talhoes = [];
+      final inicial = widget.talhaoIdInicial;
+
+      if (inicial != null && inicial.isNotEmpty) {
+        final t = await TalhaoService().getById(inicial);
+        if (t != null) {
+          fazendaId = t.fazendaId;
+          talhaoId = t.id;
+          talhoes = await TalhaoService().getByFazenda(t.fazendaId);
+        }
+      } else if (fazendas.length == 1) {
+        fazendaId = fazendas.first.id;
+        talhoes = await TalhaoService().getByFazenda(fazendaId);
+        if (talhoes.length == 1) talhaoId = talhoes.first.id;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _fazendas = fazendas;
+        _talhoes = talhoes;
+        _fazendaId = fazendaId;
+        _talhaoId = talhaoId;
+        _carregando = false;
+      });
+      widget.onChanged(talhaoId);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _carregando = false);
+    }
+  }
+
+  Future<void> _trocarFazenda(String? fazendaId) async {
+    setState(() {
+      _fazendaId = fazendaId;
+      _talhaoId = null;
+      _talhoes = [];
+    });
+    widget.onChanged(null);
+    if (fazendaId == null) return;
+
+    final talhoes = await TalhaoService().getByFazenda(fazendaId);
+    if (!mounted || _fazendaId != fazendaId) return;
+    setState(() {
+      _talhoes = talhoes;
+      if (talhoes.length == 1) _talhaoId = talhoes.first.id;
+    });
+    widget.onChanged(_talhaoId);
+  }
+
+  InputDecoration _deco(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+      prefixIcon: Icon(icon, color: VerdeClaro),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: VerdeClaro, width: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_carregando) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: LinearProgressIndicator(),
+      );
+    }
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          isExpanded: true,
+          value: _fazendaId,
+          decoration: _deco('Fazenda', Icons.landscape),
+          items: [
+            for (final f in _fazendas)
+              DropdownMenuItem(
+                value: f.id,
+                child: Text(f.nome, overflow: TextOverflow.ellipsis),
+              ),
+          ],
+          onChanged: _trocarFazenda,
+          validator: (v) => v == null ? 'Selecione a fazenda' : null,
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<String>(
+          key: ValueKey('talhao-$_fazendaId-${_talhoes.length}'),
+          isExpanded: true,
+          value: _talhaoId,
+          decoration: _deco('Talhão', Icons.grid_view),
+          items: [
+            for (final t in _talhoes)
+              DropdownMenuItem(
+                value: t.id,
+                child: Text(t.nome, overflow: TextOverflow.ellipsis),
+              ),
+          ],
+          onChanged: _fazendaId == null
+              ? null
+              : (v) {
+                  setState(() => _talhaoId = v);
+                  widget.onChanged(v);
+                },
+          validator: (v) => v == null ? 'Selecione o talhão' : null,
+        ),
+      ],
+    );
   }
 }

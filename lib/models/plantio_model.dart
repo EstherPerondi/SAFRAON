@@ -1,6 +1,8 @@
 class PlantioModel {
   final String id;
   final String talhaoId;
+  final String? talhaoNome; // vem de um join com a tabela 'talhao'
+  final String? fazendaNome; // vem de um join talhao -> fazenda
   final String culturaId;
   final String? culturaNome;
   final String variedadeId;
@@ -18,6 +20,8 @@ class PlantioModel {
   PlantioModel({
     required this.id,
     required this.talhaoId,
+    this.talhaoNome,
+    this.fazendaNome,
     required this.culturaId,
     this.culturaNome,
     required this.variedadeId,
@@ -39,11 +43,28 @@ class PlantioModel {
   String get adubo => aduboNome ?? 'Não informado';
   String get inoculante => inoculanteNome ?? 'Nenhum';
   String get sementes => '${quantidadeSementesPorMetro.toStringAsFixed(1)} sementes/m';
+  String get quantidadeAdubo =>
+      '${quantidadeAduboPorAlqueire.toStringAsFixed(1)} por alqueire';
+
+  /// "Fazenda • Talhão" (ou só o talhão, se a fazenda não veio no join).
+  /// Retorna null quando não há nenhuma informação de local.
+  String? get localizacao {
+    final talhao = talhaoNome?.trim() ?? '';
+    final fazenda = fazendaNome?.trim() ?? '';
+    if (talhao.isNotEmpty && fazenda.isNotEmpty) return '$fazenda • $talhao';
+    if (talhao.isNotEmpty) return talhao;
+    return null;
+  }
 
   factory PlantioModel.fromJson(Map<String, dynamic> json) {
+    final talhao = json['talhao'];
+    final fazenda = talhao is Map ? talhao['fazenda'] : null;
+
     return PlantioModel(
       id: json['id'].toString(),
       talhaoId: json['talhao_id'].toString(),
+      talhaoNome: talhao is Map ? talhao['nome']?.toString() : null,
+      fazendaNome: fazenda is Map ? fazenda['nome']?.toString() : null,
       culturaId: json['cultura_id']?.toString() ?? '',
       culturaNome: json['cultura'] is Map
           ? json['cultura']['plantacultivada']?.toString()
