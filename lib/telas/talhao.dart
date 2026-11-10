@@ -122,8 +122,6 @@ class TalhaoPage extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildQuickStats(),
             ],
           ),
         ),
@@ -246,34 +244,6 @@ class TalhaoPage extends StatelessWidget {
           color: VerdeClaro,
         ),
         onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _buildQuickStats() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange[50],
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildStatItem(Icons.calendar_today, 'Última', 'Atualização', '10/07/2026'),
-          _buildDivider(),
-          _buildStatItem(Icons.emoji_nature, 'Área', 'Total', '45,6 ha'),
-          _buildDivider(),
-          _buildStatItem(Icons.bar_chart, 'Produtividade', 'Estimada', '4.200 kg/ha'),
-        ],
       ),
     );
   }

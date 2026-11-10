@@ -198,48 +198,6 @@ class _FazendaPageState extends State<FazendaPage> {
                     ),
                   ),
                 ),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: VerdeEscuro,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total de Talhões',
-                      style: TextStyle(
-                        color: Bege,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Bege,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        '${provider.talhoes.length}',
-                        style: TextStyle(
-                          color: VerdeEscuro,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -320,7 +278,7 @@ class _FazendaPageState extends State<FazendaPage> {
                   ],
                 ),
               ),
-              Row(
+              Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
@@ -330,7 +288,7 @@ class _FazendaPageState extends State<FazendaPage> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(height: 15),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
                     onPressed: () => _deleteTalhao(talhao.id),
@@ -360,6 +318,7 @@ class _FazendaPageState extends State<FazendaPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
+              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _TalhaoFormModal(

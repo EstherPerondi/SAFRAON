@@ -307,7 +307,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                   ],
                 ),
               ),
-              Row(
+              Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
@@ -317,7 +317,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(height: 15),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
                     onPressed: () => _deleteTalhao(talhao.id),
@@ -347,6 +347,7 @@ class _TalhoesPageState extends State<TalhoesPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
+              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _TalhaoFormModal(

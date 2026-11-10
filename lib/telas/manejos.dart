@@ -5,6 +5,11 @@ import '../models/manejo_model.dart';
 import '../services/lookup_service.dart';
 import '../widgets/novo_item_dialog.dart';
 import '../variaveis.dart';
+import '../models/fazenda_model.dart';
+import '../models/talhao_model.dart';
+import '../services/fazenda_service.dart';
+import '../services/talhao_service.dart';
+import '../services/supabase_service.dart';
 
 class ManejosPage extends StatefulWidget {
   const ManejosPage({super.key});
@@ -367,6 +372,7 @@ class _ManejosPageState extends State<ManejosPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
+              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _ManejoFormModal(
@@ -437,6 +443,7 @@ class _ManejoFormModal extends StatefulWidget {
 
 class _ManejoFormModalState extends State<_ManejoFormModal> {
   final _formKey = GlobalKey<FormState>();
+  String? _talhaoSelecionadoId;
   final _motivoController = TextEditingController();
   String? _tipoManejoId;
   DateTime? _selectedDate;
@@ -513,6 +520,15 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Só pede fazenda/talhão quando a tela foi aberta pelo menu
+                    // principal. Dentro de um talhão, o talhão já é conhecido.
+                    if (widget.talhaoId == null) ...[
+                      _FazendaTalhaoCampos(
+                        talhaoIdInicial: widget.manejo?.talhaoId,
+                        onChanged: (id) => _talhaoSelecionadoId = id,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     _buildTipoManejoDropdown(),
                     const SizedBox(height: 16),
                     _buildDateField(),
@@ -727,7 +743,10 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
     if (_formKey.currentState!.validate() && _selectedDate != null) {
       final novoManejo = ManejoModel(
         id: widget.manejo?.id ?? '',
-        talhaoId: widget.talhaoId ?? widget.manejo?.talhaoId ?? '',
+        talhaoId: _talhaoSelecionadoId ??
+            widget.talhaoId ??
+            widget.manejo?.talhaoId ??
+            '',
         tipoManejoId: _tipoManejoId!,
         data: _selectedDate!,
         descricao: _motivoController.text,
@@ -748,5 +767,176 @@ class _ManejoFormModalState extends State<_ManejoFormModal> {
         ),
       );
     }
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// Campos Fazenda + Talhão do formulário (só aparecem quando a tela é aberta
+// pelo menu principal; dentro de um talhão, o talhão já é conhecido).
+// ---------------------------------------------------------------------------
+class _FazendaTalhaoCampos extends StatefulWidget {
+  final String? talhaoIdInicial;
+  final ValueChanged<String?> onChanged;
+
+  const _FazendaTalhaoCampos({this.talhaoIdInicial, required this.onChanged});
+
+  @override
+  State<_FazendaTalhaoCampos> createState() => _FazendaTalhaoCamposState();
+}
+
+class _FazendaTalhaoCamposState extends State<_FazendaTalhaoCampos> {
+  List<FazendaModel> _fazendas = [];
+  List<TalhaoModel> _talhoes = [];
+  String? _fazendaId;
+  String? _talhaoId;
+  bool _carregando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregar();
+  }
+
+  Future<void> _carregar() async {
+    try {
+      final todas = await FazendaService().getAll();
+      final userId = SupabaseService().currentUserId;
+      final fazendas = userId.isEmpty
+          ? todas
+          : todas.where((f) => f.userId == userId).toList();
+
+      String? fazendaId;
+      String? talhaoId;
+      List<TalhaoModel> talhoes = [];
+      final inicial = widget.talhaoIdInicial;
+
+      if (inicial != null && inicial.isNotEmpty) {
+        final t = await TalhaoService().getById(inicial);
+        if (t != null) {
+          fazendaId = t.fazendaId;
+          talhaoId = t.id;
+          talhoes = await TalhaoService().getByFazenda(t.fazendaId);
+        }
+      } else if (fazendas.length == 1) {
+        fazendaId = fazendas.first.id;
+        talhoes = await TalhaoService().getByFazenda(fazendaId);
+        if (talhoes.length == 1) talhaoId = talhoes.first.id;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _fazendas = fazendas;
+        _talhoes = talhoes;
+        _fazendaId = fazendaId;
+        _talhaoId = talhaoId;
+        _carregando = false;
+      });
+      widget.onChanged(talhaoId);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _carregando = false);
+    }
+  }
+
+  Future<void> _trocarFazenda(String? fazendaId) async {
+    setState(() {
+      _fazendaId = fazendaId;
+      _talhaoId = null;
+      _talhoes = [];
+    });
+    widget.onChanged(null);
+    if (fazendaId == null) return;
+
+    final talhoes = await TalhaoService().getByFazenda(fazendaId);
+    if (!mounted || _fazendaId != fazendaId) return;
+    setState(() {
+      _talhoes = talhoes;
+      if (talhoes.length == 1) _talhaoId = talhoes.first.id;
+    });
+    widget.onChanged(_talhaoId);
+  }
+
+  // Mesmo visual dos demais campos do formulário
+  Widget _campo({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  InputDecoration _deco(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
+      prefixIcon: Icon(icon, color: VerdeClaro),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.all(16),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _campo(
+          child: DropdownButtonFormField<String>(
+            key: ValueKey('fazenda-$_carregando'),
+            isExpanded: true,
+            value: _fazendaId,
+            decoration: _deco('Fazenda', Icons.landscape),
+            items: [
+              for (final f in _fazendas)
+                DropdownMenuItem(
+                  value: f.id,
+                  child: Text(f.nome, overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: _trocarFazenda,
+            validator: (v) =>
+                v == null || v.isEmpty ? 'Selecione a fazenda' : null,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _campo(
+          child: DropdownButtonFormField<String>(
+            key: ValueKey('talhao-$_fazendaId-${_talhoes.length}-$_carregando'),
+            isExpanded: true,
+            value: _talhaoId,
+            decoration: _deco('Talhão', Icons.grid_view),
+            items: [
+              for (final t in _talhoes)
+                DropdownMenuItem(
+                  value: t.id,
+                  child: Text(t.nome, overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: _fazendaId == null
+                ? null
+                : (v) {
+                    setState(() => _talhaoId = v);
+                    widget.onChanged(v);
+                  },
+            validator: (v) =>
+                v == null || v.isEmpty ? 'Selecione o talhão' : null,
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -364,7 +364,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                   ),
                 ),
                 Container(
-                  child: Row(
+                  child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
@@ -375,7 +375,7 @@ class _PrecipitacoesPageState extends State<PrecipitacoesPage> {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
-                      const SizedBox(width: 15),
+                      const SizedBox(height: 15),
                       IconButton(
                         icon: const Icon(Icons.delete_outline, size: 20),
                         onPressed: () => _deletePrecipitacao(precipitacao.id),
@@ -933,63 +933,84 @@ class _FazendaTalhaoCamposState extends State<_FazendaTalhaoCampos> {
     widget.onChanged(_talhaoId);
   }
 
+  // Mesmo visual dos demais campos do formulário
+  Widget _campo({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
   InputDecoration _deco(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: VerdeClaro, fontWeight: FontWeight.w600),
       prefixIcon: Icon(icon, color: VerdeClaro),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      focusedBorder: OutlineInputBorder(
+      border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: VerdeClaro, width: 2),
+        borderSide: BorderSide.none,
       ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.all(16),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_carregando) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8),
-        child: LinearProgressIndicator(),
-      );
-    }
     return Column(
       children: [
-        DropdownButtonFormField<String>(
-          isExpanded: true,
-          value: _fazendaId,
-          decoration: _deco('Fazenda', Icons.landscape),
-          items: [
-            for (final f in _fazendas)
-              DropdownMenuItem(
-                value: f.id,
-                child: Text(f.nome, overflow: TextOverflow.ellipsis),
-              ),
-          ],
-          onChanged: _trocarFazenda,
-          validator: (v) => v == null ? 'Selecione a fazenda' : null,
+        _campo(
+          child: DropdownButtonFormField<String>(
+            key: ValueKey('fazenda-$_carregando'),
+            isExpanded: true,
+            value: _fazendaId,
+            decoration: _deco('Fazenda', Icons.landscape),
+            items: [
+              for (final f in _fazendas)
+                DropdownMenuItem(
+                  value: f.id,
+                  child: Text(f.nome, overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: _trocarFazenda,
+            validator: (v) =>
+                v == null || v.isEmpty ? 'Selecione a fazenda' : null,
+          ),
         ),
         const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          key: ValueKey('talhao-$_fazendaId-${_talhoes.length}'),
-          isExpanded: true,
-          value: _talhaoId,
-          decoration: _deco('Talhão', Icons.grid_view),
-          items: [
-            for (final t in _talhoes)
-              DropdownMenuItem(
-                value: t.id,
-                child: Text(t.nome, overflow: TextOverflow.ellipsis),
-              ),
-          ],
-          onChanged: _fazendaId == null
-              ? null
-              : (v) {
-                  setState(() => _talhaoId = v);
-                  widget.onChanged(v);
-                },
-          validator: (v) => v == null ? 'Selecione o talhão' : null,
+        _campo(
+          child: DropdownButtonFormField<String>(
+            key: ValueKey('talhao-$_fazendaId-${_talhoes.length}-$_carregando'),
+            isExpanded: true,
+            value: _talhaoId,
+            decoration: _deco('Talhão', Icons.grid_view),
+            items: [
+              for (final t in _talhoes)
+                DropdownMenuItem(
+                  value: t.id,
+                  child: Text(t.nome, overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: _fazendaId == null
+                ? null
+                : (v) {
+                    setState(() => _talhaoId = v);
+                    widget.onChanged(v);
+                  },
+            validator: (v) =>
+                v == null || v.isEmpty ? 'Selecione o talhão' : null,
+          ),
         ),
       ],
     );

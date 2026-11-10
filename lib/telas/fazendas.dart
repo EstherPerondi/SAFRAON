@@ -171,7 +171,7 @@ class _FazendasPageState extends State<FazendasPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.house, size: 80, color: Colors.grey[400]),
+            Icon(Icons.location_on, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'Nenhuma fazenda cadastrada',
@@ -228,10 +228,32 @@ class _FazendasPageState extends State<FazendasPage> {
                         color: Colors.black87,
                       ),
                     ),
+                    if (fazenda.estadoNome != null &&
+                        fazenda.estadoNome!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, size: 14, color: VerdeClaro),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              fazenda.estadoNome!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
-              Row(
+              Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
@@ -241,7 +263,7 @@ class _FazendasPageState extends State<FazendasPage> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(height: 15),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
                     onPressed: () => _deleteFazenda(fazenda.id),
@@ -283,6 +305,7 @@ class _FazendasPageState extends State<FazendasPage> {
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
+              maxWidth: 560,
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: _FazendaFormModal(
