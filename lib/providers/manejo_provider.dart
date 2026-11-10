@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/supabase_service.dart';
 import '../models/manejo_model.dart';
 import '../services/manejo_service.dart';
 
@@ -20,7 +21,7 @@ class ManejoProvider extends ChangeNotifier {
     try {
       _manejos = await _service.getByTalhaoId(talhaoId);
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -35,7 +36,7 @@ class ManejoProvider extends ChangeNotifier {
     try {
       _manejos = await _service.getAllForUser();
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -58,7 +59,7 @@ class ManejoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -84,7 +85,7 @@ class ManejoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -107,7 +108,7 @@ class ManejoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       _isLoading = false;
       notifyListeners();
       return false;

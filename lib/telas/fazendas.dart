@@ -1,5 +1,6 @@
 // lib/screens/fazendas.dart
 import 'package:flutter/material.dart';
+import '../services/supabase_service.dart';
 import 'package:provider/provider.dart';
 import '../telas/fazenda.dart';  
 import '../providers/fazenda_provider.dart';
@@ -638,7 +639,7 @@ class _FazendaFormModalState extends State<_FazendaFormModal> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao salvar: ${e.toString()}'),
+            content: Text('Erro ao salvar: ${mensagemDeErro(e)}'),
             backgroundColor: Colors.red,
           ),
         );

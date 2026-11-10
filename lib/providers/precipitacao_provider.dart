@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/supabase_service.dart';
 import '../models/precipitacao_model.dart';
 import '../services/precipitacao_service.dart';
 
@@ -22,7 +23,7 @@ class PrecipitacaoProvider extends ChangeNotifier {
     try {
       _precipitacoes = await _service.getByTalhaoId(talhaoId);
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -38,7 +39,7 @@ class PrecipitacaoProvider extends ChangeNotifier {
       _precipitacoes = await _service.getAllForUser();
       _nomesTalhoes = await _service.getNomesTalhoes();
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -61,7 +62,7 @@ class PrecipitacaoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -87,7 +88,7 @@ class PrecipitacaoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -110,7 +111,7 @@ class PrecipitacaoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       _isLoading = false;
       notifyListeners();
       return false;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/supabase_service.dart';
 import '../models/aplicacao_model.dart';
 import '../services/aplicacao_service.dart';
 
@@ -21,7 +22,7 @@ class AplicacaoProvider extends ChangeNotifier {
     try {
       _aplicacoes = await _service.getByTalhaoId(talhaoId);
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -37,7 +38,7 @@ class AplicacaoProvider extends ChangeNotifier {
     try {
       _aplicacoes = await _service.getAllForUser();
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -61,7 +62,7 @@ class AplicacaoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -88,7 +89,7 @@ class AplicacaoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -112,7 +113,7 @@ class AplicacaoProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       _isLoading = false;
       notifyListeners();
       return false;

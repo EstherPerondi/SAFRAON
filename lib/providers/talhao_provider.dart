@@ -1,5 +1,6 @@
 // lib/providers/talhao_provider.dart
 import 'package:flutter/material.dart';
+import '../services/supabase_service.dart';
 import '../models/talhao_model.dart';
 import '../services/talhao_service.dart';
 import '../utils/ordenacao.dart';
@@ -34,7 +35,7 @@ class TalhaoProvider extends ChangeNotifier {
       _talhoes = await _service.getAll();
       print('✅ ${_talhoes.length} talhões carregados');
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       print('❌ Erro ao carregar talhões: $e');
     } finally {
       _isLoading = false;
@@ -55,7 +56,7 @@ class TalhaoProvider extends ChangeNotifier {
       _talhoes = await _service.getByFazenda(fazendaId);
       print('✅ ${_talhoes.length} talhões carregados para fazenda $fazendaId');
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       print('❌ Erro ao carregar talhões: $e');
     } finally {
       _isLoading = false;
@@ -91,7 +92,7 @@ class TalhaoProvider extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       print('❌ Erro ao criar talhão: $e');
       _isLoading = false;
       notifyListeners();
@@ -131,7 +132,7 @@ class TalhaoProvider extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       print('❌ Erro ao atualizar talhão: $e');
       _isLoading = false;
       notifyListeners();
@@ -168,7 +169,7 @@ class TalhaoProvider extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       print('❌ Erro ao deletar talhão: $e');
       _isLoading = false;
       notifyListeners();

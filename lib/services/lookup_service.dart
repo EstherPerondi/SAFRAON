@@ -8,6 +8,7 @@
 // Observação: as listas só aparecem offline DEPOIS que o app sincronizou
 // pelo menos uma vez com internet (primeiro login).
 import 'package:flutter/foundation.dart';
+import '../services/supabase_service.dart';
 import 'package:powersync/powersync.dart';
 
 import '../powersync/powersync_service.dart';
@@ -212,7 +213,7 @@ class LookupService {
       );
       return LookupItem(id: id, nome: nomeLimpo);
     } catch (e) {
-      throw Exception('Erro ao criar cultura: $e');
+      throw Exception('Erro ao criar cultura: ${mensagemDeErro(e)}');
     }
   }
 
@@ -236,7 +237,7 @@ class LookupService {
         fabricante: fab,
       );
     } catch (e) {
-      throw Exception('Erro ao criar variedade: $e');
+      throw Exception('Erro ao criar variedade: ${mensagemDeErro(e)}');
     }
   }
 
@@ -251,7 +252,7 @@ class LookupService {
       );
       return LookupItem(id: id, nome: nomeLimpo, fabricante: fab);
     } catch (e) {
-      throw Exception('Erro ao criar adubo: $e');
+      throw Exception('Erro ao criar adubo: ${mensagemDeErro(e)}');
     }
   }
 
@@ -275,7 +276,7 @@ class LookupService {
         dosagemRecomendada: dosagemRecomendada,
       );
     } catch (e) {
-      throw Exception('Erro ao criar inoculante: $e');
+      throw Exception('Erro ao criar inoculante: ${mensagemDeErro(e)}');
     }
   }
 
@@ -303,7 +304,7 @@ class LookupService {
         utilidade: util,
       );
     } catch (e) {
-      throw Exception('Erro ao criar defensivo: $e');
+      throw Exception('Erro ao criar defensivo: ${mensagemDeErro(e)}');
     }
   }
 
@@ -316,7 +317,7 @@ class LookupService {
       );
       return LookupItem(id: id, nome: nomeLimpo);
     } catch (e) {
-      throw Exception('Erro ao criar estado: $e');
+      throw Exception('Erro ao criar estado: ${mensagemDeErro(e)}');
     }
   }
 
@@ -330,7 +331,7 @@ class LookupService {
       );
       return LookupItem(id: id, nome: nomeLimpo);
     } catch (e) {
-      throw Exception('Erro ao criar tipo de manejo: $e');
+      throw Exception('Erro ao criar tipo de manejo: ${mensagemDeErro(e)}');
     }
   }
 }

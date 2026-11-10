@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safraon/services/supabase_service.dart';
 import 'package:safraon/variaveis.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -103,30 +104,61 @@ class _CadastroState extends State<Cadastro> {
         },
       );
 
-      if (response.user != null && mounted) {
+      if (!mounted) return;
+
+      // Email já cadastrado: o Supabase não devolve erro (para não revelar
+      // quais emails existem), devolve um usuário sem identidades.
+      if (response.user != null &&
+          (response.user!.identities?.isEmpty ?? false)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Este email já está cadastrado. Faça login ou recupere a senha.',
+            ),
+            backgroundColor: Vermelho,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
+
+      if (response.user != null) {
+        // Sem confirmação de email no Supabase, o cadastro já abre a sessão.
+        final jaLogado = response.session != null;
         _limparCampos();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Cadastro realizado! Verifique seu email para confirmar a conta.',
+              jaLogado
+                  ? 'Cadastro realizado!'
+                  : 'Cadastro realizado! Verifique seu email para confirmar a conta.',
             ),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
 
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            Navigator.pop(context);
-          }
-        });
+        if (jaLogado) {
+          // O AuthGate (raiz) já mostra a tela principal e inicia a sincronização.
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        } else {
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              Navigator.pop(context);
+            }
+          });
+        }
       }
     } on AuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.message),
+            content: Text(
+              ehErroDeRede(e)
+                  ? 'Sem conexão. O cadastro precisa de internet.'
+                  : mensagemDeErro(e),
+            ),
             backgroundColor: Vermelho,
             duration: const Duration(seconds: 3),
           ),
@@ -136,7 +168,11 @@ class _CadastroState extends State<Cadastro> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Erro ao cadastrar. Tente novamente.'),
+            content: Text(
+              ehErroDeRede(e)
+                  ? 'Sem conexão. O cadastro precisa de internet.'
+                  : 'Erro ao cadastrar. Tente novamente.',
+            ),
             backgroundColor: Vermelho,
             duration: const Duration(seconds: 3),
           ),

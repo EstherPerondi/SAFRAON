@@ -34,7 +34,7 @@ class FazendaProvider extends ChangeNotifier {
       print('✅ ${_fazendas.length} fazendas carregadas');
       _successMessage = 'Fazendas carregadas com sucesso';
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       print('❌ Erro ao carregar fazendas: $e');
     } finally {
       _isLoading = false;
@@ -79,7 +79,7 @@ class FazendaProvider extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       print('❌ Erro ao criar fazenda: $e');
       _isLoading = false;
       notifyListeners();
@@ -119,7 +119,7 @@ class FazendaProvider extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       print('❌ Erro ao atualizar fazenda: $e');
       _isLoading = false;
       notifyListeners();
@@ -156,7 +156,7 @@ class FazendaProvider extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _error = e.toString();
+      _error = mensagemDeErro(e);
       print('❌ Erro ao deletar fazenda: $e');
       _isLoading = false;
       notifyListeners();

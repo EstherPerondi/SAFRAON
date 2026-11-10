@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'supabase_service.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -26,9 +27,8 @@ class AuthService {
   }
 
   // Logout
-  Future<void> signOut() async {
-    await _supabase.auth.signOut();
-  }
+  // (funciona offline: ver SupabaseService.signOut)
+  Future<void> signOut() => SupabaseService().signOut();
 
   // Usuário atual
   User? get currentUser => _supabase.auth.currentUser;

@@ -87,7 +87,7 @@ class _RecuperarSenhaPageState extends State<RecuperarSenhaPage> {
         msg.contains('security purposes')) {
       return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
     }
-    return e.message;
+    return mensagemDeErro(e);
   }
 
   void _iniciarContagem() {

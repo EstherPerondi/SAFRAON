@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/supabase_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/talhao_provider.dart';
 import '../providers/fazenda_provider.dart';
@@ -689,7 +690,7 @@ class _TalhaoFormModalState extends State<_TalhaoFormModal> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao salvar: ${e.toString()}'),
+            content: Text('Erro ao salvar: ${mensagemDeErro(e)}'),
             backgroundColor: Colors.red,
           ),
         );

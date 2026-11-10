@@ -35,7 +35,7 @@ class _ColheitasPageState extends State<ColheitasPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao carregar culturas: $e'),
+            content: Text('Erro ao carregar culturas: ${mensagemDeErro(e)}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),

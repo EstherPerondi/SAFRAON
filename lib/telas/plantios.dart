@@ -36,7 +36,7 @@ class _PlantiosPageState extends State<PlantiosPage> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Erro ao carregar culturas: $e'),
+                content: Text('Erro ao carregar culturas: ${mensagemDeErro(e)}'),
                 backgroundColor: Colors.red,
                 duration: const Duration(seconds: 4),
               ),
@@ -52,7 +52,7 @@ class _PlantiosPageState extends State<PlantiosPage> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Erro ao carregar adubos: $e'),
+                content: Text('Erro ao carregar adubos: ${mensagemDeErro(e)}'),
                 backgroundColor: Colors.red,
                 duration: const Duration(seconds: 4),
               ),
@@ -68,7 +68,7 @@ class _PlantiosPageState extends State<PlantiosPage> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Erro ao carregar inoculantes: $e'),
+                content: Text('Erro ao carregar inoculantes: ${mensagemDeErro(e)}'),
                 backgroundColor: Colors.red,
                 duration: const Duration(seconds: 4),
               ),
@@ -584,7 +584,7 @@ class _PlantioFormModalState extends State<_PlantioFormModal> {
         setState(() => _carregandoVariedades = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao carregar variedades: $e'),
+            content: Text('Erro ao carregar variedades: ${mensagemDeErro(e)}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),

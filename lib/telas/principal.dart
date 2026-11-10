@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:safraon/variaveis.dart';
+import '../powersync/powersync_service.dart';
 import '../services/auth_service.dart';
 
 class PrincipalPage extends StatelessWidget {
@@ -71,6 +72,37 @@ class PrincipalPage extends StatelessWidget {
                 icon: const Icon(Icons.logout),
                 tooltip: 'Sair',
                 onPressed: () async {
+                  // Avisa se há alterações feitas offline ainda não enviadas
+                  var pendentes = false;
+                  try {
+                    pendentes = await PowerSyncService().hasPendingUploads();
+                  } catch (_) {}
+                  if (pendentes) {
+                    if (!context.mounted) return;
+                    final sair = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Sair do app?'),
+                        content: const Text(
+                          'Há alterações feitas sem internet que ainda não foram '
+                          'enviadas. Elas ficam guardadas neste aparelho e sobem '
+                          'quando você entrar de novo com esta mesma conta e '
+                          'estiver online.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancelar'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            child: const Text('Sair'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (sair != true) return;
+                  }
                   await AuthService().signOut();
                   if (context.mounted) {
                     Navigator.pushNamedAndRemoveUntil(

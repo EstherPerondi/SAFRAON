@@ -11,6 +11,7 @@
 // dosagem recomendada etc.), para que o usuário consiga cadastrar todos
 // os dados possíveis, não só o nome.
 import 'package:flutter/material.dart';
+import '../services/supabase_service.dart';
 import '../services/lookup_service.dart';
 import '../variaveis.dart';
 
@@ -151,12 +152,7 @@ class _NovoItemDialogState extends State<_NovoItemDialog> {
   /// Supabase (ex: RLS bloqueando o insert) em vez de um texto genérico —
   /// isso ajuda a diagnosticar rapidamente o que está impedindo o salvamento.
   String _mensagemDeErro(Object e) {
-    final texto = e.toString();
-    if (texto.contains('row-level security') || texto.contains('RLS')) {
-      return 'Sem permissão para cadastrar (política de segurança do banco '
-          'bloqueou o INSERT nesta tabela).';
-    }
-    return 'Não foi possível salvar: $texto';
+    return 'Não foi possível salvar: ${mensagemDeErro(e)}';
   }
 
   Future<void> _salvar() async {

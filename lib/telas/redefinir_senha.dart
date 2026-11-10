@@ -74,7 +74,7 @@ class _RedefinirSenhaPageState extends State<RedefinirSenhaPage> {
       );
     } on AuthException catch (e) {
       final msg = e.message.toLowerCase();
-      String texto = e.message;
+      String texto = mensagemDeErro(e);
       if (msg.contains('different from the old password') ||
           msg.contains('same_password')) {
         texto = 'A nova senha deve ser diferente da senha atual.';

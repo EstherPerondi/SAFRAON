@@ -76,8 +76,11 @@ class AuthGate extends StatelessWidget {
           builder: (context, snapshot) {
             final session = snapshot.data?.session ??
                 SupabaseService().client.auth.currentSession;
+            // Offline com token vencido não há sessão, mas o usuário já
+            // logou neste aparelho: segue para o app (dados locais).
+            final logado = session != null || SupabaseService().temLoginLocal;
 
-            if (session != null) {
+            if (logado) {
               return recuperando
                   ? const RedefinirSenhaPage()
                   : const PrincipalPage();

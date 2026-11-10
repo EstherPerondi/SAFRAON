@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/supabase_service.dart';
 import '../variaveis.dart';
 import 'cadastro.dart';
 import 'recuperar_senha.dart';
@@ -76,11 +77,21 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on AuthException catch (e) {
       if (mounted) {
-        _showError(e.message);
+        _showError(
+          ehErroDeRede(e)
+              ? 'Sem conexão. O login precisa de internet. Se você já entrou '
+                  'neste aparelho antes e não saiu, o app abre offline.'
+              : mensagemDeErro(e),
+        );
       }
     } catch (e) {
       if (mounted) {
-        _showError('Erro ao conectar. Verifique sua internet.');
+        _showError(
+          ehErroDeRede(e)
+              ? 'Sem conexão. O login precisa de internet. Se você já entrou '
+                  'neste aparelho antes e não saiu, o app abre offline.'
+              : 'Erro ao entrar. Tente novamente.',
+        );
       }
     } finally {
       if (mounted) {
